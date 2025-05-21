@@ -1,0 +1,20 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+RAGenv/
+*.pyc
+__pycache__/
+
+# Vector Store Directory
+vector_store/
+
+# OS-specific files (Optional but recommended)
+.DS_Store
+Thumbs.db
+
+# Logs
+customrag.log
+
+# Embeddings Backup for Vector Store
+embeddings_backup.pkl

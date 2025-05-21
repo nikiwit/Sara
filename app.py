@@ -13,7 +13,6 @@ Features:
 - Improved direct question matching
 
 Original Author: Nik
-Enhanced By: Claude
 License: MIT
 """
 
@@ -710,24 +709,48 @@ class InputProcessor:
             if re.search(pattern, query, re.IGNORECASE):
                 return QueryType.COMMAND
         
-        # Check for identity queries (NEW)
+        # Check for identity queries (ENHANCED WITH MORE PATTERNS)
         identity_patterns = [
+            # Basic identity questions
             r'\bwho\s+(?:are|r)\s+(?:you|u)\b',
             r'\bwhat\s+(?:are|r)\s+(?:you|u)\b',
             r'\byour\s+name\b',
             r'\bur\s+name\b',
-            r'\bwho\s+(?:created|made|built|developed)\s+(?:you|u|this)\b',
-            r'\bhow\s+(?:were|r)\s+(?:you|u)\s+(?:made|created|built|developed)\b',
+            r'\bwhat\'s\s+your\s+name\b',
             r'\bintroduce\s+yourself\b',
             r'\babout\s+yourself\b',
+            r'\bwho\s+(?:created|made|built|developed)\s+(?:you|u|this)\b',
+            
+            # Technical/system questions
+            r'\bhow\s+(?:were|r)\s+(?:you|u)\s+(?:made|created|built|developed)\b',
             r'\bwhat\s+(?:can|do)\s+you\s+do\b',
             r'\byour\s+purpose\b',
-            r'\bhow\s+do\s+you\s+work\b'
+            r'\bhow\s+do\s+you\s+work\b',
+            r'\bwhat\s+(?:model|llm|language model|embedding model)\s+(?:are|is|do)\s+you\b',
+            r'\bwhat\s+version\s+(?:are|is|do)\s+you\b',
+            r'\bwhat\s+(?:are|is)\s+(?:your|ur)\s+(?:specs|capabilities|parameters|tokens|context)\b',
+            r'\bwhat\s+(?:tech|technology|stack|framework)\s+(?:are|is|do)\s+you\s+use\b',
+            r'\bwhich\s+(?:model|llm|language model)\s+(?:are|is|do)\s+you\b',
+            r'\byour\s+(?:model|llm|technology|capabilities)\b',
+            r'\bsystem\s+specs\b',
+            r'\btell\s+me\s+about\s+(?:you|yourself|the system|this system)\b',
+            
+            # Key terms that should trigger identity detection
+            r'\byou\s+(?:a|an)\s+(?:llm|language model|ai|model|bot)\b',
+            r'\b(?:llm|language model|ai model|embedding|vector)\s+(?:used|using|powering)\b',
+            r'\b(?:built|created|made)\s+(?:with|using)\b',
+            r'\bare\s+you\s+(?:a|an|the)\s+(?:llm|language model|ai|chatbot|assistant)\b',
+            r'\bhow\s+(?:large|big|small)\s+(?:are|is)\s+(?:you|your|the)\s+(?:model|context|window)\b'
         ]
         
         for pattern in identity_patterns:
             if re.search(pattern, query, re.IGNORECASE):
                 return QueryType.IDENTITY
+        
+        # Special case: queries containing "model" or "llm" without other context are likely identity questions
+        model_terms = ["model", "llm", "language model", "embedding", "claude", "gpt", "openai", "anthropic", "huggingface"]
+        if any(term in query.lower() for term in model_terms) and len(tokens) < 8:
+            return QueryType.IDENTITY
         
         # Check for conversational queries
         conversational_patterns = [
@@ -767,9 +790,8 @@ class InputProcessor:
         
         # Check for APU-specific financial queries
         financial_patterns = [
-            r'\b(?:fee|payment|charge|cost|expense|tuition|scholarship|funding|financial aid)\b',
-            r'\b(?:bursary|loan|refund|installment|billing|invoice|receipt|credit|debit)\b',
-            r'\b(?:sponsorship|discount|waiver|rebate|compensation|penalty)\b'
+            r'\b(?:fee|payment|pay|cash|credit|debit|invoice|receipt|outstanding|due|overdue|installment)\b',
+            r'\b(?:scholarship|funding|financial aid|bursary|loan|charge|refund|deposit)\b'
         ]
         
         for pattern in financial_patterns:
@@ -1257,6 +1279,71 @@ class ChromaDBManager:
 # 3. RETRIEVAL SYSTEM
 #############################################################################
 
+class SystemInformation:
+    """Manages information about the RAG system itself."""
+    
+    @classmethod
+    def get_system_info(cls) -> Dict[str, str]:
+        """
+        Get system information dictionary for answering identity questions.
+        
+        Returns:
+            Dictionary mapping question patterns to responses
+        """
+        return {
+            # Basic identity information
+            "who are you": "I'm the APU Knowledge Base Assistant, designed to help you find information about Asia Pacific University's academic procedures, administrative processes, and university services.",
+            "what are you": "I'm an AI-powered retrieval system specifically built to help APU students and staff access information from the APU knowledge base quickly and accurately.",
+            "your name": "You can call me the APU Knowledge Base Assistant. I'm here to help you with any questions about APU.",
+            
+            # Technical information about the system
+            "model": f"I'm powered by {Config.LLM_MODEL_NAME} for answering questions, and I use the {Config.EMBEDDING_MODEL_NAME} embedding model to understand and retrieve relevant information from the APU knowledge base.",
+            "llm": f"I'm using {Config.LLM_MODEL_NAME} as my language model to generate responses based on information retrieved from the APU knowledge base.",
+            "embedding": f"I use the {Config.EMBEDDING_MODEL_NAME} embedding model to convert text into numerical vectors for semantic search capabilities.",
+            "how do you work": "I use a technique called Retrieval Augmented Generation (RAG) to find relevant information in the APU knowledge base and create helpful responses to your questions. First, I analyze your question, then search for relevant documents, and finally generate a response based on the retrieved information.",
+            "technology": f"I'm built using the LangChain framework with {Config.LLM_MODEL_NAME} as my language model and {Config.EMBEDDING_MODEL_NAME} for embeddings. I use ChromaDB as my vector database to store and retrieve information efficiently.",
+            "version": f"I'm running Enhanced CustomRAG version 1.0, an advanced Retrieval Augmented Generation system optimized for the APU knowledge base.",
+            
+            # Development information
+            "who made you": "I was developed by the APU technology team to provide quick and accurate answers about university procedures and policies.",
+            "what can you do": "I can answer questions about APU's academic procedures, administrative processes, fees, exams, and other university services. Just ask me anything related to APU!",
+            "your purpose": "My purpose is to help APU students and staff quickly find accurate information about university procedures, policies, and services.",
+        }
+    
+    @classmethod
+    def get_response_for_identity_query(cls, query: str) -> str:
+        """
+        Get appropriate response for an identity query.
+        
+        Args:
+            query: The user's query string
+            
+        Returns:
+            Response string appropriate for the identity query
+        """
+        query_lower = query.lower()
+        system_info = cls.get_system_info()
+        
+        # Check for model-specific questions 
+        if any(term in query_lower for term in ["model", "llm", "language model"]):
+            return system_info.get("model", system_info.get("llm"))
+        
+        # Check for embedding/vector questions
+        if any(term in query_lower for term in ["embedding", "vector", "semantic"]):
+            return system_info.get("embedding")
+        
+        # Check for technology questions
+        if any(term in query_lower for term in ["tech", "technology", "stack", "framework", "built with"]):
+            return system_info.get("technology")
+        
+        # Check for other identity questions
+        for key, value in system_info.items():
+            if key in query_lower:
+                return value
+        
+        # Default response
+        return f"I'm the APU Knowledge Base Assistant. I'm powered by the {Config.LLM_MODEL_NAME} language model with {Config.EMBEDDING_MODEL_NAME} embeddings for retrieval. I'm here to help you find information about APU's academic procedures, administrative processes, and university services."
+
 class RetrievalHandler:
     """Handles document retrieval using multiple strategies."""
     
@@ -1314,36 +1401,23 @@ class RetrievalHandler:
         
         logger.info(f"Processing {query_type.value} query: {original_query}")
         
-        # Handle identity questions with predefined responses
+        # Handle identity questions with SystemInformation
         if query_type == QueryType.IDENTITY:
-            # Map of identity questions to predefined answers
-            identity_responses = {
-                "who are you": "I'm the APU Knowledge Base Assistant, designed to help you find information about Asia Pacific University's academic procedures, administrative processes, and university services.",
-                "what are you": "I'm an AI-powered retrieval system specifically built to help APU students and staff access information from the APU knowledge base quickly and accurately.",
-                "your name": "You can call me the APU Knowledge Base Assistant. I'm here to help you with any questions about APU.",
-                "how do you work": "I use a technique called Retrieval Augmented Generation to find relevant information in the APU knowledge base and create helpful responses to your questions.",
-                "who made you": "I was developed by the APU technology team to provide quick and accurate answers about university procedures and policies.",
-                "what can you do": "I can answer questions about APU's academic procedures, administrative processes, fees, exams, and other university services. Just ask me anything related to APU!",
-                "your purpose": "My purpose is to help APU students and staff quickly find accurate information about university procedures, policies, and services.",
-            }
-            
-            # Default response if no specific match
-            response = "I'm the APU Knowledge Base Assistant. I'm here to help you find information about APU's academic procedures, administrative processes, and university services."
-            
-            # Look for specific patterns in the query
-            query_lower = original_query.lower()
-            for key, value in identity_responses.items():
-                if key in query_lower:
-                    response = value
-                    break
-                    
+            response = SystemInformation.get_response_for_identity_query(original_query)
+                
             # Update memory
             self.memory.chat_memory.add_user_message(original_query)
             self.memory.chat_memory.add_ai_message(response)
             
-            # If streaming, return as iterator
+            # If streaming, return character by character iterator instead of full response
             if stream:
-                return iter([response])
+                # Return an iterator that yields one character at a time with slight delay
+                def character_stream(text):
+                    for char in text:
+                        yield char
+                        time.sleep(0.01)  # Same delay as in ConversationHandler
+                        
+                return character_stream(response)
             else:
                 return response
         
@@ -1393,15 +1467,70 @@ class RetrievalHandler:
             logger.info("No documents found, trying hybrid fallback strategy")
             context_docs = self._retrieve_documents(expanded_queries, RetrievalStrategy.HYBRID)
         
+        # If still no relevant documents, return a "no information" response
+        if not context_docs:
+            no_info_response = (
+                "I don't have specific information about that in the APU knowledge base. "
+                "To get accurate information on this topic, I'd recommend contacting the appropriate "
+                "department at APU directly."
+            )
+            
+            # Update memory
+            self.memory.chat_memory.add_user_message(original_query)
+            self.memory.chat_memory.add_ai_message(no_info_response)
+            
+            # If streaming, return as iterator
+            if stream:
+                return iter([no_info_response])
+            else:
+                return no_info_response
+        
+        # Assess document relevance
+        relevance_score = self._assess_document_relevance(context_docs, original_query)
+        
+        # If relevance is too low, return low confidence response
+        if relevance_score < 0.3:  # Low relevance threshold
+            low_confidence_response = (
+                "I'm not confident I have the specific information you're looking for in the APU knowledge base. "
+                "The information I found might not be directly relevant to your question. "
+                "For accurate information, you may want to contact the appropriate APU department directly."
+            )
+            
+            # Update memory
+            self.memory.chat_memory.add_user_message(original_query)
+            self.memory.chat_memory.add_ai_message(low_confidence_response)
+            
+            # If streaming, return as iterator
+            if stream:
+                return iter([low_confidence_response])
+            else:
+                return low_confidence_response
+        
         # Process the retrieved documents
         context = self.context_processor.process_context(context_docs, query_analysis)
+        
+        # Check for hallucination risk
+        is_risky, risk_reason = self._check_hallucination_risk(original_query, context)
+        
+        if is_risky:
+            logger.warning(f"Hallucination risk detected: {risk_reason}")
+            
+            # For high risk queries, add a caution to the context
+            hallucination_warning = (
+                f"CAUTION: This query has elements that may not be fully addressed in the retrieved "
+                f"context ({risk_reason}). Only provide information directly stated in the context, "
+                f"and be clear about information gaps.\n\n"
+            )
+            
+            context = hallucination_warning + context
         
         # Generate response using RAG system
         input_dict = {
             "question": original_query,
             "context": context,
             "chat_history": self.memory.chat_memory.messages,
-            "is_faq_match": False
+            "is_faq_match": False,
+            "relevance_score": relevance_score
         }
         
         # Generate response through LLM with streaming if requested
@@ -1836,15 +1965,43 @@ class RetrievalHandler:
         # Check if this is an FAQ match
         is_faq_match = input_dict.get("is_faq_match", False)
         match_score = input_dict.get("match_score", 0)
-        
-        # Detect financial questions
         question = input_dict.get("question", "").lower()
-        is_financial = any(term in question for term in [
-            "fee", "payment", "pay", "cash", "credit", "debit", "invoice", 
-            "receipt", "outstanding", "due", "overdue", "installment",
-            "scholarship", "loan", "charge", "refund", "deposit"
-        ])
+        relevance_score = input_dict.get("relevance_score", 1.0)
         
+        # Add system debugging for detecting potential hallucinations
+        debug_prefix = ""
+        
+        # Debug thinking for identity questions (which should be caught earlier)
+        if any(term in question for term in ["model", "llm", "who are you", "what are you"]):
+            debug_prefix = f"""
+            <think>
+            This appears to be a question about my identity or technical specifications. I should NOT search 
+            the knowledge base for this answer. Instead, I should provide factual information about the
+            system itself based on known configuration.
+            
+            System specifications:
+            - LLM Model: {Config.LLM_MODEL_NAME}
+            - Embedding Model: {Config.EMBEDDING_MODEL_NAME}
+            - Search Type: {Config.RETRIEVER_SEARCH_TYPE}
+            - Role: APU Knowledge Base Assistant
+            </think>
+            """
+        
+        # Debug thinking for low relevance scores    
+        elif relevance_score < 0.5:
+            debug_prefix = f"""
+            <think>
+            This query has a low relevance score ({relevance_score:.2f}), meaning the retrieved documents 
+            may not be directly relevant to the question. I should be cautious and:
+            
+            1. Only provide information explicitly stated in the context
+            2. Acknowledge if I don't have sufficient information to answer fully
+            3. Not try to infer or guess information not present in the context
+            4. Suggest contacting appropriate APU departments for more specific information
+            </think>
+            """
+        
+        # If this is an FAQ match with high confidence
         if is_faq_match and match_score > 0.85:
             template = """
             You are an AI assistant answering questions about APU (Asia Pacific University).
@@ -1856,6 +2013,8 @@ class RetrievalHandler:
             4. Do NOT use markdown, bold text, or "Answer:" labels in your response
             5. Your answer must be based ONLY on the information in "SOURCE TEXT" - do not add any details not present there
             
+            {debug_prefix}
+            
             Context from APU knowledge base:
             {context}
             
@@ -1863,7 +2022,12 @@ class RetrievalHandler:
             
             Your response:
             """
-        elif is_financial:
+        # Check if financial question
+        elif any(term in question for term in [
+            "fee", "payment", "pay", "cash", "credit", "debit", "invoice", 
+            "receipt", "outstanding", "due", "overdue", "installment",
+            "scholarship", "loan", "charge", "refund", "deposit"
+        ]):
             # Enhanced template for financial questions
             template = """
             You are a helpful AI assistant answering questions about financial matters at APU (Asia Pacific University) in Malaysia.
@@ -1875,6 +2039,9 @@ class RetrievalHandler:
             4. Mention what documentation students need when making payments
             5. Copy ALL email addresses and contact information EXACTLY as they appear in the context
             6. Do NOT invent or modify any payment methods or procedures not mentioned in the context
+            7. Do NOT hallucinate any details not explicitly stated in the context
+            
+            {debug_prefix}
             
             If specific payment information is not available in the context, clearly state:
             "The specific payment procedure for this situation is not detailed in my knowledge base. Please contact the Finance Office at finance@apu.edu.my or visit the Finance Counter during operating hours (Monday-Friday, 9am-5pm)."
@@ -1888,22 +2055,25 @@ class RetrievalHandler:
             Question: {question}
             """
         else:
-            # Standard RAG prompt with similar instructions
+            # Standard RAG prompt with enhanced anti-hallucination instructions
             template = """
             You are a helpful AI assistant answering questions about APU (Asia Pacific University) in Malaysia. 
             
             CRITICAL INSTRUCTIONS:
-            1. Copy ALL email addresses EXACTLY as they appear in the context (e.g., admin@apu.edu.my)
-            2. Do NOT invent or modify any email addresses or contact information
-            3. Do NOT add any markdown formatting, bold text, or "Answer:" labels
-            4. Provide only a single, straightforward response
+            1. ONLY answer using information directly stated in the context provided
+            2. If you cannot find the specific answer in the context, say "I don't have specific information about that in the APU knowledge base"
+            3. NEVER invent details, email addresses, phone numbers, deadlines, or procedures
+            4. Copy ALL email addresses EXACTLY as they appear in the context (e.g., admin@apu.edu.my)
+            5. Do NOT add any markdown formatting, bold text, or "Answer:" labels
+            6. Provide only a single, straightforward response
+            
+            {debug_prefix}
             
             Additional guidelines:
-            - If you find the answer in the APU knowledge base, respond directly and precisely
             - Focus on providing clear, action-oriented information when answering procedural questions
             - Use the specific terminology from APU (e.g., "EC" for "Extenuating Circumstances")
             - If information about specific fees is available, include the exact amount
-            - If you cannot find specific information in the knowledge base, say "I don't have specific information about that in the APU knowledge base"
+            - If the answer isn't in the context but the question is about APU, suggest contacting the relevant department
             
             Context from APU knowledge base:
             {context}
@@ -1926,10 +2096,140 @@ class RetrievalHandler:
         prompt = template.format(
             context=input_dict["context"],
             chat_history=chat_history,
-            question=input_dict["question"]
+            question=input_dict["question"],
+            debug_prefix=debug_prefix
         )
         
         return prompt
+    
+    def _assess_document_relevance(self, documents: List[Document], query: str) -> float:
+        """
+        Assess how relevant the retrieved documents are to the query.
+        
+        Args:
+            documents: Retrieved documents
+            query: Original query string
+            
+        Returns:
+            Relevance score between 0 and 1
+        """
+        if not documents:
+            return 0.0
+            
+        # Tokenize query
+        query_tokens = word_tokenize(query.lower())
+        
+        # Remove stopwords
+        stop_words = set(stopwords.words('english'))
+        query_keywords = [token for token in query_tokens if token not in stop_words and len(token) > 2]
+        
+        if not query_keywords:
+            return 0.5  # No keywords to match
+        
+        # Extract bigrams for phrase matching
+        query_bigrams = list(ngrams(query_tokens, 2)) if len(query_tokens) >= 2 else []
+        query_bigram_phrases = [' '.join(bg) for bg in query_bigrams]
+        
+        # Count keyword and phrase matches in documents
+        total_keyword_matches = 0
+        total_phrase_matches = 0
+        max_keyword_matches = len(query_keywords) * len(documents)
+        max_phrase_matches = len(query_bigram_phrases) * len(documents) if query_bigram_phrases else 1
+        
+        # Track semantic similarity if embeddings are available
+        semantic_scores = []
+        
+        for doc in documents:
+            content_lower = doc.page_content.lower()
+            
+            # Keyword matching
+            for keyword in query_keywords:
+                if keyword in content_lower:
+                    total_keyword_matches += 1
+            
+            # Phrase matching (more important)
+            for phrase in query_bigram_phrases:
+                if phrase in content_lower:
+                    total_phrase_matches += 1
+            
+            # Try to get semantic similarity if possible
+            try:
+                if hasattr(self, 'embeddings') and self.embeddings is not None:
+                    # Attempt to calculate semantic similarity
+                    query_embedding = self.embeddings.embed_query(query)
+                    doc_embedding = self.embeddings.embed_query(doc.page_content)
+                    similarity = self._cosine_similarity(query_embedding, doc_embedding)
+                    semantic_scores.append(similarity)
+            except Exception as e:
+                # Skip semantic scoring if it fails
+                logger.debug(f"Semantic scoring failed: {e}")
+        
+        # Calculate lexical match score (keywords and phrases)
+        keyword_score = total_keyword_matches / max_keyword_matches if max_keyword_matches > 0 else 0
+        phrase_score = total_phrase_matches / max_phrase_matches if max_phrase_matches > 0 else 0
+        lexical_score = (keyword_score * 0.4) + (phrase_score * 0.6)  # Phrases weighted higher
+        
+        # Calculate semantic score if available
+        semantic_score = sum(semantic_scores) / len(semantic_scores) if semantic_scores else 0.5
+        
+        # Combine scores - semantic is more important for relevance
+        if semantic_scores:
+            final_score = (lexical_score * 0.3) + (semantic_score * 0.7)
+        else:
+            final_score = lexical_score
+        
+        return min(1.0, final_score)
+
+    def _check_hallucination_risk(self, query: str, context: str) -> Tuple[bool, str]:
+        """
+        Check if the query and context have high risk of hallucination.
+        
+        Args:
+            query: User query
+            context: Retrieved context
+            
+        Returns:
+            Tuple of (is_risky, reason)
+        """
+        # 1. Check if query contains terms not found in context
+        query_tokens = word_tokenize(query.lower())
+        stop_words = set(stopwords.words('english'))
+        query_keywords = [token for token in query_tokens if token not in stop_words and len(token) > 2]
+        
+        # Only check if we have meaningful keywords
+        if query_keywords:
+            context_lower = context.lower()
+            missing_keywords = [kw for kw in query_keywords if kw not in context_lower]
+            
+            # If more than half of keywords are missing, high risk
+            if len(missing_keywords) > len(query_keywords) / 2:
+                return True, f"Key query terms missing from context: {', '.join(missing_keywords[:3])}"
+        
+        # 2. Check for questions about named entities not in context
+        entity_patterns = [
+            r'who is ([A-Z][a-z]+ [A-Z][a-z]+)',  # Person names
+            r'what is ([A-Z][a-z]+ [A-Z][a-z]+)',  # Organization names
+            r'where is ([A-Z][a-z]+ [A-Z][a-z]+)',  # Location names
+        ]
+        
+        for pattern in entity_patterns:
+            matches = re.findall(pattern, query)
+            for entity in matches:
+                if entity.lower() not in context.lower():
+                    return True, f"Named entity not found in context: {entity}"
+        
+        # 3. Check for questions requiring specific numbers/dates
+        if re.search(r'\b(?:when|what year|what date|how many|how much)\b', query.lower()):
+            # Look for numbers or dates in context
+            has_numbers = bool(re.search(r'\d+', context))
+            has_dates = bool(re.search(r'\b(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}\b', context.lower()))
+            has_years = bool(re.search(r'\b(?:19|20)\d{2}\b', context))
+            
+            if not (has_numbers or has_dates or has_years):
+                return True, "Query requests specific data (numbers/dates) not found in context"
+        
+        # No high risks identified
+        return False, ""
 
 class FAQMatcher:
     """Specialized matcher for FAQ content in the APU knowledge base."""
@@ -3794,7 +4094,7 @@ class CustomRAG:
                     if response:
                         # Handle streamed responses
                         if isinstance(response, types.GeneratorType) or hasattr(response, '__iter__'):
-                            print("Response: ", end="", flush=True)
+                            # print("Response: ", end="", flush=True)
                             full_response = ""
                             for token in response:
                                 print(token, end="", flush=True)
@@ -3806,7 +4106,8 @@ class CustomRAG:
                             self.memory.chat_memory.add_ai_message(full_response)
                         else:
                             # Handle non-streamed responses
-                            print(f"Response: {response}")
+                            # print(f"Response: {response}")
+                            print(f"{response}")
                     
                     if not should_continue:
                         break
