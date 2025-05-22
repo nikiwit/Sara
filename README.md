@@ -38,34 +38,68 @@ APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically d
 - pip (Python package installer)
 - Sufficient disk space for vector storage
 - Internet connection for initial package downloads
+- [Ollama](https://ollama.ai/) installed and running locally
+  - Required for local LLM inference
+  - Must be running in the background while using APURAG
+  - Minimum 8GB RAM recommended for optimal performance
 
 ## 🚀 Installation
 
-1. Clone the repository:
+1. Install and set up Ollama:
+   ```bash
+   # For macOS/Linux
+   curl https://ollama.ai/install.sh | sh
+   # or manual download and install from https://ollama.ai/download
+
+   
+   # For Windows
+   # Download and install from https://ollama.ai/download
+   ```
+
+2. Pull the required Ollama model:
+   ```bash
+   ollama pull deepseek-r1:1.5b
+   ```
+
+3. Ensure Ollama is running:
+   ```bash
+   # Check Ollama status
+   ollama list
+   
+   # If not running, start Ollama
+   ollama serve
+   ```
+
+4. Clone the repository:
    ```bash
    git clone https://github.com/yourusername/APURAG.git
    cd APURAG
    ```
 
-2. Create and activate a virtual environment (recommended):
+5. Create and activate a virtual environment (recommended):
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. Install dependencies:
+6. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
 ## 💻 Usage
 
-1. Start the application:
+1. Ensure Ollama is running in the background:
+   ```bash
+   ollama serve
+   ```
+
+2. Start the application:
    ```bash
    python main.py
    ```
 
-2. Follow the interactive CLI prompts to:
+3. Follow the interactive CLI prompts to:
    - Process documents
    - Query the knowledge base
    - Manage vector storage
@@ -76,18 +110,18 @@ APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically d
 ```
 APURAG/
 ├── app.py                 # Main application logic
-├── main.py               # Entry point
-├── config.py             # Configuration settings
-├── apurag_types.py       # Type definitions
-├── input_processing.py   # Input handling
-├── utils.py             # Utility functions
-├── requirements.txt      # Project dependencies
-├── data/                # Data directory
-├── document_processing/ # Document processing modules
-├── query_handling/      # Query processing modules
-├── response/           # Response generation modules
-├── retrieval/          # Retrieval system modules
-└── vector_management/  # Vector storage management
+├── main.py                # Entry point
+├── config.py              # Configuration settings
+├── apurag_types.py        # Type definitions
+├── input_processing.py    # Input handling
+├── utils.py               # Utility functions
+├── requirements.txt       # Project dependencies
+├── data/                  # Data directory
+├── document_processing/   # Document processing modules
+├── query_handling/        # Query processing modules
+├── response/              # Response generation modules
+├── retrieval/             # Retrieval system modules
+└── vector_management/     # Vector storage management
 ```
 
 ## 🔧 Configuration
@@ -139,12 +173,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👥 Authors
 
-- **Nik** - *Original Author*
+- **Nik** - *nikiwit.com* - *Original Author* 
 
 ## 🙏 Acknowledgments
 
 - Thanks to all contributors who have helped shape this project
-- Special thanks to the APU community for their support and feedback
 
 ## 📞 Support
 
