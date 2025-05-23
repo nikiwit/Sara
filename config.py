@@ -5,6 +5,10 @@ Configuration settings for the APURAG system.
 import os
 import logging
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging - production settings
 logging.basicConfig(

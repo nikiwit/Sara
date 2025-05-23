@@ -6,6 +6,9 @@ RAGenv/
 *.pyc
 __pycache__/
 
+# Environment Variables
+.env
+
 # Vector Store Directory
 vector_store/
 
