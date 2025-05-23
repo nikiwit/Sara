@@ -697,6 +697,7 @@ class RetrievalHandler:
             5. When the text says "contact A or B", these are separate contact options - do not combine them
             6. Base your answer on the SOURCE TEXT provided
             7. Offer helpful next steps when relevant
+            8. DO NOT include meta-instructions in your response (e.g., "Important Note:", "Remember to:", "Please note that:")
             
             {debug_prefix}
             
@@ -725,6 +726,7 @@ class RetrievalHandler:
             5. Copy ALL email addresses and contact information EXACTLY as they appear in the context
             6. Do NOT invent or modify any payment methods or procedures not mentioned in the context
             7. Do NOT hallucinate any details not explicitly stated in the context
+            8. DO NOT include meta-instructions in your response (e.g., "Important Note:", "Remember to:", "Please note that:")
             
             {debug_prefix}
             
@@ -751,6 +753,7 @@ class RetrievalHandler:
             4. Copy ALL email addresses EXACTLY as they appear in the context (e.g., admin@apu.edu.my)
             5. Do NOT add any markdown formatting, bold text, or "Answer:" labels
             6. Provide only a single, straightforward response
+            7. DO NOT include meta-instructions in your response (e.g., "Important Note:", "Remember to:", "Please note that:")
             
             {debug_prefix}
             
@@ -895,12 +898,14 @@ class RetrievalHandler:
             r'who is ([A-Z][a-z]+ [A-Z][a-z]+)',  # Person names
             r'what is ([A-Z][a-z]+ [A-Z][a-z]+)',  # Organization names
             r'where is ([A-Z][a-z]+ [A-Z][a-z]+)',  # Location names
+            r'when is ([A-Z][a-z]+ [A-Z][a-z]+)',  # Event names
+            r'how to ([A-Z][a-z]+ [A-Z][a-z]+)',   # Process names
         ]
         
         for pattern in entity_patterns:
             matches = re.findall(pattern, query)
             for entity in matches:
-                if entity.lower() not in context.lower():
+                if entity.lower() not in context_lower:
                     return True, f"Named entity not found in context: {entity}"
         
         # 3. Check for questions requiring specific numbers/dates
@@ -912,6 +917,61 @@ class RetrievalHandler:
             
             if not (has_numbers or has_dates or has_years):
                 return True, "Query requests specific data (numbers/dates) not found in context"
+        
+        # 4. Check for comparative questions without comparison terms
+        if re.search(r'\b(?:compare|versus|vs|difference|better|worse|advantages?|disadvantages?)\b', query.lower()):
+            comparison_terms = [
+                r'\b(?:versus|vs|compared to|in comparison|on the other hand|however|while|whereas)\b',
+                r'\b(?:better|worse|more|less|higher|lower|faster|slower)\b',
+                r'\b(?:advantage|disadvantage|pro|con|benefit|drawback)\b'
+            ]
+            has_comparison = any(bool(re.search(pattern, context.lower())) for pattern in comparison_terms)
+            if not has_comparison:
+                return True, "Comparative query without comparison terms in context"
+        
+        # 5. Check for procedural questions without steps/instructions
+        if re.search(r'\b(?:how to|steps?|procedure|process|guide|instructions?)\b', query.lower()):
+            step_patterns = [
+                r'\b(?:step|first|second|third|next|then|finally|lastly)\b',
+                r'\b(?:1\.|2\.|3\.|4\.|5\.)\b',
+                r'\b(?:begin|start|complete|finish|end)\b'
+            ]
+            has_steps = any(bool(re.search(pattern, context.lower())) for pattern in step_patterns)
+            if not has_steps:
+                return True, "Procedural query without clear steps in context"
+        
+        # 6. Check for questions about specific requirements/conditions
+        if re.search(r'\b(?:require|need|must|should|condition|prerequisite|eligibility)\b', query.lower()):
+            requirement_patterns = [
+                r'\b(?:require|need|must|should|condition|prerequisite|eligibility)\b',
+                r'\b(?:minimum|maximum|at least|no more than)\b',
+                r'\b(?:if|when|unless|provided that|as long as)\b'
+            ]
+            has_requirements = any(bool(re.search(pattern, context.lower())) for pattern in requirement_patterns)
+            if not has_requirements:
+                return True, "Query about requirements without specific conditions in context"
+        
+        # 7. Check for questions about specific locations/places
+        if re.search(r'\b(?:where|location|place|building|room|office|department)\b', query.lower()):
+            location_patterns = [
+                r'\b(?:building|room|floor|level|block|wing|campus)\b',
+                r'\b(?:located|situated|found|positioned)\b',
+                r'\b(?:near|next to|beside|behind|in front of)\b'
+            ]
+            has_locations = any(bool(re.search(pattern, context.lower())) for pattern in location_patterns)
+            if not has_locations:
+                return True, "Location query without specific place information in context"
+        
+        # 8. Check for questions about specific people/roles
+        if re.search(r'\b(?:who|person|staff|faculty|lecturer|professor|student|admin)\b', query.lower()):
+            person_patterns = [
+                r'\b(?:contact|email|phone|extension|office hours)\b',
+                r'\b(?:head|director|coordinator|manager|officer)\b',
+                r'\b(?:department|faculty|school|division|unit)\b'
+            ]
+            has_person_info = any(bool(re.search(pattern, context.lower())) for pattern in person_patterns)
+            if not has_person_info:
+                return True, "Person/role query without specific contact information in context"
         
         # No high risks identified
         return False, ""
