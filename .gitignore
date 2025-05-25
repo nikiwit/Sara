@@ -17,6 +17,7 @@ ENV/
 .env
 
 # Vector store and embeddings
+vector_store
 vector_store/*
 !vector_store/.gitkeep
 embeddings_backup.pkl

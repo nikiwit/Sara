@@ -105,7 +105,7 @@ class VectorStoreManager:
                 logger.warning("No data to backup - vector store appears empty")
                 return False
                 
-            # Add timestamp for versioning
+            # Timestamp for versioning
             data['backup_time'] = datetime.now().isoformat()
             data['doc_count'] = len(data.get('ids', []))
             
@@ -167,7 +167,6 @@ class VectorStoreManager:
                 batch_metadatas = data['metadatas'][i:end_idx] if data.get('metadatas') else None
                 batch_documents = data['documents'][i:end_idx] if data.get('documents') else None
                 
-                # Add to collection
                 collection.add(
                     ids=batch_ids,
                     embeddings=batch_embeddings,
@@ -538,7 +537,7 @@ class VectorStoreManager:
         except Exception as e:
             logger.error(f"Error getting document statistics: {e}")
             import traceback
-            logger.error(traceback.format_exc())  # Add detailed error info
+            logger.error(traceback.format_exc()) 
             print("Error retrieving document statistics.")
     
     @staticmethod

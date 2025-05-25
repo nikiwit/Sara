@@ -389,7 +389,7 @@ class RetrievalHandler:
         context += f"Question: {title}\n\n"
         context += f"SOURCE TEXT:\n\"\"\"\n{doc.page_content}\n\"\"\"\n\n"
         
-        # Add the valid email addresses that exist
+        # Add valid email addresses that exist
         emails_in_text = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', doc.page_content)
         if emails_in_text:
             context += "Email addresses mentioned in the text:\n"
@@ -466,7 +466,6 @@ class RetrievalHandler:
                     # Use hybrid retrieval (combination of semantic and keyword)
                     docs = self._hybrid_retrieval(query)
                 
-                # Add unique documents to the result list
                 for doc in docs:
                     # Create a unique ID based on content and source
                     doc_id = f"{doc.metadata.get('source', '')}-{hash(doc.page_content[:100])}"
@@ -508,7 +507,7 @@ class RetrievalHandler:
         stop_words = set(stopwords.words('english'))
         keywords = [token for token in tokens if token not in stop_words and len(token) > 2]
         
-        # Add domain-specific keywords for better matching
+        # Domain-specific keywords for better matching
         domain_keywords = ["medical", "insurance", "collect", "card", "visa", "counter"]
         for kw in domain_keywords:
             if kw in query.lower() and kw not in keywords:
@@ -589,21 +588,21 @@ class RetrievalHandler:
         seen_ids = set()
         combined_docs = []
         
-        # Add semantic docs first (with higher weight)
+        # Semantic docs first (with higher weight)
         for doc in semantic_docs:
             doc_id = f"{doc.metadata.get('source', '')}-{hash(doc.page_content[:100])}"
             if doc_id not in seen_ids:
                 seen_ids.add(doc_id)
-                # Add semantic score to metadata
+                # Semantic score to metadata
                 doc.metadata['retrieval_score'] = 1.0 - Config.KEYWORD_RATIO
                 combined_docs.append(doc)
         
-        # Add keyword docs
+        # Keyword docs
         for doc in keyword_docs:
             doc_id = f"{doc.metadata.get('source', '')}-{hash(doc.page_content[:100])}"
             if doc_id not in seen_ids:
                 seen_ids.add(doc_id)
-                # Add keyword score to metadata
+                # Keyword score to metadata
                 doc.metadata['retrieval_score'] = Config.KEYWORD_RATIO
                 combined_docs.append(doc)
         
@@ -629,7 +628,7 @@ class RetrievalHandler:
         stop_words = set(stopwords.words('english'))
         keywords = [token for token in tokens if token not in stop_words and len(token) > 2]
         
-        # Add domain-specific keywords for better matching
+        # Domain-specific keywords for better matching
         domain_keywords = ["medical", "insurance", "collect", "card", "visa", "counter"]
         for kw in domain_keywords:
             if kw in query.lower() and kw not in keywords:
@@ -702,7 +701,7 @@ class RetrievalHandler:
         stop_words = set(stopwords.words('english'))
         keywords = [token for token in tokens if token not in stop_words and len(token) > 2]
         
-        # Add domain-specific keywords for better matching
+        # Domain-specific keywords for better matching
         domain_keywords = ["medical", "insurance", "collect", "card", "visa", "counter"]
         for kw in domain_keywords:
             if kw in query.lower() and kw not in keywords:

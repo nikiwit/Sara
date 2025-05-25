@@ -460,7 +460,7 @@ class ContextProcessor:
                     # Format as topic (more compact)
                     formatted_text = f"Topic: {title}\n{doc.page_content}\n"
                 
-                # Add related pages if available (more compact)
+                # Related pages if available (more compact)
                 related_pages = doc.metadata.get('related_pages', [])
                 if related_pages and not any("label in" in page for page in related_pages):
                     if len(related_pages) > 2:

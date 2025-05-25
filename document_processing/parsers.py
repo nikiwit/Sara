@@ -58,7 +58,7 @@ class APUKnowledgeBaseParser:
                 "page_number": i // 2 + 1
             }
             
-            # Add special metadata for medical insurance related pages
+            # Special metadata for medical insurance related pages
             if any(term in title.lower() for term in ["medical", "insurance", "health", "card"]):
                 metadata["is_medical_insurance"] = True
                 metadata["priority_topic"] = "medical_insurance"

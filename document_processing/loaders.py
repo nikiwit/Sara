@@ -247,7 +247,7 @@ class DocumentProcessor:
                     if apu_docs:
                         logger.info(f"DIRECT HANDLING: Successfully parsed {len(apu_docs)} documents from apu_kb.txt")
                         
-                        # Add metadata
+                        # Metadata
                         for doc in apu_docs:
                             doc.metadata['source'] = apu_kb_path
                             doc.metadata['filename'] = "apu_kb.txt"
@@ -276,14 +276,14 @@ class DocumentProcessor:
                                         
                                         if docs:
                                             logger.info(f"Loader returned {len(docs)} documents")
-                                            # Add source metadata to each document
+                                            # Source metadata for each document
                                             for doc in docs:
                                                 if not hasattr(doc, 'metadata') or doc.metadata is None:
                                                     doc.metadata = {}
                                                 doc.metadata['source'] = file_path
                                                 doc.metadata['filename'] = os.path.basename(file_path)
                                                 
-                                                # Add timestamp for sorting by recency if needed
+                                                # Timestamp for sorting by recency if needed
                                                 try:
                                                     doc.metadata['timestamp'] = os.path.getmtime(file_path)
                                                 except:
@@ -337,7 +337,7 @@ class DocumentProcessor:
                             
                             if docs:
                                 logger.info(f"Successfully parsed {len(docs)} documents from APU KB file")
-                                # Add timestamp for sorting by recency if needed
+                                # Timestamp for sorting by recency if needed
                                 for doc in docs:
                                     try:
                                         doc.metadata['timestamp'] = os.path.getmtime(file_path)
@@ -364,14 +364,14 @@ class DocumentProcessor:
                         
                         if docs:
                             logger.info(f"Loader returned {len(docs)} documents")
-                            # Add source metadata to each document
+                            # Source metadata to each document
                             for doc in docs:
                                 if not hasattr(doc, 'metadata') or doc.metadata is None:
                                     doc.metadata = {}
                                 doc.metadata['source'] = file_path
                                 doc.metadata['filename'] = os.path.basename(file_path)
                                 
-                                # Add timestamp for sorting by recency if needed
+                                # Timestamp for sorting by recency if needed
                                 try:
                                     doc.metadata['timestamp'] = os.path.getmtime(file_path)
                                 except:
@@ -495,7 +495,7 @@ class DocumentProcessor:
             
             chunked_documents = []
             
-            # Use APU KB-specific splitter for knowledge base pages
+            # Use APU KB specific splitter for knowledge base pages
             if apu_kb_docs:
                 apu_kb_splitter = APUKnowledgeBaseTextSplitter(
                     chunk_size=chunk_size,

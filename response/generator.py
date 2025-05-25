@@ -43,7 +43,7 @@ class RAGSystem:
                 
             formatted_docs.append(formatted_text)
 
-        # Add a summary of documents
+        # Summary of documents
         summary = f"Retrieved {len(docs)} chunks from {len(unique_filenames)} files: {', '.join(unique_filenames)}\n\n"
         
         return summary + "\n".join(formatted_docs)

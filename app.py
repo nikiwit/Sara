@@ -52,7 +52,7 @@ class CustomRAG:
             memory_key="chat_history"
         )
         
-        # Add a system message to memory
+        # System message to memory
         system_message = SystemMessage(content="I am an AI assistant that helps with answering questions about APU. I can provide information about academic procedures, administrative processes, and university services.")
         self.memory.chat_memory.messages.append(system_message)
         
@@ -261,7 +261,7 @@ class CustomRAG:
                             for token in response:
                                 print(token, end="", flush=True)
                                 full_response += token
-                            print()  # Add newline after streaming completes
+                            print()  
                             
                             # Now update memory with the full response
                             self.memory.chat_memory.add_user_message(query)
