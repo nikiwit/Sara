@@ -32,7 +32,7 @@ APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically d
   - Optimized similarity search
   - Backup and restore capabilities
 
-- **NEW: Dual Environment Configuration**
+- **Dual Environment Configuration**
   - Local development environment optimized for laptops
   - Production environment optimized for HGX H100 G593-SD2 servers
   - Environment-specific resource management
@@ -202,7 +202,7 @@ Major dependencies include:
   - python-dotenv
   - numpy
   - tqdm
-  - psutil (NEW: for resource management)
+  - psutil
 
 For a complete list, see `requirements.txt`.
 
@@ -240,7 +240,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👥 Authors
 
-- **Nik** - *nikiwit.com* - *Original Author* 
+- **Nik** - [nikiwit.com](https://nikiwit.com/) - *Original Author* 
 
 ## 🙏 Acknowledgments
 
