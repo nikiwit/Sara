@@ -67,7 +67,7 @@ APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically d
    # For local development
    ollama pull deepseek-r1:1.5b
    
-   # For production (HGX H100)
+   # For production
    ollama pull deepseek-r1:7b
    ```
 
@@ -129,6 +129,8 @@ APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically d
    - Configure system settings
 
 ## 📁 Project Structure
+
+*Make sure to request environment files for up-to-date settings (.env files are in gitignore by default for security reasons).*
 
 ```
 APURAG/
