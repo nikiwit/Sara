@@ -155,7 +155,7 @@ APURAG/
 
 ## 🔧 Configuration
 
-The system now supports dual environment configuration:
+The system supports dual environment configuration:
 
 ### Environment Selection
 - Set `APURAG_ENV` to either `local` (default) or `production`
@@ -208,7 +208,7 @@ For a complete list, see `requirements.txt`.
 
 ## 📝 Version Control
 
-The project now includes a comprehensive `.gitignore` file to ensure that only necessary files are tracked in version control:
+The project includes a comprehensive `.gitignore` file to ensure that only necessary files are tracked in version control:
 
 ### Excluded from Version Control
 - Environment-specific files (`.env`, `.env.local`, `.env.production`)
