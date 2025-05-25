@@ -1,175 +1,103 @@
 """
-Parsers and loaders for APU Knowledge Base format.
+Document processing for APU knowledge base.
 """
 
 import os
 import re
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from langchain_core.documents import Document
-from langchain_community.document_loaders.base import BaseLoader
 
 logger = logging.getLogger("CustomRAG")
 
 class APUKnowledgeBaseParser:
-    """Parser for APU Knowledge Base format."""
-    
-    PAGE_PATTERN = r"--- PAGE: (.*?) ---\s*(.*?)(?=--- PAGE:|$)"
-    RELATED_PAGES_PATTERN = r"Related Pages –\s*(.*?)$"
-    
-    @classmethod
-    def parse_knowledge_base(cls, content: str) -> List[Dict[str, Any]]:
-        """
-        Parse the APU Knowledge Base content into structured pages.
-        
-        Args:
-            content: Full content of the knowledge base file
-            
-        Returns:
-            List of dictionaries representing each page with metadata
-        """
-        # Find all pages using regex pattern
-        pages = []
-        for match in re.finditer(cls.PAGE_PATTERN, content, re.DOTALL):
-            title = match.group(1).strip()
-            content = match.group(2).strip()
-            
-            # Skip empty pages
-            if not content:
-                continue
-            
-            # Extract related pages if present
-            related_pages = []
-            related_match = re.search(cls.RELATED_PAGES_PATTERN, content, re.MULTILINE | re.DOTALL)
-            if related_match:
-                related_text = related_match.group(1).strip()
-                # Process "label in ( ... )" format or regular links
-                if "label in" in related_text:
-                    # Just store as is, can be processed later if needed
-                    related_pages = [related_text]
-                else:
-                    # Split by newlines and strip each line
-                    related_pages = [line.strip() for line in related_text.split('\n') if line.strip()]
-                    
-                # Clean content by removing the related pages section
-                content = content.replace(related_match.group(0), "").strip()
-            
-            # Create a structured page object
-            page = {
-                "title": title,
-                "content": content,
-                "related_pages": related_pages,
-                "is_faq": cls._is_faq_page(title, content)
-            }
-            
-            pages.append(page)
-        
-        logger.info(f"Parsed {len(pages)} pages from APU Knowledge Base")
-        return pages
+    """Parser for APU Knowledge Base content."""
     
     @staticmethod
-    def _is_faq_page(title: str, content: str) -> bool:
+    def parse_apu_kb(text: str, source: str = "Unknown", filename: str = "Unknown") -> List[Document]:
         """
-        Determine if a page is an FAQ type page.
+        Parse APU Knowledge Base text into documents.
         
         Args:
-            title: Page title
-            content: Page content
+            text: Raw text content
+            source: Source of the text
+            filename: Filename of the source
             
         Returns:
-            Boolean indicating if the page is an FAQ
+            List of Document objects
         """
-        # Check if the title is a question
-        has_question_mark = "?" in title
+        # Split text into pages based on markdown-style headers
+        page_pattern = r'---\s*PAGE:\s*(.*?)\s*---'
+        pages = re.split(page_pattern, text)
         
-        # Check for question words in title
-        question_words = ["how", "what", "where", "when", "why", "who", "can", "do", "is", "are", "will"]
-        starts_with_question_word = any(title.lower().startswith(word) for word in question_words)
+        # First element is empty if text starts with a page marker
+        if pages and not pages[0].strip():
+            pages.pop(0)
         
-        # Either has a question mark or starts with a question word
-        return has_question_mark or starts_with_question_word
+        documents = []
+        
+        # Process pages in pairs (title, content)
+        for i in range(0, len(pages), 2):
+            if i + 1 >= len(pages):
+                break
+                
+            title = pages[i].strip()
+            content = pages[i + 1].strip()
+            
+            # Skip empty pages
+            if not title or not content:
+                continue
+            
+            # Create metadata
+            metadata = {
+                "source": source,
+                "filename": filename,
+                "page_title": title,
+                "content_type": "apu_kb_page",
+                "is_faq": title.endswith('?'),  # Mark as FAQ if title ends with question mark
+                "page_number": i // 2 + 1
+            }
+            
+            # Add special metadata for medical insurance related pages
+            if any(term in title.lower() for term in ["medical", "insurance", "health", "card"]):
+                metadata["is_medical_insurance"] = True
+                metadata["priority_topic"] = "medical_insurance"
+            
+            # Create document
+            doc = Document(
+                page_content=content,
+                metadata=metadata
+            )
+            
+            documents.append(doc)
+        
+        logger.info(f"Parsed {len(documents)} pages from APU KB file: {filename}")
+        return documents
 
-class APUKnowledgeBaseLoader(BaseLoader):
-    """Specialized loader for APU Knowledge Base files."""
+class APUKnowledgeBaseLoader:
+    """Loader for APU Knowledge Base files."""
     
-    def __init__(self, file_path: str):
-        """Initialize with file path."""
-        self.file_path = file_path
-    
-    def load(self) -> List[Document]:
+    @staticmethod
+    def load(file_path: str) -> List[Document]:
         """
-        Load the APU Knowledge Base file into Document objects.
+        Load an APU Knowledge Base file.
         
+        Args:
+            file_path: Path to the file
+            
         Returns:
             List of Document objects
         """
         try:
-            # Read the file content
-            with open(self.file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            # Parse the knowledge base
-            pages = APUKnowledgeBaseParser.parse_knowledge_base(content)
-            
-            # Convert pages to LangChain Document objects
-            documents = []
-            for page in pages:
-                # Create metadata dictionary
-                metadata = {
-                    "source": self.file_path,
-                    "filename": os.path.basename(self.file_path),
-                    "page_title": page["title"],
-                    "is_faq": page["is_faq"],
-                    "related_pages": page["related_pages"],
-                    "content_type": "apu_kb_page"
-                }
+            with open(file_path, 'r', encoding='utf-8') as f:
+                text = f.read()
                 
-                # Tags for improved searchability
-                metadata["tags"] = self._extract_tags(page["title"], page["content"])
-                
-                # Create Document object
-                doc = Document(
-                    page_content=page["content"],
-                    metadata=metadata
-                )
-                documents.append(doc)
+            # Get filename
+            filename = os.path.basename(file_path)
             
-            return documents
+            # Parse the text
+            return APUKnowledgeBaseParser.parse_apu_kb(text, source=file_path, filename=filename)
             
         except Exception as e:
-            logger.error(f"Error loading APU Knowledge Base file {self.file_path}: {str(e)}")
+            logger.error(f"Error loading APU KB file {file_path}: {e}")
             return []
-    
-    @staticmethod
-    def _extract_tags(title: str, content: str) -> List[str]:
-        """
-        Extract relevant tags from the page title and content.
-        
-        Args:
-            title: Page title
-            content: Page content
-            
-        Returns:
-            List of tag strings
-        """
-        tags = []
-        
-        tags.append(title.lower())
-        
-        # Extract possible key terms from title
-        title_words = title.lower().split()
-        for word in title_words:
-            if len(word) > 3 and word not in ["what", "when", "where", "how", "does", "will"]:
-                tags.append(word)
-        
-        # Extract key acronyms from content
-        acronyms = re.findall(r'\b[A-Z]{2,}\b', content)
-        for acronym in acronyms:
-            tags.append(acronym)
-        
-        # Extract course codes (e.g., APU1F2103CS)
-        course_codes = re.findall(r'\b[A-Z]{2,}[0-9]{1,}[A-Z0-9]{2,}\b', content)
-        for code in course_codes:
-            tags.append(code)
-        
-        return list(set(tags))  # Remove duplicates

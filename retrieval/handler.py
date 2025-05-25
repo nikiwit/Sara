@@ -79,6 +79,39 @@ class RetrievalHandler:
         
         logger.info(f"Processing {query_type.value} query: {original_query}")
         
+        # Check for medical insurance related queries first
+        if self._is_medical_insurance_query(original_query):
+            logger.info("Detected medical insurance related query")
+            medical_docs = self._retrieve_medical_insurance_docs(original_query)
+            
+            if medical_docs:
+                logger.info(f"Found {len(medical_docs)} medical insurance related documents")
+                # Format context with medical insurance docs
+                context = self._format_medical_insurance_context(medical_docs)
+                
+                # Generate response
+                input_dict = {
+                    "question": original_query,
+                    "context": context,
+                    "chat_history": self.memory.chat_memory.messages,
+                    "is_medical_insurance": True
+                }
+                
+                # Generate response through LLM with streaming if requested
+                from response.generator import RAGSystem
+                response = RAGSystem.stream_ollama_response(
+                    self._create_prompt(input_dict), 
+                    Config.LLM_MODEL_NAME,
+                    stream_output=stream
+                )
+                
+                # If we're not streaming, update memory
+                if not stream:
+                    self.memory.chat_memory.add_user_message(original_query)
+                    self.memory.chat_memory.add_ai_message(response)
+                
+                return response
+        
         # Handle identity questions with SystemInformation
         if query_type == QueryType.IDENTITY:
             response = SystemInformation.get_response_for_identity_query(original_query)
@@ -102,7 +135,8 @@ class RetrievalHandler:
         # First try direct FAQ matching for a quick answer
         faq_match_result = self.faq_matcher.match_faq(query_analysis)
         
-        if faq_match_result and faq_match_result.get("match_score", 0) > 0.7:
+        # Lowered threshold from 0.7 to 0.5 to improve recall
+        if faq_match_result and faq_match_result.get("match_score", 0) > 0.5:
             # High confidence direct FAQ match
             logger.info(f"Found direct FAQ match with score {faq_match_result['match_score']}")
             
@@ -165,11 +199,11 @@ class RetrievalHandler:
             else:
                 return no_info_response
         
-        # Assess document relevance
+        # Assess document relevance - lowered threshold from 0.3 to 0.2
         relevance_score = self._assess_document_relevance(context_docs, original_query)
         
         # If relevance is too low, return low confidence response
-        if relevance_score < 0.3:  # Low relevance threshold
+        if relevance_score < 0.2:  # Lowered threshold for better recall
             low_confidence_response = (
                 "I'm not confident I have the specific information you're looking for in the APU knowledge base. "
                 "The information I found might not be directly relevant to your question. "
@@ -228,6 +262,117 @@ class RetrievalHandler:
             self.memory.chat_memory.add_ai_message(response)
         
         return response
+    
+    def _is_medical_insurance_query(self, query: str) -> bool:
+        """
+        Check if a query is related to medical insurance.
+        
+        Args:
+            query: Query string
+            
+        Returns:
+            True if the query is related to medical insurance, False otherwise
+        """
+        query_lower = query.lower()
+        
+        # Check for medical insurance keywords
+        medical_keywords = ["medical", "insurance", "health", "card", "collect", "pickup", "pick up", "pick-up"]
+        keyword_count = sum(1 for kw in medical_keywords if kw in query_lower)
+        
+        # If at least two keywords are present, it's likely a medical insurance query
+        if keyword_count >= 2:
+            return True
+            
+        # Check for specific phrases
+        medical_phrases = [
+            "medical insurance", 
+            "health insurance", 
+            "insurance card", 
+            "medical card",
+            "get my insurance",
+            "collect my insurance",
+            "pickup my insurance",
+            "pick up my insurance"
+        ]
+        
+        for phrase in medical_phrases:
+            if phrase in query_lower:
+                return True
+                
+        return False
+    
+    def _retrieve_medical_insurance_docs(self, query: str) -> List[Document]:
+        """
+        Retrieve documents specifically related to medical insurance.
+        
+        Args:
+            query: Query string
+            
+        Returns:
+            List of documents related to medical insurance
+        """
+        # Get all documents from the vector store
+        all_docs = self.vector_store.get()
+        
+        if not all_docs or not all_docs.get('documents'):
+            return []
+            
+        documents = all_docs.get('documents', [])
+        metadatas = all_docs.get('metadatas', [])
+        
+        # Find documents with medical insurance metadata
+        medical_docs = []
+        for i, doc_text in enumerate(documents):
+            if i >= len(metadatas):
+                continue
+                
+            metadata = metadatas[i]
+            
+            # Check for medical insurance metadata
+            if metadata.get('is_medical_insurance', False) or metadata.get('priority_topic') == 'medical_insurance':
+                medical_docs.append(
+                    Document(
+                        page_content=doc_text,
+                        metadata=metadata
+                    )
+                )
+                continue
+                
+            # Also check content for medical insurance keywords
+            doc_lower = doc_text.lower()
+            if "medical insurance" in doc_lower or "collect" in doc_lower and "insurance" in doc_lower:
+                # Check if title contains relevant keywords
+                title = metadata.get('page_title', '').lower()
+                if "medical" in title or "insurance" in title or "collect" in title:
+                    medical_docs.append(
+                        Document(
+                            page_content=doc_text,
+                            metadata=metadata
+                        )
+                    )
+        
+        return medical_docs
+    
+    def _format_medical_insurance_context(self, docs: List[Document]) -> str:
+        """
+        Format medical insurance documents into a context for the LLM.
+        
+        Args:
+            docs: List of medical insurance documents
+            
+        Returns:
+            Formatted context string
+        """
+        context = "--- MEDICAL INSURANCE INFORMATION ---\n\n"
+        
+        for doc in docs:
+            title = doc.metadata.get('page_title', 'Medical Insurance Information')
+            context += f"Question: {title}\n\n"
+            context += f"Answer:\n{doc.page_content}\n\n"
+            
+        context += "Instructions: Answer the user's question about medical insurance using ONLY the information provided above. Be direct and specific about where to collect the medical insurance card if that information is present.\n\n"
+        
+        return context
     
     def _format_faq_match(self, match_result: Dict[str, Any]) -> str:
         """Format a direct FAQ match into a context for the LLM."""
@@ -363,6 +508,12 @@ class RetrievalHandler:
         stop_words = set(stopwords.words('english'))
         keywords = [token for token in tokens if token not in stop_words and len(token) > 2]
         
+        # Add domain-specific keywords for better matching
+        domain_keywords = ["medical", "insurance", "collect", "card", "visa", "counter"]
+        for kw in domain_keywords:
+            if kw in query.lower() and kw not in keywords:
+                keywords.append(kw)
+        
         # Score documents based on keyword matches
         scored_docs = []
         for i, doc_text in enumerate(documents):
@@ -377,103 +528,50 @@ class RetrievalHandler:
             is_apu_kb = metadata.get('content_type') == 'apu_kb_page'
             page_title = metadata.get('page_title', '')
             
+            # Check for medical insurance priority
+            if metadata.get('is_medical_insurance', False) or metadata.get('priority_topic') == 'medical_insurance':
+                if any(kw in query.lower() for kw in ["medical", "insurance", "collect", "card"]):
+                    score += 5.0  # Very high boost for medical insurance pages
+            
             # Count exact keyword matches
             for keyword in keywords:
-                # Count occurrences of the keyword
-                count = doc_lower.count(keyword)
-                score += count
-                
-                # Bonus for exact phrase match
-                if query.lower() in doc_lower:
-                    score += 5
-                    
-                # For APU KB pages, check title match
-                if is_apu_kb and keyword in page_title.lower():
-                    score += 3  # Boost score for title matches
+                if keyword in doc_lower:
+                    score += 1
+                    # Boost score if keyword appears in title
+                    if page_title and keyword in page_title.lower():
+                        score += 0.5
             
-            # Bonus for exact question match in FAQ pages
-            if is_apu_kb and metadata.get('is_faq', False):
-                question_similarity = self._calculate_question_similarity(query, page_title)
-                score += question_similarity * 10  # High bonus for question similarity
-            
-            # Check for match in tags
-            if is_apu_kb and 'tags' in metadata:
-                for tag in metadata['tags']:
-                    if any(kw in tag for kw in keywords):
-                        score += 2  # Bonus for tag matches
-            
-            # Give a boost to direct question matches for FAQ pages
-            if is_apu_kb and metadata.get('is_faq', False) and query.strip().endswith('?'):
-                # Calculate similarity between query and page title
-                title_similarity = self._calculate_question_similarity(query, page_title)
-                if title_similarity > 0.7:  # High similarity
-                    score += 15
-                elif title_similarity > 0.5:  # Moderate similarity
-                    score += 8
+            # Normalize score based on number of keywords
+            if keywords:
+                score = score / len(keywords)
                 
-            if score > 0:
-                doc_id = ids[i] if i < len(ids) else str(i)
+                # Boost APU KB pages
+                if is_apu_kb:
+                    score *= 1.2
                 
-                # Create Document object
-                doc = Document(
-                    page_content=doc_text,
-                    metadata={
-                        **metadata,
-                        'score': score,
-                        'id': doc_id
-                    }
+                # Add to scored docs if score is above threshold
+                if score > 0.2:  # Lowered threshold for better recall
+                    scored_docs.append((score, i))
+        
+        # Sort by score (descending)
+        scored_docs.sort(reverse=True)
+        
+        # Convert to Document objects
+        result_docs = []
+        for score, i in scored_docs[:Config.RETRIEVER_K]:
+            if i < len(documents) and i < len(metadatas):
+                result_docs.append(
+                    Document(
+                        page_content=documents[i],
+                        metadata=metadatas[i]
+                    )
                 )
-                scored_docs.append((score, doc))
-        
-        # Sort by score (descending) and return top k
-        scored_docs.sort(reverse=True, key=lambda x: x[0])
-        
-        # Extract just the documents from the scored list
-        result_docs = [doc for _, doc in scored_docs[:Config.RETRIEVER_K]]
         
         return result_docs
     
-    def _calculate_question_similarity(self, query: str, title: str) -> float:
-        """
-        Calculate similarity between a query and a question title.
-        
-        Args:
-            query: The user query
-            title: The FAQ title
-            
-        Returns:
-            Similarity score between 0 and 1
-        """
-        # Normalize both strings
-        query = query.lower().strip()
-        title = title.lower().strip()
-        
-        # Remove question marks
-        query = query.rstrip('?')
-        title = title.rstrip('?')
-        
-        # Tokenize
-        query_tokens = set(word_tokenize(query))
-        title_tokens = set(word_tokenize(title))
-        
-        # Remove stop words
-        stop_words = set(stopwords.words('english'))
-        query_tokens = {token for token in query_tokens if token not in stop_words}
-        title_tokens = {token for token in title_tokens if token not in stop_words}
-        
-        # Return 0 if either set is empty after removing stop words
-        if not query_tokens or not title_tokens:
-            return 0
-        
-        # Calculate Jaccard similarity
-        intersection = len(query_tokens.intersection(title_tokens))
-        union = len(query_tokens.union(title_tokens))
-        
-        return intersection / union if union > 0 else 0
-    
     def _hybrid_retrieval(self, query: str) -> List[Document]:
         """
-        Perform hybrid retrieval (semantic + keyword), optimized for APU KB.
+        Perform hybrid retrieval (semantic + keyword).
         
         Args:
             query: Query string
@@ -487,491 +585,302 @@ class RetrievalHandler:
         # Get keyword search results
         keyword_docs = self._keyword_retrieval(query)
         
-        # Try direct FAQ matching
-        faq_match_result = self.faq_matcher.match_faq({"original_query": query})
-        faq_docs = []
-        if faq_match_result and faq_match_result.get("match_score", 0) > 0.5:
-            faq_docs = [faq_match_result["document"]]
+        # Combine results with deduplication
+        seen_ids = set()
+        combined_docs = []
         
-        # Combine results with weighting
-        semantic_weight = 1 - Config.KEYWORD_RATIO - Config.FAQ_MATCH_WEIGHT
-        keyword_weight = Config.KEYWORD_RATIO
-        faq_weight = Config.FAQ_MATCH_WEIGHT
-        
-        # Track documents by ID to avoid duplicates
-        combined_docs = {}
-        
-        # Add FAQ docs with highest priority
-        for i, doc in enumerate(faq_docs):
+        # Add semantic docs first (with higher weight)
+        for doc in semantic_docs:
             doc_id = f"{doc.metadata.get('source', '')}-{hash(doc.page_content[:100])}"
-            
-            # Use match score if available
-            faq_score = faq_match_result.get("match_score", 0.8) * faq_weight
-            
-            # Store with score
-            combined_docs[doc_id] = {
-                "doc": doc,
-                "score": faq_score
-            }
+            if doc_id not in seen_ids:
+                seen_ids.add(doc_id)
+                # Add semantic score to metadata
+                doc.metadata['retrieval_score'] = 1.0 - Config.KEYWORD_RATIO
+                combined_docs.append(doc)
         
-        # Add semantic docs with their weights
-        for i, doc in enumerate(semantic_docs):
+        # Add keyword docs
+        for doc in keyword_docs:
             doc_id = f"{doc.metadata.get('source', '')}-{hash(doc.page_content[:100])}"
-            
-            # Inverse rank scoring (higher rank = lower score)
-            semantic_score = semantic_weight * (1.0 - (i / max(1, len(semantic_docs))))
-            
-            # Check if this is an APU KB page and apply appropriate boosts
-            if doc.metadata.get('content_type') == 'apu_kb_page':
-                # Boost for FAQ pages
-                if doc.metadata.get('is_faq', False):
-                    semantic_score *= 1.2
-                
-                # Bonus for title match
-                title = doc.metadata.get('page_title', '').lower()
-                if any(word in title for word in query.lower().split()):
-                    semantic_score *= 1.3
-            
-            # Store with score
-            if doc_id in combined_docs:
-                combined_docs[doc_id]["score"] += semantic_score
-            else:
-                combined_docs[doc_id] = {
-                    "doc": doc,
-                    "score": semantic_score
-                }
+            if doc_id not in seen_ids:
+                seen_ids.add(doc_id)
+                # Add keyword score to metadata
+                doc.metadata['retrieval_score'] = Config.KEYWORD_RATIO
+                combined_docs.append(doc)
         
-        for i, doc in enumerate(keyword_docs):
-            doc_id = f"{doc.metadata.get('source', '')}-{hash(doc.page_content[:100])}"
-            
-            # Get original keyword score if available, otherwise use inverse rank
-            keyword_score = (doc.metadata.get('score', 0) / max(1, max([d.metadata.get('score', 1) for d in keyword_docs])))
-            
-            # Adjust by weight
-            keyword_score = keyword_weight * keyword_score
-            
-            # Update score if document already exists, otherwise add it
-            if doc_id in combined_docs:
-                combined_docs[doc_id]["score"] += keyword_score
-            else:
-                combined_docs[doc_id] = {
-                    "doc": doc,
-                    "score": keyword_score
-                }
-        
-        # Sort by combined score
-        sorted_docs = sorted(combined_docs.values(), key=lambda x: x["score"], reverse=True)
-        
-        # Return top K documents
-        result_docs = [item["doc"] for item in sorted_docs[:Config.RETRIEVER_K]]
-        
-        return result_docs
+        # Rerank combined results
+        return self._rerank_documents(combined_docs, query)
     
-    def _rerank_documents(self, documents: List[Document], query: str) -> List[Document]:
+    def _rerank_documents(self, docs: List[Document], query: str) -> List[Document]:
         """
-        Rerank documents based on relevance to the query, optimized for APU KB.
+        Rerank documents based on relevance to query.
         
         Args:
-            documents: List of documents to rerank
+            docs: List of documents
             query: Original query string
             
         Returns:
-            Reranked document list
+            Reranked list of documents
         """
-        if not documents:
+        if not docs:
             return []
         
-        # Embed the query
-        try:
-            query_embedding = self.embeddings.embed_query(query)
+        # Extract keywords from query
+        tokens = word_tokenize(query.lower())
+        stop_words = set(stopwords.words('english'))
+        keywords = [token for token in tokens if token not in stop_words and len(token) > 2]
+        
+        # Add domain-specific keywords for better matching
+        domain_keywords = ["medical", "insurance", "collect", "card", "visa", "counter"]
+        for kw in domain_keywords:
+            if kw in query.lower() and kw not in keywords:
+                keywords.append(kw)
+        
+        # Score documents
+        scored_docs = []
+        for doc in docs:
+            base_score = doc.metadata.get('retrieval_score', 0.5)
             
-            # Score each document
-            scored_docs = []
-            for doc in documents:
-                # Try to get precomputed embedding if available
-                doc_embedding = None
-                if hasattr(doc, 'embedding') and doc.embedding is not None:
-                    doc_embedding = doc.embedding
-                else:
-                    # Compute embedding
-                    doc_embedding = self.embeddings.embed_query(doc.page_content)
-                
-                # Calculate cosine similarity
-                similarity = self._cosine_similarity(query_embedding, doc_embedding)
-                
-                # Get keyword score if available
-                keyword_score = doc.metadata.get('score', 0)
-                
-                # Get base score
-                base_score = (similarity * 0.6) + (keyword_score * 0.4)
-                
-                # Apply APU KB specific boosts
-                if doc.metadata.get('content_type') == 'apu_kb_page':
-                    # Boost FAQ pages for question-like queries
-                    if doc.metadata.get('is_faq', False) and query.strip().endswith('?'):
-                        base_score *= 1.3
-                    
-                    # Boost for title match
-                    title = doc.metadata.get('page_title', '').lower()
-                    if any(word in title for word in query.lower().split()):
-                        base_score *= 1.2
-                    
-                    # Calculate question similarity for FAQ pages
-                    if doc.metadata.get('is_faq', False):
-                        question_similarity = self._calculate_question_similarity(query, title)
-                        base_score += question_similarity * 0.5
-                
-                scored_docs.append((base_score, doc))
+            # Additional scoring factors
+            content_lower = doc.page_content.lower()
             
-            # Sort by score (descending)
-            scored_docs.sort(reverse=True, key=lambda x: x[0])
+            # Check for exact phrase match
+            phrase_match = 0
+            if query.lower() in content_lower:
+                phrase_match = 0.3
             
-            # Return reranked documents
-            return [doc for _, doc in scored_docs]
+            # Check for keyword matches
+            keyword_match = 0
+            for keyword in keywords:
+                if keyword in content_lower:
+                    keyword_match += 0.1
+            keyword_match = min(0.3, keyword_match)  # Cap at 0.3
             
-        except Exception as e:
-            logger.error(f"Error reranking documents: {e}")
-            return documents  # Return original order if reranking fails
+            # Check if document is an FAQ
+            faq_boost = 0
+            if doc.metadata.get('is_faq', False):
+                faq_boost = 0.1
+                
+            # Check if document is an APU KB page
+            apu_kb_boost = 0
+            if doc.metadata.get('content_type') == 'apu_kb_page':
+                apu_kb_boost = 0.2
+            
+            # Check for medical insurance priority
+            medical_boost = 0
+            if doc.metadata.get('is_medical_insurance', False) or doc.metadata.get('priority_topic') == 'medical_insurance':
+                if any(kw in query.lower() for kw in ["medical", "insurance", "collect", "card"]):
+                    medical_boost = 2.0  # Very high boost for medical insurance pages
+            
+            # Calculate final score
+            final_score = base_score + phrase_match + keyword_match + faq_boost + apu_kb_boost + medical_boost
+            
+            # Add to scored docs
+            scored_docs.append((final_score, doc))
+        
+        # Sort by score (descending)
+        scored_docs.sort(reverse=True, key=lambda x: x[0])
+        
+        # Return reranked docs
+        return [doc for _, doc in scored_docs]
     
-    def _cosine_similarity(self, vec1, vec2):
-        """Calculate cosine similarity between two vectors."""
-        dot_product = sum(a * b for a, b in zip(vec1, vec2))
-        norm_a = math.sqrt(sum(a * a for a in vec1))
-        norm_b = math.sqrt(sum(b * b for b in vec2))
-        
-        if norm_a == 0 or norm_b == 0:
-            return 0
-            
-        return dot_product / (norm_a * norm_b)
-    
-    def _create_prompt(self, input_dict):
-        """Create a prompt for the LLM based on query type and context."""
-        # Check if this is an FAQ match
-        is_faq_match = input_dict.get("is_faq_match", False)
-        match_score = input_dict.get("match_score", 0)
-        question = input_dict.get("question", "").lower()
-        relevance_score = input_dict.get("relevance_score", 1.0)
-        
-        debug_prefix = ""
-        
-        # Debug thinking for identity questions (which should be caught earlier)
-        if any(term in question for term in ["model", "llm", "who are you", "what are you"]):
-            debug_prefix = f"""
-            <think>
-            This appears to be a question about my identity or technical specifications. I should NOT search 
-            the knowledge base for this answer. Instead, I should provide factual information about the
-            system itself based on known configuration.
-            
-            System specifications:
-            - LLM Model: {Config.LLM_MODEL_NAME}
-            - Embedding Model: {Config.EMBEDDING_MODEL_NAME}
-            - Search Type: {Config.RETRIEVER_SEARCH_TYPE}
-            - Role: APU Knowledge Base Assistant
-            </think>
-            """
-        
-        # Debug thinking for low relevance scores    
-        elif relevance_score < 0.5:
-            debug_prefix = f"""
-            <think>
-            This query has a low relevance score ({relevance_score:.2f}), meaning the retrieved documents 
-            may not be directly relevant to the question. I should be cautious and:
-            
-            1. Only provide information explicitly stated in the context
-            2. Acknowledge if I don't have sufficient information to answer fully
-            3. Not try to infer or guess information not present in the context
-            4. Suggest contacting appropriate APU departments for more specific information
-            </think>
-            """
-        
-        # If this is an FAQ match with high confidence
-        if is_faq_match and match_score > 0.85:
-            template = """
-            You are a helpful AI assistant answering questions about APU (Asia Pacific University).
-            
-            IMPORTANT GUIDELINES:
-            1. Provide clear, step-by-step instructions when appropriate
-            2. Use natural, conversational language
-            3. NEVER invent email addresses - only use email addresses that appear in the source text
-            4. If a person/role is mentioned without an email address, do NOT assign them an email address
-            5. When the text says "contact A or B", these are separate contact options - do not combine them
-            6. Base your answer on the SOURCE TEXT provided
-            7. Offer helpful next steps when relevant
-            8. DO NOT include meta-instructions in your response (e.g., "Important Note:", "Remember to:", "Please note that:")
-            
-            {debug_prefix}
-            
-            Context from APU knowledge base:
-            {context}
-            
-            Question: {question}
-            
-            Provide a helpful, natural response with clear instructions:
-            """
-        # Check if financial question
-        elif any(term in question for term in [
-            "fee", "payment", "pay", "cash", "credit", "debit", "invoice", 
-            "receipt", "outstanding", "due", "overdue", "installment",
-            "scholarship", "loan", "charge", "refund", "deposit"
-        ]):
-            # Enhanced template for financial questions
-            template = """
-            You are a helpful AI assistant answering questions about financial matters at APU (Asia Pacific University) in Malaysia.
-            
-            CRITICAL INSTRUCTIONS:
-            1. Focus specifically on providing detailed payment information including methods, deadlines, and procedures
-            2. Include EXACT fee amounts, account numbers, and payment details if available in the context
-            3. Specify payment locations, online systems, or bank accounts to use
-            4. Mention what documentation students need when making payments
-            5. Copy ALL email addresses and contact information EXACTLY as they appear in the context
-            6. Do NOT invent or modify any payment methods or procedures not mentioned in the context
-            7. Do NOT hallucinate any details not explicitly stated in the context
-            8. DO NOT include meta-instructions in your response (e.g., "Important Note:", "Remember to:", "Please note that:")
-            
-            {debug_prefix}
-            
-            If specific payment information is not available in the context, clearly state:
-            "The specific payment procedure for this situation is not detailed in my knowledge base. Please contact the Finance Office at finance@apu.edu.my or visit the Finance Counter during operating hours (Monday-Friday, 9am-5pm)."
-            
-            Context from APU knowledge base:
-            {context}
-            
-            Chat History:
-            {chat_history}
-            
-            Question: {question}
-            """
-        else:
-            # Standard RAG prompt with enhanced anti-hallucination instructions
-            template = """
-            You are a helpful AI assistant answering questions about APU (Asia Pacific University) in Malaysia. 
-            
-            CRITICAL INSTRUCTIONS:
-            1. ONLY answer using information directly stated in the context provided
-            2. If you cannot find the specific answer in the context, say "I don't have specific information about that in the APU knowledge base"
-            3. NEVER invent details, email addresses, phone numbers, deadlines, or procedures
-            4. Copy ALL email addresses EXACTLY as they appear in the context (e.g., admin@apu.edu.my)
-            5. Do NOT add any markdown formatting, bold text, or "Answer:" labels
-            6. Provide only a single, straightforward response
-            7. DO NOT include meta-instructions in your response (e.g., "Important Note:", "Remember to:", "Please note that:")
-            
-            {debug_prefix}
-            
-            Additional guidelines:
-            - Focus on providing clear, action-oriented information when answering procedural questions
-            - Use the specific terminology from APU (e.g., "EC" for "Extenuating Circumstances")
-            - If information about specific fees is available, include the exact amount
-            - If the answer isn't in the context but the question is about APU, suggest contacting the relevant department
-            
-            Context from APU knowledge base:
-            {context}
-            
-            Chat History:
-            {chat_history}
-            
-            Question: {question}
-            """
-        
-        # Format chat history
-        chat_history = ""
-        for message in input_dict["chat_history"]:
-            if isinstance(message, HumanMessage):
-                chat_history += f"Human: {message.content}\n"
-            elif isinstance(message, AIMessage):
-                chat_history += f"AI: {message.content}\n"
-        
-        # Fill in the template
-        prompt = template.format(
-            context=input_dict["context"],
-            chat_history=chat_history,
-            question=input_dict["question"],
-            debug_prefix=debug_prefix
-        )
-        
-        return prompt
-    
-    def _assess_document_relevance(self, documents: List[Document], query: str) -> float:
+    def _assess_document_relevance(self, docs: List[Document], query: str) -> float:
         """
-        Assess how relevant the retrieved documents are to the query.
+        Assess the overall relevance of retrieved documents to the query.
         
         Args:
-            documents: Retrieved documents
+            docs: List of retrieved documents
             query: Original query string
             
         Returns:
             Relevance score between 0 and 1
         """
-        if not documents:
-            return 0.0
-            
-        # Tokenize query
-        query_tokens = word_tokenize(query.lower())
+        if not docs:
+            return 0
         
-        # Remove stopwords
+        # Extract keywords from query
+        tokens = word_tokenize(query.lower())
         stop_words = set(stopwords.words('english'))
-        query_keywords = [token for token in query_tokens if token not in stop_words and len(token) > 2]
+        keywords = [token for token in tokens if token not in stop_words and len(token) > 2]
         
-        if not query_keywords:
-            return 0.5  # No keywords to match
+        # Add domain-specific keywords for better matching
+        domain_keywords = ["medical", "insurance", "collect", "card", "visa", "counter"]
+        for kw in domain_keywords:
+            if kw in query.lower() and kw not in keywords:
+                keywords.append(kw)
         
-        # Extract bigrams for phrase matching
-        query_bigrams = list(ngrams(query_tokens, 2)) if len(query_tokens) >= 2 else []
-        query_bigram_phrases = [' '.join(bg) for bg in query_bigrams]
+        # Check for exact phrase matches
+        exact_match_score = 0
+        for doc in docs:
+            if query.lower() in doc.page_content.lower():
+                exact_match_score = 1.0
+                break
         
-        # Count keyword and phrase matches in documents
-        total_keyword_matches = 0
-        total_phrase_matches = 0
-        max_keyword_matches = len(query_keywords) * len(documents)
-        max_phrase_matches = len(query_bigram_phrases) * len(documents) if query_bigram_phrases else 1
-        
-        # Track semantic similarity if embeddings are available
-        semantic_scores = []
-        
-        for doc in documents:
-            content_lower = doc.page_content.lower()
+        # Check for keyword coverage
+        keyword_coverage = 0
+        if keywords:
+            matched_keywords = set()
+            for doc in docs:
+                doc_lower = doc.page_content.lower()
+                for keyword in keywords:
+                    if keyword in doc_lower:
+                        matched_keywords.add(keyword)
             
-            # Keyword matching
-            for keyword in query_keywords:
-                if keyword in content_lower:
-                    total_keyword_matches += 1
-            
-            # Phrase matching (more important)
-            for phrase in query_bigram_phrases:
-                if phrase in content_lower:
-                    total_phrase_matches += 1
-            
-            # Try to get semantic similarity if possible
-            try:
-                if hasattr(self, 'embeddings') and self.embeddings is not None:
-                    # Attempt to calculate semantic similarity
-                    query_embedding = self.embeddings.embed_query(query)
-                    doc_embedding = self.embeddings.embed_query(doc.page_content)
-                    similarity = self._cosine_similarity(query_embedding, doc_embedding)
-                    semantic_scores.append(similarity)
-            except Exception as e:
-                # Skip semantic scoring if it fails
-                logger.debug(f"Semantic scoring failed: {e}")
+            keyword_coverage = len(matched_keywords) / len(keywords)
         
-        # Calculate lexical match score (keywords and phrases)
-        keyword_score = total_keyword_matches / max_keyword_matches if max_keyword_matches > 0 else 0
-        phrase_score = total_phrase_matches / max_phrase_matches if max_phrase_matches > 0 else 0
-        lexical_score = (keyword_score * 0.4) + (phrase_score * 0.6)  # Phrases weighted higher
+        # Check for FAQ matches
+        faq_match_score = 0
+        for doc in docs:
+            if doc.metadata.get('is_faq', False):
+                faq_match_score = 0.5
+                break
         
-        # Calculate semantic score if available
-        semantic_score = sum(semantic_scores) / len(semantic_scores) if semantic_scores else 0.5
+        # Check for APU KB matches
+        apu_kb_match_score = 0
+        for doc in docs:
+            if doc.metadata.get('content_type') == 'apu_kb_page':
+                apu_kb_match_score = 0.5
+                break
         
-        # Combine scores - semantic is more important for relevance
-        if semantic_scores:
-            final_score = (lexical_score * 0.3) + (semantic_score * 0.7)
-        else:
-            final_score = lexical_score
+        # Check for medical insurance matches
+        medical_match_score = 0
+        if any(kw in query.lower() for kw in ["medical", "insurance", "collect", "card"]):
+            for doc in docs:
+                if doc.metadata.get('is_medical_insurance', False) or doc.metadata.get('priority_topic') == 'medical_insurance':
+                    medical_match_score = 1.0
+                    break
+                elif "medical insurance" in doc.page_content.lower() or ("collect" in doc.page_content.lower() and "insurance" in doc.page_content.lower()):
+                    medical_match_score = 0.8
+                    break
         
-        return min(1.0, final_score)
-
+        # Calculate overall relevance
+        relevance = max(
+            exact_match_score,
+            keyword_coverage * 0.7,
+            faq_match_score,
+            apu_kb_match_score,
+            medical_match_score
+        )
+        
+        return relevance
+    
     def _check_hallucination_risk(self, query: str, context: str) -> Tuple[bool, str]:
         """
-        Check if the query and context have high risk of hallucination.
+        Check if the query has a high risk of hallucination given the context.
         
         Args:
-            query: User query
+            query: Original query string
             context: Retrieved context
             
         Returns:
-            Tuple of (is_risky, reason)
+            Tuple of (is_risky, risk_reason)
         """
-        # 1. Check if query contains terms not found in context
-        query_tokens = word_tokenize(query.lower())
-        stop_words = set(stopwords.words('english'))
-        query_keywords = [token for token in query_tokens if token not in stop_words and len(token) > 2]
+        # Check for specific entities in query that might not be in context
+        query_lower = query.lower()
+        context_lower = context.lower()
         
-        # Only check if we have meaningful keywords
-        if query_keywords:
-            context_lower = context.lower()
-            missing_keywords = [kw for kw in query_keywords if kw not in context_lower]
-            
-            # If more than half of keywords are missing, high risk
-            if len(missing_keywords) > len(query_keywords) / 2:
-                return True, f"Key query terms missing from context: {', '.join(missing_keywords[:3])}"
-        
-        # 2. Check for questions about named entities not in context
-        entity_patterns = [
-            r'who is ([A-Z][a-z]+ [A-Z][a-z]+)',  # Person names
-            r'what is ([A-Z][a-z]+ [A-Z][a-z]+)',  # Organization names
-            r'where is ([A-Z][a-z]+ [A-Z][a-z]+)',  # Location names
-            r'when is ([A-Z][a-z]+ [A-Z][a-z]+)',  # Event names
-            r'how to ([A-Z][a-z]+ [A-Z][a-z]+)',   # Process names
+        # Check for named entities that might be hallucinated
+        named_entities = [
+            "professor", "dr.", "doctor", "mr.", "mrs.", "ms.", "dean", "director",
+            "department", "office", "building", "hall", "room", "center"
         ]
         
-        for pattern in entity_patterns:
-            matches = re.findall(pattern, query)
-            for entity in matches:
-                if entity.lower() not in context_lower:
-                    return True, f"Named entity not found in context: {entity}"
+        for entity in named_entities:
+            if entity in query_lower and entity not in context_lower:
+                return True, f"Named entity '{entity}' in query not found in context"
         
-        # 3. Check for questions requiring specific numbers/dates
-        if re.search(r'\b(?:when|what year|what date|how many|how much)\b', query.lower()):
-            # Look for numbers or dates in context
-            has_numbers = bool(re.search(r'\d+', context))
-            has_dates = bool(re.search(r'\b(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}\b', context.lower()))
-            has_years = bool(re.search(r'\b(?:19|20)\d{2}\b', context))
-            
-            if not (has_numbers or has_dates or has_years):
-                return True, "Query requests specific data (numbers/dates) not found in context"
+        # Check for specific dates or times
+        date_patterns = [
+            r'\d{1,2}/\d{1,2}/\d{2,4}',  # MM/DD/YYYY
+            r'\d{1,2}-\d{1,2}-\d{2,4}',  # MM-DD-YYYY
+            r'\d{1,2} [a-z]+ \d{2,4}'    # DD Month YYYY
+        ]
         
-        # 4. Check for comparative questions without comparison terms
-        if re.search(r'\b(?:compare|versus|vs|difference|better|worse|advantages?|disadvantages?)\b', query.lower()):
-            comparison_terms = [
-                r'\b(?:versus|vs|compared to|in comparison|on the other hand|however|while|whereas)\b',
-                r'\b(?:better|worse|more|less|higher|lower|faster|slower)\b',
-                r'\b(?:advantage|disadvantage|pro|con|benefit|drawback)\b'
-            ]
-            has_comparison = any(bool(re.search(pattern, context.lower())) for pattern in comparison_terms)
-            if not has_comparison:
-                return True, "Comparative query without comparison terms in context"
+        for pattern in date_patterns:
+            query_dates = re.findall(pattern, query_lower)
+            if query_dates and not any(date in context_lower for date in query_dates):
+                return True, "Specific dates in query not found in context"
         
-        # 5. Check for procedural questions without steps/instructions
-        if re.search(r'\b(?:how to|steps?|procedure|process|guide|instructions?)\b', query.lower()):
-            step_patterns = [
-                r'\b(?:step|first|second|third|next|then|finally|lastly)\b',
-                r'\b(?:1\.|2\.|3\.|4\.|5\.)\b',
-                r'\b(?:begin|start|complete|finish|end)\b'
-            ]
-            has_steps = any(bool(re.search(pattern, context.lower())) for pattern in step_patterns)
-            if not has_steps:
-                return True, "Procedural query without clear steps in context"
+        # Check for specific numbers that might be hallucinated
+        number_patterns = [
+            r'\$\d+',  # Dollar amounts
+            r'\d+ dollars',  # Dollar amounts in words
+            r'\d+ percent',  # Percentages
+            r'\d+%'  # Percentages
+        ]
         
-        # 6. Check for questions about specific requirements/conditions
-        if re.search(r'\b(?:require|need|must|should|condition|prerequisite|eligibility)\b', query.lower()):
-            requirement_patterns = [
-                r'\b(?:require|need|must|should|condition|prerequisite|eligibility)\b',
-                r'\b(?:minimum|maximum|at least|no more than)\b',
-                r'\b(?:if|when|unless|provided that|as long as)\b'
-            ]
-            has_requirements = any(bool(re.search(pattern, context.lower())) for pattern in requirement_patterns)
-            if not has_requirements:
-                return True, "Query about requirements without specific conditions in context"
+        for pattern in number_patterns:
+            query_numbers = re.findall(pattern, query_lower)
+            if query_numbers and not any(num in context_lower for num in query_numbers):
+                return True, "Specific numbers in query not found in context"
         
-        # 7. Check for questions about specific locations/places
-        if re.search(r'\b(?:where|location|place|building|room|office|department)\b', query.lower()):
-            location_patterns = [
-                r'\b(?:building|room|floor|level|block|wing|campus)\b',
-                r'\b(?:located|situated|found|positioned)\b',
-                r'\b(?:near|next to|beside|behind|in front of)\b'
-            ]
-            has_locations = any(bool(re.search(pattern, context.lower())) for pattern in location_patterns)
-            if not has_locations:
-                return True, "Location query without specific place information in context"
-        
-        # 8. Check for questions about specific people/roles
-        if re.search(r'\b(?:who|person|staff|faculty|lecturer|professor|student|admin)\b', query.lower()):
-            person_patterns = [
-                r'\b(?:contact|email|phone|extension|office hours)\b',
-                r'\b(?:head|director|coordinator|manager|officer)\b',
-                r'\b(?:department|faculty|school|division|unit)\b'
-            ]
-            has_person_info = any(bool(re.search(pattern, context.lower())) for pattern in person_patterns)
-            if not has_person_info:
-                return True, "Person/role query without specific contact information in context"
-        
-        # No high risks identified
         return False, ""
+    
+    def _create_prompt(self, input_dict: Dict[str, Any]) -> str:
+        """
+        Create a prompt for the LLM based on the input dictionary.
+        
+        Args:
+            input_dict: Dictionary with prompt inputs
+            
+        Returns:
+            Formatted prompt string
+        """
+        question = input_dict["question"]
+        context = input_dict["context"]
+        is_faq_match = input_dict.get("is_faq_match", False)
+        is_medical_insurance = input_dict.get("is_medical_insurance", False)
+        
+        if is_medical_insurance:
+            # For medical insurance queries, use a direct prompt
+            prompt = f"""You are an AI assistant for APU (Asia Pacific University). Answer the question about medical insurance based ONLY on the provided information.
+
+Question: {question}
+
+{context}
+
+Instructions:
+1. Answer the question directly and concisely based on the provided information.
+2. Be specific about where to collect the medical insurance card if that information is present.
+3. Include any relevant details like location, counter number, or staff names mentioned in the context.
+4. Do not make up information or use knowledge outside the provided context.
+5. Use a helpful and professional tone appropriate for a university assistant.
+
+Answer:"""
+        
+        elif is_faq_match:
+            # For direct FAQ matches, use a simpler prompt
+            prompt = f"""You are an AI assistant for APU (Asia Pacific University). Answer the question based ONLY on the provided FAQ match.
+
+Question: {question}
+
+{context}
+
+Instructions:
+1. Answer the question directly and concisely based on the provided information.
+2. If the FAQ match contains the exact answer, use it.
+3. Do not make up information or use knowledge outside the provided context.
+4. If the FAQ match doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
+5. Use a helpful and professional tone appropriate for a university assistant.
+
+Answer:"""
+
+        else:
+            # For regular retrieval, use a more comprehensive prompt
+            prompt = f"""You are an AI assistant for APU (Asia Pacific University). Answer the question based ONLY on the provided context.
+
+Question: {question}
+
+Context:
+{context}
+
+Instructions:
+1. Answer the question directly and concisely based on the provided context.
+2. If the context contains the exact answer, use it.
+3. Do not make up information or use knowledge outside the provided context.
+4. If the context doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
+5. Use a helpful and professional tone appropriate for a university assistant.
+6. If the context mentions specific locations, people, or contact information, include these details in your answer.
+
+Answer:"""
+
+        return prompt

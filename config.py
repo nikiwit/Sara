@@ -1,18 +1,36 @@
 """
-Configuration settings for the APURAG system.
+Configuration settings for the APURAG system with environment-specific support.
 """
 
 import os
 import logging
+import platform
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Determine environment
+ENV = os.environ.get("APURAG_ENV", "local").lower()
 
-# Configure logging - production settings
+# Load environment-specific .env file
+if ENV == "production":
+    env_file = ".env.production"
+elif ENV == "local":
+    env_file = ".env.local"
+else:
+    env_file = ".env"  # Fallback to default
+
+# Load environment variables from appropriate .env file
+if os.path.exists(env_file):
+    load_dotenv(env_file)
+else:
+    load_dotenv()  # Fallback to default .env
+
+# Configure logging
+log_level_name = os.environ.get("CUSTOMRAG_LOG_LEVEL", "INFO")
+log_level = getattr(logging, log_level_name.upper(), logging.INFO)
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("customrag.log"),
@@ -22,7 +40,10 @@ logging.basicConfig(
 logger = logging.getLogger("CustomRAG")
 
 class Config:
-    """Configuration settings for the RAG application."""
+    """Base configuration settings for the RAG application."""
+    
+    # Environment
+    ENV = ENV
     
     # Paths
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -39,9 +60,9 @@ class Config:
     
     # Retrieval settings
     RETRIEVER_K = int(os.environ.get("CUSTOMRAG_RETRIEVER_K", "6"))
-    RETRIEVER_SEARCH_TYPE = os.environ.get("CUSTOMRAG_SEARCH_TYPE", "hybrid")  # Changed to hybrid as default
-    KEYWORD_RATIO = float(os.environ.get("CUSTOMRAG_KEYWORD_RATIO", "0.4"))  # 40% weight to keywords by default for FAQ
-    FAQ_MATCH_WEIGHT = float(os.environ.get("CUSTOMRAG_FAQ_MATCH_WEIGHT", "0.5"))  # Weight for direct FAQ matches
+    RETRIEVER_SEARCH_TYPE = os.environ.get("CUSTOMRAG_SEARCH_TYPE", "hybrid")
+    KEYWORD_RATIO = float(os.environ.get("CUSTOMRAG_KEYWORD_RATIO", "0.4"))
+    FAQ_MATCH_WEIGHT = float(os.environ.get("CUSTOMRAG_FAQ_MATCH_WEIGHT", "0.5"))
     
     # Query processing settings
     USE_QUERY_EXPANSION = os.environ.get("CUSTOMRAG_QUERY_EXPANSION", "True").lower() in ("true", "1", "t")
@@ -54,11 +75,25 @@ class Config:
     # Ollama API
     OLLAMA_BASE_URL = os.environ.get("CUSTOMRAG_OLLAMA_URL", "http://localhost:11434")
     
+    # Resource settings
+    MAX_THREADS = int(os.environ.get("CUSTOMRAG_MAX_THREADS", "4"))
+    MAX_MEMORY = os.environ.get("CUSTOMRAG_MAX_MEMORY", "4G")
+    
+    # Hardware detection
+    @classmethod
+    def has_gpu(cls):
+        """Detect if GPU is available."""
+        try:
+            import torch
+            return torch.cuda.is_available()
+        except ImportError:
+            return False
+    
     # Miscellaneous
     FORCE_REINDEX = os.environ.get("CUSTOMRAG_FORCE_REINDEX", "False").lower() in ("true", "1", "t")
-    LOG_LEVEL = os.environ.get("CUSTOMRAG_LOG_LEVEL", "INFO")
+    LOG_LEVEL = log_level_name
     
-    # APU filtering setting - set default to True to only process APU files
+    # APU filtering setting
     FILTER_APU_ONLY = os.environ.get("FILTER_APU_ONLY", "False").lower() in ("true", "1", "t")
     
     # Supported file types
@@ -71,18 +106,17 @@ class Config:
     @classmethod
     def setup(cls):
         """Set up the configuration and ensure directories exist."""
-        # Set logging level based on configuration
-        log_level = getattr(logging, cls.LOG_LEVEL.upper(), logging.INFO)
-        logger.setLevel(log_level)
-        
         # Ensure data directory exists
         os.makedirs(cls.DATA_PATH, exist_ok=True)
         
+        # Log environment and configuration
+        logger.info(f"Running in {cls.ENV} environment")
         logger.info(f"Data directory: {cls.DATA_PATH}")
         logger.info(f"Vector store directory: {cls.PERSIST_PATH}")
         logger.info(f"Embedding model: {cls.EMBEDDING_MODEL_NAME}")
         logger.info(f"LLM model: {cls.LLM_MODEL_NAME}")
         logger.info(f"Search type: {cls.RETRIEVER_SEARCH_TYPE}")
+        logger.info(f"GPU available: {cls.has_gpu()}")
         
         if cls.RETRIEVER_SEARCH_TYPE == "hybrid":
             logger.info(f"Keyword ratio: {cls.KEYWORD_RATIO}")
@@ -99,3 +133,27 @@ class Config:
             logger.info("APU document filtering is ENABLED - only files starting with 'apu_' will be processed")
         else:
             logger.info("APU document filtering is DISABLED - all compatible files will be processed")
+
+# Load environment-specific configuration
+if ENV == "production":
+    try:
+        from config_production import ProductionConfig
+        ConfigClass = ProductionConfig
+        logger.info("Loaded production configuration")
+    except ImportError:
+        ConfigClass = Config
+        logger.warning("Production configuration not found, using base configuration")
+elif ENV == "local":
+    try:
+        from config_local import LocalConfig
+        ConfigClass = LocalConfig
+        logger.info("Loaded local development configuration")
+    except ImportError:
+        ConfigClass = Config
+        logger.warning("Local configuration not found, using base configuration")
+else:
+    ConfigClass = Config
+    logger.info("Using base configuration")
+
+# Export the appropriate configuration class
+config = ConfigClass

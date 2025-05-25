@@ -32,6 +32,12 @@ APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically d
   - Optimized similarity search
   - Backup and restore capabilities
 
+- **NEW: Dual Environment Configuration**
+  - Local development environment optimized for laptops
+  - Production environment optimized for HGX H100 G593-SD2 servers
+  - Environment-specific resource management
+  - Automatic hardware detection and optimization
+
 ## 📋 Prerequisites
 
 - Python 3.8 or higher
@@ -58,7 +64,11 @@ APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically d
 
 2. Pull the required Ollama model:
    ```bash
+   # For local development
    ollama pull deepseek-r1:1.5b
+   
+   # For production (HGX H100)
+   ollama pull deepseek-r1:7b
    ```
 
 3. Ensure Ollama is running:
@@ -87,6 +97,15 @@ APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically d
    pip install -r requirements.txt
    ```
 
+7. Set up environment configuration:
+   ```bash
+   # For local development (default)
+   cp .env.local .env
+   
+   # For production environment
+   # cp .env.production .env
+   ```
+
 ## 💻 Usage
 
 1. Ensure Ollama is running in the background:
@@ -96,7 +115,11 @@ APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically d
 
 2. Start the application:
    ```bash
+   # Run with default environment (local)
    python main.py
+   
+   # Or specify environment explicitly
+   APURAG_ENV=production python main.py
    ```
 
 3. Follow the interactive CLI prompts to:
@@ -111,11 +134,17 @@ APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically d
 APURAG/
 ├── app.py                 # Main application logic
 ├── main.py                # Entry point
-├── config.py              # Configuration settings
+├── config.py              # Base configuration settings
+├── config_local.py        # Local environment configuration
+├── config_production.py   # Production environment configuration
+├── resource_manager.py    # Hardware resource management
 ├── apurag_types.py        # Type definitions
 ├── input_processing.py    # Input handling
 ├── utils.py               # Utility functions
 ├── requirements.txt       # Project dependencies
+├── .env.local             # Local environment variables template
+├── .env.production        # Production environment variables template
+├── .gitignore             # Git ignore rules
 ├── data/                  # Data directory
 ├── document_processing/   # Document processing modules
 ├── query_handling/        # Query processing modules
@@ -126,12 +155,31 @@ APURAG/
 
 ## 🔧 Configuration
 
-The system can be configured through `config.py`. Key configuration options include:
+The system now supports dual environment configuration:
 
-- Vector store settings
-- Document processing parameters
-- Query handling preferences
-- Logging configuration
+### Environment Selection
+- Set `APURAG_ENV` to either `local` (default) or `production`
+- Or copy the appropriate `.env.local` or `.env.production` to `.env`
+
+### Local Environment (Laptops)
+- Optimized for lower resource usage
+- Smaller models and chunk sizes
+- Reduced memory footprint
+- Debug-level logging
+
+### Production Environment (HGX H100)
+- Optimized for high-performance hardware
+- Larger, more capable models
+- Enhanced retrieval parameters
+- Production-level logging
+- Absolute file paths for reliability
+
+### Configuration Files
+- `config.py` - Base configuration with environment detection
+- `config_local.py` - Local-specific configuration overrides
+- `config_production.py` - Production-specific configuration overrides
+- `.env.local` - Environment variables for local development
+- `.env.production` - Environment variables for production deployment
 
 ## 📚 Dependencies
 
@@ -154,8 +202,27 @@ Major dependencies include:
   - python-dotenv
   - numpy
   - tqdm
+  - psutil (NEW: for resource management)
 
 For a complete list, see `requirements.txt`.
+
+## 📝 Version Control
+
+The project now includes a comprehensive `.gitignore` file to ensure that only necessary files are tracked in version control:
+
+### Excluded from Version Control
+- Environment-specific files (`.env`, `.env.local`, `.env.production`)
+- Vector store data (`vector_store/*`)
+- Log files (`*.log`)
+- Cached Python files (`__pycache__/`, `*.pyc`)
+- OS-specific files (`.DS_Store`, etc.)
+- IDE configuration files (`.vscode/`, `.idea/`)
+
+### Best Practices
+- Always use the provided `.gitignore` to avoid committing sensitive or large files
+- Keep data files in the `data/` directory (only `apu_kb.txt` is tracked)
+- Store vector databases in the `vector_store/` directory (not tracked)
+- Use environment-specific configuration files for local customization
 
 ## 🤝 Contributing
 
@@ -185,4 +252,4 @@ For support, please open an issue in the GitHub repository or contact the mainta
 
 ---
 
-Made with ❤️ for the APU community 
+Made with ❤️ for the APU community

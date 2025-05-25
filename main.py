@@ -1,46 +1,43 @@
 """
-Entry point for the Enhanced CustomRAG application.
-
-Enhanced CustomRAG - An Advanced Retrieval Augmented Generation System for APU Knowledge Base
-----------------------------------------------------------------------------------
-This application allows users to query the APU knowledge base using natural language.
-It has been specially optimized for FAQ-style content organized in pages.
-
-Features:
-- Specialized APU knowledge base parsing and structure preservation
-- Enhanced metadata extraction from structured content
-- Education-specific query classification
-- FAQ-optimized retrieval strategies
-- Better context generation for Q&A content
-- Improved direct question matching
-
-Original Author: Nik
+Main entry point for APURAG system.
 """
 
+import os
 import sys
 import logging
 from app import CustomRAG
+from config import config
+from resource_manager import ResourceManager
 
+# Configure logging
 logger = logging.getLogger("CustomRAG")
 
 def main():
-    """Entry point for the CustomRAG application."""
-    app = None
-    try:
-        app = CustomRAG()
-        app.run_cli()
-    except Exception as e:
-        logger.error(f"Application error: {e}")
-        print(f"Error: {e}")
-        return 1
-    finally:
-        # Clean up resources
-        if app is not None:
-            try:
-                app.cleanup()
-            except Exception as e:
-                logger.error(f"Error during cleanup: {e}")
-    return 0
+    """Main entry point for the application."""
+    # Setup configuration
+    config.setup()
+    
+    # Setup resources
+    ResourceManager.setup_resources()
+    ResourceManager.optimize_for_environment()
+    
+    # Log environment
+    logger.info(f"Starting APURAG in {config.ENV} environment")
+    
+    # Create and run the RAG application
+    rag_app = CustomRAG()
+    rag_app.run_cli()
+    
+    # Cleanup
+    rag_app.cleanup()
+    logger.info("APURAG shutdown complete")
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.info("Application terminated by user")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"Unhandled exception: {e}", exc_info=True)
+        sys.exit(1)

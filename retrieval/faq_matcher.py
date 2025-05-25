@@ -61,11 +61,12 @@ class FAQMatcher:
                     
                 metadata = metadatas[i]
                 
-                # Only consider APU KB pages that are FAQs
-                if metadata.get('content_type') != 'apu_kb_page' or not metadata.get('is_faq', False):
+                # Consider all APU KB pages, not just those marked as FAQs
+                # This is a key change to improve recall
+                if metadata.get('content_type') != 'apu_kb_page':
                     continue
                 
-                # Get the page title (which should be the question)
+                # Get the page title
                 title = metadata.get('page_title', '')
                 
                 # Skip if no title
@@ -79,16 +80,15 @@ class FAQMatcher:
                 if is_question and title.strip().endswith('?'):
                     similarity *= 1.2
                 
-                # Also check content for exact matches to the query
-                content_match = 0
-                if query.lower() in doc_text.lower():
-                    content_match = 0.3
+                # Also check content for keyword matches to the query
+                content_match = self._calculate_content_match(query, doc_text)
                 
                 # Combined score
                 score = similarity + content_match
                 
                 # Update best match if better
-                if score > best_score and score > 0.5:  # Threshold for considering a match
+                # Lowered threshold from 0.5 to 0.4 to improve recall
+                if score > best_score and score > 0.4:
                     best_score = score
                     best_match = {
                         "document": Document(
@@ -104,9 +104,45 @@ class FAQMatcher:
             logger.error(f"Error in FAQ matching: {e}")
             return None
     
+    def _calculate_content_match(self, query: str, content: str) -> float:
+        """
+        Calculate content match score based on keyword presence.
+        
+        Args:
+            query: User query
+            content: Document content
+            
+        Returns:
+            Content match score between 0 and 0.5
+        """
+        # Normalize
+        query_lower = query.lower()
+        content_lower = content.lower()
+        
+        # Check for exact phrase match
+        if query_lower in content_lower:
+            return 0.5
+        
+        # Extract keywords from query
+        query_tokens = word_tokenize(query_lower)
+        stop_words = set(stopwords.words('english'))
+        keywords = [token for token in query_tokens if token not in stop_words and len(token) > 2]
+        
+        # Count keyword matches
+        matches = 0
+        for keyword in keywords:
+            if keyword in content_lower:
+                matches += 1
+        
+        # Calculate score based on proportion of keywords found
+        if not keywords:
+            return 0
+        
+        return min(0.4, (matches / len(keywords)) * 0.4)
+    
     def _calculate_faq_similarity(self, query: str, title: str) -> float:
         """
-        Calculate the similarity between a query and an FAQ title with enhanced financial question matching.
+        Calculate the similarity between a query and an FAQ title with enhanced matching.
         
         Args:
             query: User query
@@ -123,27 +159,44 @@ class FAQMatcher:
         if query == title:
             return 1.0
         
-        # Check for financial keywords match
-        financial_keywords = [
+        # Check for domain-specific keywords match
+        domain_keywords = [
+            # Financial terms
             "fee", "payment", "pay", "cash", "credit", "debit", "invoice", 
             "receipt", "outstanding", "due", "overdue", "installment",
-            "scholarship", "loan", "charge", "refund", "deposit"
+            "scholarship", "loan", "charge", "refund", "deposit",
+            # Medical/insurance terms
+            "medical", "insurance", "health", "card", "coverage", "claim",
+            "collect", "pickup", "pick up", "pick-up", "counter", "office",
+            # Administrative terms
+            "visa", "passport", "document", "form", "application", "submit",
+            "register", "registration", "enroll", "enrollment"
         ]
         
-        query_has_financial = any(kw in query for kw in financial_keywords)
-        title_has_financial = any(kw in title for kw in financial_keywords)
+        query_has_domain_term = any(kw in query for kw in domain_keywords)
+        title_has_domain_term = any(kw in title for kw in domain_keywords)
         
-        # Apply finance-specific boosting
-        finance_boost = 0
-        if query_has_financial and title_has_financial:
-            finance_boost = 0.3
+        # Apply domain-specific boosting
+        domain_boost = 0
+        if query_has_domain_term and title_has_domain_term:
+            domain_boost = 0.3
         
-        # Check for substring match
+        # Check for substring match (more lenient)
         if query in title or title in query:
             # Calculate relative length ratio for boosting based on how close in length they are
             length_ratio = min(len(query), len(title)) / max(len(query), len(title))
             substring_score = 0.8 * length_ratio
-            return substring_score + finance_boost
+            return substring_score + domain_boost
+        
+        # Check for partial matches (new)
+        query_parts = query.split()
+        title_parts = title.split()
+        
+        # Check if most words in the query appear in the title
+        common_words = set(query_parts).intersection(set(title_parts))
+        if len(common_words) >= len(query_parts) * 0.7:  # 70% of query words appear in title
+            partial_score = 0.7 * (len(common_words) / len(query_parts))
+            return partial_score + domain_boost
         
         # Tokenize
         query_tokens = set(word_tokenize(query))
@@ -164,7 +217,7 @@ class FAQMatcher:
         ngram_match = self._check_ngram_overlap(query, title)
         
         # Combine scores (weighted)
-        return (jaccard * 0.6) + (ngram_match * 0.2) + finance_boost
+        return (jaccard * 0.6) + (ngram_match * 0.2) + domain_boost
     
     def _check_ngram_overlap(self, text1: str, text2: str) -> float:
         """
