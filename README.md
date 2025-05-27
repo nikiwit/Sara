@@ -65,10 +65,10 @@ APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically d
 2. Pull the required Ollama model:
    ```bash
    # For local development
-   ollama pull deepseek-r1:1.5b
+   ollama pull qwen2.5:3b-instruct
    
    # For production
-   ollama pull deepseek-r1:7b
+   ollama pull qwen2.5:7b-instruct
    ```
 
 3. Ensure Ollama is running:

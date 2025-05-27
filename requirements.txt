@@ -13,6 +13,9 @@ nltk>=3.8.1
 # Vector store - handled separately from torch to avoid conflicts
 chromadb>=0.4.20,<0.5.0
 
+# Fast Hugging Face transfers
+hf_xet
+
 # Document processing - PDF
 pypdf>=3.0.0
 pdfplumber>=0.10.0
