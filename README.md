@@ -130,7 +130,7 @@ APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically d
 
 ## 📁 Project Structure
 
-*Make sure to request environment files for up-to-date settings (.env files are in gitignore by default for security reasons).*
+*Request environment files for up-to-date settings (.env files are in gitignore by default for security reasons).*
 
 ```
 APURAG/
@@ -162,6 +162,8 @@ The system supports dual environment configuration:
 ### Environment Selection
 - Set `APURAG_ENV` to either `local` (default) or `production`
 - Or copy the appropriate `.env.local` or `.env.production` to `.env`
+
+*Request environment files for up-to-date settings (.env files are in gitignore by default for security reasons).*
 
 ### Local Environment (Laptops)
 - Optimized for lower resource usage
