@@ -818,7 +818,7 @@ class RetrievalHandler:
                 return True, "Specific numbers in query not found in context"
         
         return False, ""
-    
+
     def _create_prompt(self, input_dict: Dict[str, Any]) -> str:
         """
         Create a prompt for the LLM based on the input dictionary.
@@ -833,58 +833,94 @@ class RetrievalHandler:
         context = input_dict["context"]
         is_faq_match = input_dict.get("is_faq_match", False)
         is_medical_insurance = input_dict.get("is_medical_insurance", False)
+        relevance_score = input_dict.get("relevance_score", 0.5)
         
         if is_medical_insurance:
-            # For medical insurance queries, use a direct prompt
+            # Medical insurance prompt (unchanged)
             prompt = f"""You are an AI assistant for APU (Asia Pacific University). Answer the question about medical insurance based ONLY on the provided information.
 
-Question: {question}
+    Question: {question}
 
-{context}
+    {context}
 
-Instructions:
-1. Answer the question directly and concisely based on the provided information.
-2. Be specific about where to collect the medical insurance card if that information is present.
-3. Include any relevant details like location, counter number, or staff names mentioned in the context.
-4. Do not make up information or use knowledge outside the provided context.
-5. Use a helpful and professional tone appropriate for a university assistant.
+    Instructions:
+    1. Answer the question directly and concisely based on the provided information.
+    2. Be specific about where to collect the medical insurance card if that information is present.
+    3. Include any relevant details like location, counter number, or staff names mentioned in the context.
+    4. Do not make up information or use knowledge outside the provided context.
+    5. Use a helpful and professional tone appropriate for a university assistant.
 
-Answer:"""
+    Answer:"""
         
         elif is_faq_match:
-            # For direct FAQ matches, use a simpler prompt
+            # FAQ match prompt (unchanged)
             prompt = f"""You are an AI assistant for APU (Asia Pacific University). Answer the question based ONLY on the provided FAQ match.
 
-Question: {question}
+    Question: {question}
 
-{context}
+    {context}
 
-Instructions:
-1. Answer the question directly and concisely based on the provided information.
-2. If the FAQ match contains the exact answer, use it.
-3. Do not make up information or use knowledge outside the provided context.
-4. If the FAQ match doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
-5. Use a helpful and professional tone appropriate for a university assistant.
+    Instructions:
+    1. Answer the question directly and concisely based on the provided information.
+    2. If the FAQ match contains the exact answer, use it.
+    3. Do not make up information or use knowledge outside the provided context.
+    4. If the FAQ match doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
+    5. Use a helpful and professional tone appropriate for a university assistant.
 
-Answer:"""
+    Answer:"""
+
+        elif relevance_score < 0.25:  # Low relevance - likely partial match
+            # Enhanced prompt for partial matches
+            prompt = f"""You are an AI assistant for APU (Asia Pacific University). The user asked a question, but the available information may only be partially related.
+
+    User's Question: {question}
+
+    Available Information:
+    {context}
+
+    Instructions:
+    1. First, check if the available information directly answers the user's question.
+    2. If YES - provide a direct, helpful answer.
+    3. If NO - but there is some related information, respond using this EXACT format:
+
+    "I found some related information, but I'd like to help you find exactly what you're looking for.
+
+    Could you please specify which of these you're interested in:
+
+    1) [First related topic you found in the information]
+    2) [Second related topic if available]
+    3) [Third related topic if available]
+
+    Or feel free to ask your question in a different way, and I'll do my best to help!"
+
+    4. If the available information is completely unrelated, say: "I don't have specific information about that topic. Could you provide more details about what you're looking for?"
+
+    IMPORTANT RULES:
+    - Never mention "documents", "context", "FAQ", "questions", or other technical terms
+    - Extract actual topic names from the information (e.g., "Collecting examination dockets", "Exam schedule information")
+    - Keep topics specific and user-friendly
+    - Maximum 4 options
+    - Always be helpful and encouraging
+
+    Answer:"""
 
         else:
-            # For regular retrieval, use a more comprehensive prompt
+            # Regular prompt for good relevance (unchanged)
             prompt = f"""You are an AI assistant for APU (Asia Pacific University). Answer the question based ONLY on the provided context.
 
-Question: {question}
+    Question: {question}
 
-Context:
-{context}
+    Context:
+    {context}
 
-Instructions:
-1. Answer the question directly and concisely based on the provided context.
-2. If the context contains the exact answer, use it.
-3. Do not make up information or use knowledge outside the provided context.
-4. If the context doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
-5. Use a helpful and professional tone appropriate for a university assistant.
-6. If the context mentions specific locations, people, or contact information, include these details in your answer.
+    Instructions:
+    1. Answer the question directly and concisely based on the provided context.
+    2. If the context contains the exact answer, use it.
+    3. Do not make up information or use knowledge outside the provided context.
+    4. If the context doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
+    5. Use a helpful and professional tone appropriate for a university assistant.
+    6. If the context mentions specific locations, people, or contact information, include these details in your answer.
 
-Answer:"""
+    Answer:"""
 
         return prompt

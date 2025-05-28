@@ -354,7 +354,6 @@ class VectorStoreManager:
         if persist_directory is None:
             persist_directory = Config.PERSIST_PATH
             
-        # Use a consistent collection name
         collection_name = "apu_kb_collection"
         logger.info(f"Using collection name: {collection_name}")
         

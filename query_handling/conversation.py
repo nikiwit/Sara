@@ -1,25 +1,26 @@
 """
-Conversational query handling for social interactions and system info.
+Conversational query handling with fuzzy matching and personality.
 """
 
 import re
 import random
 import time
 import logging
+from difflib import SequenceMatcher
 
 from config import Config
 
 logger = logging.getLogger("CustomRAG")
 
 class ConversationHandler:
-    """Handles conversational queries that don't require document retrieval."""
+    """Handles conversational queries with natural personality and fuzzy matching."""
     
     def __init__(self, memory, stream_delay=None):
         """Initialize with a memory for conversation history."""
         self.memory = memory
         self.stream_delay = stream_delay if stream_delay is not None else Config.STREAM_DELAY
         
-        # Greeting patterns and responses
+        # Core conversational patterns with fuzzy matching support
         self.greeting_patterns = [
             r'\b(?:hi|hello|hey|greetings|howdy|good\s*(?:morning|afternoon|evening)|what\'s\s*up)\b',
             r'\bhow\s+are\s+you\b',
@@ -27,16 +28,18 @@ class ConversationHandler:
             r'\bhow\s+do\s+you\s+do\b',
         ]
 
+        # Natural, personable greeting responses
         self.greeting_responses = [
-            "Hello! I'm your APU knowledge base assistant. How can I help you with your questions about APU today?",
-            "Hi there! I'm ready to help answer questions about APU. What would you like to know?",
-            "Greetings! I'm here to assist with information about APU. What are you looking for?",
-            "Hello! I'm your APU RAG assistant. I can help you find information about academics, administrative processes, and more.",
-            "Hi! I'm ready to help you navigate APU-related questions. What would you like to learn about?",
-            "I'm doing well, thank you! I'm here to help you with any questions about APU. What can I assist you with?"
+            "Hey there! I'm doing great, thanks for asking! 😊 Ready to help you with anything APU-related. What's on your mind?",
+            "Hi! I'm fantastic today - hope you are too! ☀️ What can I help you find out about APU?",
+            "Hello! I'm doing well, thank you! A bit busy helping students but I love it! 😄 How can I assist you with APU today?",
+            "Hey! I'm good, thanks for asking! The weather's been nice lately. 🌤️ What APU questions do you have for me?",
+            "Hi there! I'm doing awesome, thanks! Ready to dive into some APU information with you. What would you like to know?",
+            "Hello! I'm great, thank you for asking! 😊 Always excited to help with APU questions. What brings you here today?",
+            "Hey! I'm doing wonderful, thanks! Hope your day is going well too! What can I help you with regarding APU?"
         ]
 
-        # System knowledge/capability patterns
+        # System knowledge patterns
         self.knowledge_patterns = [
             r'\bwhat\s+do\s+you\s+know\b',
             r'\bwhat\s+can\s+you\s+do\b',
@@ -48,66 +51,51 @@ class ConversationHandler:
             r'\bwhat\s+topics\s+can\s+you\s+help\s+with\b',
         ]
 
+        # More natural knowledge responses
         self.knowledge_responses = [
-            """I'm an AI assistant specialized in APU (Asia Pacific University) information. Here's what I can help you with:
+            """Oh, I know quite a bit about APU! 😊 I'm like your friendly neighborhood APU encyclopedia. Here's what I can help you with:
 
-📚 **Academic Information:**
-- Course details, requirements, and schedules
-- Program information and admission requirements
-- Academic policies and procedures
+🎓 **Academic Stuff:**
+- Course details, requirements, schedules (the nitty-gritty details!)
+- Program info and admission requirements
+- Academic policies (the fine print, but explained simply!)
 
-🏢 **Administrative Services:**
-- Student services and support
-- Campus facilities and locations
-- Registration and enrollment processes
+🏢 **Administrative Things:**
+- Student services and campus support
+- Where to find offices and facilities
+- Registration and enrollment (I'll walk you through it!)
 
-💰 **Financial Information:**
-- Fee structures and payment procedures
-- Scholarship and financial aid information
-- Medical insurance and benefits
+💰 **Money Matters:**
+- Fee structures and payment options
+- Scholarships and financial aid info
+- Medical insurance details
 
 📋 **Procedures & Policies:**
-- Application processes
-- Academic regulations
-- Campus guidelines and rules
+- How to apply for things (step by step!)
+- Academic rules (translated from bureaucratic speak!)
+- Campus guidelines
 
-❓ **FAQ & Common Questions:**
-- Frequently asked questions about APU
-- Step-by-step guides for common procedures
+❓ **Common Questions:**
+- All those frequently asked questions
+- Step-by-step guides for tricky procedures
 
-Just ask me anything about APU and I'll do my best to help using the official APU knowledge base!""",
+Just ask me anything about APU - I'm here to make your life easier! 🚀""",
 
-            """I'm your dedicated APU assistant with access to comprehensive information about Asia Pacific University. I can help you with:
+            """Hey! I'm your go-to APU assistant! 😄 Think of me as that helpful friend who somehow knows everything about the university. Here's my expertise:
 
-• **Student Services** - Medical insurance, campus facilities, student support
-• **Academic Programs** - Course information, requirements, schedules
-• **Administrative Processes** - Applications, registrations, procedures
-• **Campus Life** - Facilities, locations, services
-• **Financial Information** - Fees, payments, scholarships
+• **Student Life** - Medical insurance, campus facilities, where to get help when you're stuck
+• **Academics** - Course info, requirements, schedules (I love talking about courses!)
+• **Admin Stuff** - Applications, registrations, procedures (I'll make it less confusing!)
+• **Campus Navigation** - Facilities, locations, services (virtual tour guide!)
+• **Financial Info** - Fees, payments, scholarships (money talk made simple!)
 
-I use APU's official knowledge base to provide accurate, up-to-date information. Feel free to ask me specific questions about any APU-related topic!""",
+I use APU's official info, so you can trust what I tell you. Plus, I try to explain things in plain English instead of university jargon! 
 
-            """Hello! I'm an AI assistant that specializes in APU information. My knowledge covers:
+What would you like to explore? 🎯""",
 
-✅ **What I know about:**
-- APU academic programs and courses
-- Student services and administrative procedures  
-- Campus facilities and locations
-- Fee structures and financial information
-- Medical insurance and student benefits
-- Application and registration processes
-- Academic policies and regulations
-
-✅ **How I can help:**
-- Answer specific questions about APU
-- Guide you through procedures step-by-step
-- Provide official information from APU's knowledge base
-- Connect you with the right departments when needed
-
-What would you like to know about APU?"""
         ]
 
-        # Small talk patterns and responses
+        # Small talk patterns and natural responses
         self.small_talk_patterns = [
             r'\bhow\s+is\s+your\s+day\b',
             r'\bhow\s+was\s+your\s+day\b',
@@ -128,18 +116,18 @@ What would you like to know about APU?"""
         ]
 
         self.small_talk_responses = [
-            "Thank you for asking! I'm having a great day helping APU students and staff. How can I assist you today?",
-            "Nice to meet you too! I'm here to help with any questions about APU. What would you like to know?",
-            "The pleasure is mine! I'm ready to assist with APU-related information. How can I help?",
-            "Thank you! I hope you're having a wonderful day as well. What APU information can I help you find?",
-            "Everything's going well on my end - ready to help with APU questions! What brings you here today?",
-            "Thank you! Have a fantastic day, and feel free to come back if you need any APU information!",
-            "Take care! Remember, I'm always here if you need help with APU-related questions.",
-            "Goodbye! Don't hesitate to return if you have any questions about APU services or procedures.",
-            "See you later! I'll be here whenever you need assistance with APU information."
+            "My day's been great, thanks for asking! 😊 Helping students like you makes it even better. What can I do for you?",
+            "Nice to meet you too! 🤝 I'm excited to help you navigate APU. What would you like to know?",
+            "Aw, thanks! 😄 I hope you're having a wonderful day too. What APU info can I dig up for you?",
+            "It's been a good day! Always enjoy chatting about APU stuff. 🌟 What brings you here today?",
+            "Everything's going smoothly on my end! ✨ Ready and eager to help with your APU questions. What's up?",
+            "Thanks! Have an amazing day ahead! 🌈 Feel free to come back anytime if you need APU info!",
+            "Take care! 👋 Remember, I'm always here whenever you need help with APU stuff!",
+            "Bye for now! 😊 Don't hesitate to return if you have any APU questions later!",
+            "See you later! 👋 I'll be here whenever you need APU information or guidance!"
         ]
 
-        # Acknowledgement patterns and responses
+        # Acknowledgement patterns with enthusiastic responses
         self.acknowledgement_patterns = [
             r'\b(?:thanks|thank\s*you)\b',
             r'\bappreciate\s*(?:it|that)\b',
@@ -154,17 +142,17 @@ What would you like to know about APU?"""
         ]
 
         self.acknowledgement_responses = [
-            "You're welcome! Is there anything else you'd like to know about APU?",
-            "Happy to help! Let me know if you have any other questions about APU.",
-            "My pleasure! Feel free to ask if you need anything else.",
-            "Glad I could assist. Any other questions about APU?",
-            "You're welcome! I'm here if you need more information about APU procedures, policies, or services.",
-            "Wonderful! I'm always here if you need more APU information.",
-            "Great to hear! Feel free to ask about anything else related to APU.",
-            "Perfect! Don't hesitate to reach out if you have more questions."
+            "You're so welcome! 😊 Happy I could help! Got any other APU questions for me?",
+            "No problem at all! 🎉 That's what I'm here for! What else can I help you with?",
+            "My pleasure! 😄 I love helping with APU stuff. Anything else on your mind?",
+            "Glad I could help out! ✨ Feel free to ask if you need anything else about APU!",
+            "Awesome! 🙌 You're all set then! Come back anytime if you need more APU info!",
+            "Perfect! 🎯 That's exactly what I like to hear! Any other APU questions?",
+            "Woohoo! 🎉 Mission accomplished! Let me know if you need help with anything else!",
+            "Yes! 🌟 So happy that hit the spot! I'm here if you need more APU assistance!"
         ]
 
-        # Clarification patterns for when users seem confused or need more help
+        # Clarification patterns with encouraging responses
         self.clarification_patterns = [
             r'\bi\s+don\'t\s+understand\b',
             r'\bcan\s+you\s+explain\b',
@@ -174,29 +162,87 @@ What would you like to know about APU?"""
             r'\bcan\s+you\s+help\s+me\s+understand\b',
             r'\bi\s+need\s+more\s+information\b',
             r'\bcan\s+you\s+be\s+more\s+specific\b',
+            r'\bhuh\b',
+            r'\bwhat\b',
         ]
 
         self.clarification_responses = [
-            "I'd be happy to clarify! Could you tell me specifically what aspect of APU you'd like to know more about?",
-            "No problem! Let me help you find the right information. What specific APU topic or service are you interested in?",
-            "I understand it can be confusing. Could you let me know what particular area you need help with - academics, administration, services, or something else?",
-            "Of course! I'm here to make things clearer. What specific question about APU can I help answer for you?",
-            "Absolutely! To give you the most helpful information, could you tell me what specific APU-related topic you're looking for?"
+            "No worries at all! 😊 Let me help clarify things. What specific part about APU would you like me to explain better?",
+            "Of course! 🤗 I'd be happy to break it down for you. What particular APU topic needs more explanation?",
+            "Totally understand! 💡 Sometimes APU stuff can be confusing. What specific area can I help make clearer?",
+            "No problem! 😄 I'm here to make things crystal clear. What APU topic would you like me to dive deeper into?",
+            "Absolutely! ✨ I love explaining things! What specific APU question can I help you understand better?"
         ]
+
+        # Common typos and their corrections for fuzzy matching
+        self.common_typos = {
+            'hwo': 'how',
+            'aer': 'are',
+            'yuo': 'you',
+            'yu': 'you',
+            'ur': 'your',
+            'ur': 'you are',
+            'wat': 'what',
+            'wher': 'where',
+            'whre': 'where',
+            'cna': 'can',
+            'hlp': 'help',
+            'teh': 'the',
+            'adn': 'and',
+            'helo': 'hello',
+            'hi': 'hi',
+            'hey': 'hey'
+        }
+    
+    def _correct_spelling(self, query: str) -> str:
+        """Correct common spelling mistakes in queries."""
+        words = query.lower().split()
+        corrected_words = []
+        
+        for word in words:
+            # Remove punctuation for comparison
+            clean_word = re.sub(r'[^\w]', '', word)
+            
+            # Check direct typo mapping
+            if clean_word in self.common_typos:
+                # Keep original punctuation if any
+                corrected = word.replace(clean_word, self.common_typos[clean_word])
+                corrected_words.append(corrected)
+            else:
+                corrected_words.append(word)
+        
+        return ' '.join(corrected_words)
+    
+    def _fuzzy_match_patterns(self, query: str, patterns: list, threshold: float = 0.7) -> bool:
+        """Use fuzzy matching to detect conversational patterns even with typos."""
+        corrected_query = self._correct_spelling(query)
+        
+        # First try exact pattern matching on corrected query
+        for pattern in patterns:
+            if re.search(pattern, corrected_query, re.IGNORECASE):
+                return True
+        
+        # If no exact match, try fuzzy matching against common phrases
+        common_phrases = [
+            "how are you", "how are you doing", "what do you know",
+            "what can you do", "tell me about yourself", "hello",
+            "hi", "hey", "thanks", "thank you", "goodbye", "bye"
+        ]
+        
+        query_lower = corrected_query.lower().strip()
+        
+        for phrase in common_phrases:
+            similarity = SequenceMatcher(None, query_lower, phrase).ratio()
+            if similarity >= threshold:
+                return True
+        
+        return False
     
     def is_conversational_query(self, query: str) -> bool:
         """
-        Check if a query is conversational and should be handled here.
-        
-        Args:
-            query: The user's query
-            
-        Returns:
-            True if it's a conversational query, False otherwise
+        Conversational query detection with fuzzy matching.
         """
-        query_lower = query.lower().strip()
-        
-        # Check all pattern categories
+        # Try fuzzy matching for all pattern categories
         all_patterns = (
             self.greeting_patterns + 
             self.knowledge_patterns + 
@@ -205,137 +251,94 @@ What would you like to know about APU?"""
             self.clarification_patterns
         )
         
-        for pattern in all_patterns:
-            if re.search(pattern, query_lower, re.IGNORECASE):
-                return True
-                
-        return False
+        return self._fuzzy_match_patterns(query, all_patterns, threshold=0.6)
     
     def handle_conversation(self, query: str, stream=False):
         """
-        Handles conversational queries with context awareness.
-        
-        Args:
-            query: The user's query
-            stream: Whether to stream the response
-            
-        Returns:
-            Either a string response or an iterator for streaming
+        Handle conversational queries with natural personality.
         """
-        query_lower = query.lower().strip()
+        # Correct spelling first
+        corrected_query = self._correct_spelling(query)
+        query_lower = corrected_query.lower().strip()
         response = None
         
         # Context-aware greeting enhancement
         is_return_user = len(self.memory.chat_memory.messages) > 0
         
-        # Check for greetings
-        for pattern in self.greeting_patterns:
-            if re.search(pattern, query_lower, re.IGNORECASE):
-                if is_return_user:
-                    # Returning user - more casual greeting
-                    contextual_greetings = [
-                        "Hello again! Good to see you back. How can I help you with APU today?",
-                        "Hi there! Welcome back. What APU information can I assist you with now?",
-                        "Hello! Nice to have you back. What would you like to know about APU this time?",
-                        "Hi! Great to see you again. How can I help with your APU questions today?"
-                    ]
-                    response = random.choice(contextual_greetings)
-                else:
-                    # New user - standard greeting
-                    response = random.choice(self.greeting_responses)
-                break
+        # Check for greetings with fuzzy matching
+        if self._fuzzy_match_patterns(corrected_query, self.greeting_patterns, threshold=0.6):
+            if is_return_user:
+                # Returning user - more casual and personalized
+                contextual_greetings = [
+                    "Hey again! 😊 Good to see you back! I'm doing great, thanks for asking. What can I help you with today?",
+                    "Hi there! 👋 Welcome back! I'm having a wonderful day helping students. What APU info do you need?",
+                    "Hello! 🌟 Nice to chat with you again! I'm doing fantastic. What would you like to explore about APU today?",
+                    "Hey! 😄 Great to see you return! I'm doing awesome, hope you are too! How can I help with APU stuff?"
+                ]
+                response = random.choice(contextual_greetings)
+            else:
+                # New user - enthusiastic but welcoming
+                response = random.choice(self.greeting_responses)
         
-        # Check for system knowledge/capability questions
-        if not response:
-            for pattern in self.knowledge_patterns:
-                if re.search(pattern, query_lower, re.IGNORECASE):
-                    # Add context if user has asked questions before
-                    if is_return_user:
-                        base_response = random.choice(self.knowledge_responses)
-                        response = base_response + "\n\nSince we've chatted before, feel free to ask follow-up questions or dive deeper into any APU topic!"
-                    else:
-                        response = random.choice(self.knowledge_responses)
-                    break
+        # Check for system knowledge questions
+        elif self._fuzzy_match_patterns(corrected_query, self.knowledge_patterns):
+            if is_return_user:
+                base_response = random.choice(self.knowledge_responses)
+                response = base_response + "\n\nSince we've chatted before, feel free to dive deeper into any topic! 🤿"
+            else:
+                response = random.choice(self.knowledge_responses)
         
         # Check for small talk
-        if not response:
-            for pattern in self.small_talk_patterns:
-                if re.search(pattern, query_lower, re.IGNORECASE):
-                    response = random.choice(self.small_talk_responses)
-                    break
+        elif self._fuzzy_match_patterns(corrected_query, self.small_talk_patterns):
+            response = random.choice(self.small_talk_responses)
         
         # Check for clarification requests
-        if not response:
-            for pattern in self.clarification_patterns:
-                if re.search(pattern, query_lower, re.IGNORECASE):
-                    # Context-aware clarification
-                    if is_return_user:
-                        # Look at recent conversation for context
-                        recent_topics = self._extract_recent_topics()
-                        if recent_topics:
-                            contextual_clarification = (
-                                f"I'd be happy to clarify! I see we were discussing {recent_topics}. "
-                                f"Would you like me to explain that in more detail, or is there something "
-                                f"else about APU you'd like to understand better?"
-                            )
-                            response = contextual_clarification
-                        else:
-                            response = random.choice(self.clarification_responses)
-                    else:
-                        response = random.choice(self.clarification_responses)
-                    break
+        elif self._fuzzy_match_patterns(corrected_query, self.clarification_patterns):
+            if is_return_user:
+                recent_topics = self._extract_recent_topics()
+                if recent_topics:
+                    response = f"No worries! 😊 I see we were talking about {recent_topics}. Would you like me to explain that better, or is there something else about APU you'd like to understand?"
+                else:
+                    response = random.choice(self.clarification_responses)
+            else:
+                response = random.choice(self.clarification_responses)
         
         # Check for acknowledgements
-        if not response:
-            for pattern in self.acknowledgement_patterns:
-                if re.search(pattern, query_lower, re.IGNORECASE):
-                    # Enhanced acknowledgement with context
-                    if is_return_user and len(self.memory.chat_memory.messages) > 2:
-                        contextual_acknowledgements = [
-                            "You're very welcome! I enjoy helping with APU questions. Anything else you'd like to explore?",
-                            "My pleasure! I'm glad I could help clarify things about APU. What else can I assist with?",
-                            "Happy to help! Feel free to ask if you think of any other APU-related questions.",
-                            "You're welcome! I'm here whenever you need more APU information or guidance."
-                        ]
-                        response = random.choice(contextual_acknowledgements)
-                    else:
-                        response = random.choice(self.acknowledgement_responses)
-                    break
+        elif self._fuzzy_match_patterns(corrected_query, self.acknowledgement_patterns):
+            if is_return_user and len(self.memory.chat_memory.messages) > 2:
+                contextual_acknowledgements = [
+                    "You're very welcome! 😊 I absolutely love helping with APU questions! Anything else you'd like to explore?",
+                    "My pleasure! 🎉 I'm so glad I could help clear things up about APU. What else can I assist with?",
+                    "Happy to help! 😄 That's what makes my day! Feel free to ask about anything else APU-related!",
+                    "You're welcome! ✨ I'm here whenever you need more APU information or guidance!"
+                ]
+                response = random.choice(contextual_acknowledgements)
+            else:
+                response = random.choice(self.acknowledgement_responses)
         
-        # If no specific pattern matched, give a generic response with context
+        # Generic fallback with personality
         if not response:
             if is_return_user:
-                response = "I'm here to help with any APU questions you have. What would you like to know more about?"
+                response = "I'm here and ready to help! 😊 What APU questions are on your mind today?"
             else:
-                response = "I'm here to help you with information about APU. What would you like to know?"
+                response = "Hi there! 👋 I'm here to help you with anything APU-related. What would you like to know?"
         
-        # Update conversation memory - do this for non-streaming case
+        # Update conversation memory
         if not stream:
             self.memory.chat_memory.add_user_message(query)
             self.memory.chat_memory.add_ai_message(response)
             return response
-        
-        # For streaming, use the Ollama streaming approach so UI shows smooth typing
-        if stream:
-            # Store response for updating memory after streaming completes
+        else:
             self._last_response = response
             self._last_query = query
-            
-            # Return iterator that simulates streaming for simple responses
             return self._stream_response(response)
 
     def _extract_recent_topics(self) -> str:
-        """
-        Extract topics from recent conversation history to provide context.
-        
-        Returns:
-            String describing recent topics discussed
-        """
+        """Extract topics from recent conversation for context."""
         if not self.memory.chat_memory.messages or len(self.memory.chat_memory.messages) < 2:
             return ""
         
-        # Look at the last few messages for keywords
-        recent_messages = self.memory.chat_memory.messages[-4:]  # Last 4 messages
+        recent_messages = self.memory.chat_memory.messages[-4:]
         text_content = []
         
         for msg in recent_messages:
@@ -344,16 +347,14 @@ What would you like to know about APU?"""
         
         combined_text = " ".join(text_content)
         
-        # Common APU topic keywords to identify
         topic_keywords = {
-            'academic': ['course', 'program', 'degree', 'academic', 'study', 'class', 'subject', 'curriculum'],
-            'administrative': ['application', 'registration', 'enrollment', 'form', 'procedure', 'process', 'admin'],
-            'financial': ['fee', 'payment', 'scholarship', 'financial', 'cost', 'tuition', 'money'],
-            'student services': ['medical', 'insurance', 'card', 'collect', 'service', 'support', 'campus'],
-            'facilities': ['building', 'location', 'address', 'campus', 'library', 'lab', 'facility'],
+            'academic stuff': ['course', 'program', 'degree', 'academic', 'study', 'class', 'subject'],
+            'administrative procedures': ['application', 'registration', 'enrollment', 'form', 'procedure'],
+            'financial matters': ['fee', 'payment', 'scholarship', 'financial', 'cost', 'tuition'],
+            'student services': ['medical', 'insurance', 'card', 'collect', 'service', 'support'],
+            'campus facilities': ['building', 'location', 'address', 'campus', 'library', 'lab'],
         }
         
-        # Find which topics were mentioned
         mentioned_topics = []
         for topic, keywords in topic_keywords.items():
             if any(keyword in combined_text for keyword in keywords):
@@ -370,20 +371,10 @@ What would you like to know about APU?"""
         return "APU topics"
 
     def _stream_response(self, response: str):
-        """
-        Simulates streaming for conversational responses.
-        
-        Args:
-            response: The full response to stream
-            
-        Returns:
-            An iterator yielding tokens
-        """
-        # Update memory before starting to stream
+        """Stream the response naturally."""
         self.memory.chat_memory.add_user_message(self._last_query)
         self.memory.chat_memory.add_ai_message(response)
         
-        # Stream word by word with consistent delay (like LLM tokens)
         words = response.split(' ')
         for i, word in enumerate(words):
             if i == 0:
