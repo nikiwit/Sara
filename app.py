@@ -82,7 +82,8 @@ class CustomRAG:
         self.query_router = QueryRouter(
             self.conversation_handler,
             self.retrieval_handler,
-            self.command_handler
+            self.command_handler,
+            memory=self.memory
         )
         
         return True
@@ -203,7 +204,8 @@ class CustomRAG:
             self.query_router = QueryRouter(
                 self.conversation_handler,
                 self.retrieval_handler,
-                self.command_handler
+                self.command_handler,
+                memory=self.memory
             )
                 
             print(f"Reindexing completed successfully! Added {len(chunks)} chunks to the vector store.")

@@ -59,7 +59,7 @@ class Config:
     CHUNK_OVERLAP = int(os.environ.get("CUSTOMRAG_CHUNK_OVERLAP", "150"))
     
     # Response streaming speed
-    STREAM_DELAY = 0.040  # Consistent streaming delay across all responses
+    STREAM_DELAY = 0.015  # Consistent streaming delay across all responses
     
     # Retrieval settings
     RETRIEVER_K = int(os.environ.get("CUSTOMRAG_RETRIEVER_K", "6"))
