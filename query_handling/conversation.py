@@ -7,14 +7,17 @@ import random
 import time
 import logging
 
+from config import Config
+
 logger = logging.getLogger("CustomRAG")
 
 class ConversationHandler:
     """Handles conversational queries that don't require document retrieval."""
     
-    def __init__(self, memory):
+    def __init__(self, memory, stream_delay=None):
         """Initialize with a memory for conversation history."""
         self.memory = memory
+        self.stream_delay = stream_delay if stream_delay is not None else Config.STREAM_DELAY
         
         # Greeting patterns and responses
         self.greeting_patterns = [
@@ -107,8 +110,11 @@ class ConversationHandler:
         self.memory.chat_memory.add_user_message(self._last_query)
         self.memory.chat_memory.add_ai_message(response)
         
-        # Simple streaming simulation - character by character
-        # You could adjust chunk sizes or speed for more natural flow
-        for char in response:
-            yield char
-            time.sleep(0.01)  # Slight delay between characters
+        # Stream word by word with consistent delay (like LLM tokens)
+        words = response.split(' ')
+        for i, word in enumerate(words):
+            if i == 0:
+                yield word
+            else:
+                yield ' ' + word
+            time.sleep(self.stream_delay)

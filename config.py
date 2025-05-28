@@ -58,6 +58,9 @@ class Config:
     CHUNK_SIZE = int(os.environ.get("CUSTOMRAG_CHUNK_SIZE", "500"))
     CHUNK_OVERLAP = int(os.environ.get("CUSTOMRAG_CHUNK_OVERLAP", "150"))
     
+    # Response streaming speed
+    STREAM_DELAY = 0.040  # Consistent streaming delay across all responses
+    
     # Retrieval settings
     RETRIEVER_K = int(os.environ.get("CUSTOMRAG_RETRIEVER_K", "6"))
     RETRIEVER_SEARCH_TYPE = os.environ.get("CUSTOMRAG_SEARCH_TYPE", "hybrid")

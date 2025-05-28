@@ -62,6 +62,16 @@ class RetrievalHandler:
         
         return retrievers
     
+    def _stream_text_response(self, text: str):
+        """Helper method to stream text word by word with consistent delay."""
+        words = text.split(' ')
+        for i, word in enumerate(words):
+            if i == 0:
+                yield word
+            else:
+                yield ' ' + word
+            time.sleep(Config.STREAM_DELAY)
+    
     def process_query(self, query_analysis: Dict[str, Any], stream=False) -> Union[str, Iterator[str]]:
         """
         Process a query using the appropriate retrieval strategy.
@@ -122,13 +132,8 @@ class RetrievalHandler:
             
             # If streaming, return character by character iterator instead of full response
             if stream:
-                # Return an iterator that yields one character at a time with slight delay
-                def character_stream(text):
-                    for char in text:
-                        yield char
-                        time.sleep(0.01)  # Same delay as in ConversationHandler
-                        
-                return character_stream(response)
+                # Return an iterator that yields one character at a time with consistent delay
+                return self._stream_text_response(response)
             else:
                 return response
         
@@ -193,9 +198,9 @@ class RetrievalHandler:
             self.memory.chat_memory.add_user_message(original_query)
             self.memory.chat_memory.add_ai_message(no_info_response)
             
-            # If streaming, return as iterator
+            # If streaming, return as character stream for consistency
             if stream:
-                return iter([no_info_response])
+                return self._stream_text_response(no_info_response)
             else:
                 return no_info_response
         
@@ -214,9 +219,9 @@ class RetrievalHandler:
             self.memory.chat_memory.add_user_message(original_query)
             self.memory.chat_memory.add_ai_message(low_confidence_response)
             
-            # If streaming, return as iterator
+            # If streaming, return as character stream for consistency
             if stream:
-                return iter([low_confidence_response])
+                return self._stream_text_response(low_confidence_response)
             else:
                 return low_confidence_response
         

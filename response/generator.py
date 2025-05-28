@@ -6,6 +6,7 @@ import os
 import json
 import logging
 import requests
+import time  # Add this import
 from typing import List, Iterator, Union
 
 from config import Config
@@ -49,7 +50,7 @@ class RAGSystem:
         return summary + "\n".join(formatted_docs)
     
     @staticmethod
-    def stream_ollama_response(prompt, model_name=None, base_url=None, stream_output=False):
+    def stream_ollama_response(prompt, model_name=None, base_url=None, stream_output=False, stream_delay=None):
         """Stream response from Ollama API with token-by-token output.
         
         Args:
@@ -57,6 +58,7 @@ class RAGSystem:
             model_name: The name of the model to use
             base_url: The base URL for the Ollama API
             stream_output: Whether to stream output in real-time (yield tokens) or return full response
+            stream_delay: Delay between tokens when streaming (default: Config.STREAM_DELAY)
             
         Returns:
             If stream_output is True, yields tokens as they are generated
@@ -67,6 +69,9 @@ class RAGSystem:
             
         if base_url is None:
             base_url = Config.OLLAMA_BASE_URL
+            
+        if stream_delay is None:
+            stream_delay = Config.STREAM_DELAY
             
         url = f"{base_url}/api/generate"
         headers = {"Content-Type": "application/json"}
@@ -107,9 +112,10 @@ class RAGSystem:
                                 token = json_line['response']
                                 full_response += token
                                 
-                                # If streaming, yield each token
+                                # If streaming, yield each token with delay
                                 if stream_output:
                                     yield token
+                                    time.sleep(stream_delay) 
 
                             if json_line.get('done', False):
                                 break
