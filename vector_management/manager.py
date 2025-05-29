@@ -364,42 +364,65 @@ class VectorStoreManager:
             logger.error(f"Failed to create vector store directory: {e}")
             return False
     
-    @staticmethod
-    def reset_chroma_db_with_permissions(persist_directory):
-        """Reset ChromaDB with enhanced permission handling."""
+    @classmethod
+    def reset_chroma_db_with_permissions(cls, persist_directory):
+        """Reset ChromaDB with permission handling and complete client cleanup."""
         logger.info(f"Resetting vector store at {persist_directory} with permission fixes")
         
-        # Release resources via garbage collection
+        # STEP 1: Force close all existing ChromaDB clients
+        try:
+            from .chromadb_manager import ChromaDBManager
+            ChromaDBManager.force_cleanup()  # New method we'll add
+        except Exception as e:
+            logger.warning(f"Error during client cleanup: {e}")
+        
+        # STEP 2: Release resources via garbage collection
         import gc
         gc.collect()
-        time.sleep(1.0)  # Give more time for file handles to close
+        time.sleep(1.5)  # Give more time for file handles to close
         
-        # Remove existing directory if it exists
+        # STEP 3: Remove existing directory completely
         if os.path.exists(persist_directory):
             try:
                 # Fix permissions recursively before removal
-                VectorStoreManager._fix_directory_permissions(persist_directory)
+                cls._fix_directory_permissions(persist_directory)
                 
-                # Try Python's built-in directory removal first
-                shutil.rmtree(persist_directory)
-                logger.info("Successfully removed existing vector store directory")
+                # Force removal with multiple attempts
+                max_attempts = 3
+                for attempt in range(max_attempts):
+                    try:
+                        shutil.rmtree(persist_directory)
+                        logger.info("Successfully removed existing vector store directory")
+                        break
+                    except Exception as e:
+                        if attempt == max_attempts - 1:
+                            raise
+                        logger.warning(f"Attempt {attempt + 1} failed: {e}, retrying...")
+                        time.sleep(1.0)
+                        
             except Exception as e:
                 logger.warning(f"Error removing directory with shutil: {e}")
                 
                 # Fallback to system commands with forced removal
                 try:
                     if sys.platform == 'win32':
-                        os.system(f"rd /s /q \"{persist_directory}\"")
+                        os.system(f"rd /s /q \"{persist_directory}\" 2>nul")
                     else:
                         # Use sudo if available for stubborn files
                         os.system(f"chmod -R 777 \"{persist_directory}\" 2>/dev/null || true")
                         os.system(f"rm -rf \"{persist_directory}\"")
+                        
+                    # Verify removal
+                    if os.path.exists(persist_directory):
+                        logger.error("Failed to completely remove directory")
+                        return False
+                        
                     logger.info("Successfully removed directory using system commands")
                 except Exception as e2:
                     logger.error(f"Failed to remove directory: {e2}")
                     return False
         
-        # Create fresh directory structure with proper permissions
+        # STEP 4: Create fresh directory structure with proper permissions
         try:
             os.makedirs(persist_directory, exist_ok=True)
             
@@ -411,13 +434,7 @@ class VectorStoreManager:
                 import stat
                 os.chmod(persist_directory, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
             
-            # Create .chroma subdirectory for ChromaDB to recognize
-            chroma_subdir = os.path.join(persist_directory, ".chroma")
-            os.makedirs(chroma_subdir, exist_ok=True)
-            
-            if sys.platform != 'win32':
-                os.chmod(chroma_subdir, 0o755)
-                
+            # Don't pre-create .chroma subdirectory - let ChromaDB do it
             logger.info("Successfully created fresh vector store directory with proper permissions")
             return True
         except Exception as e:
@@ -463,7 +480,7 @@ class VectorStoreManager:
     
     @classmethod
     def get_or_create_vector_store(cls, chunks=None, embeddings=None, persist_directory=None):
-        """Get existing vector store or create a new one with enhanced debugging."""
+        """Get existing vector store or create a new one with debugging."""
         if persist_directory is None:
             persist_directory = Config.PERSIST_PATH
             

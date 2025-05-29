@@ -12,7 +12,7 @@ from config import Config
 logger = logging.getLogger("CustomRAG")
 
 class QueryRouter:
-    """Routes queries to appropriate handlers based on query type with enhanced conversational support."""
+    """Routes queries to appropriate handlers based on query type with conversational support."""
     
     def __init__(self, conversation_handler, retrieval_handler, command_handler, memory=None):
         """Initialize with handlers for different query types."""
@@ -23,7 +23,7 @@ class QueryRouter:
     
     def route_query(self, query_analysis: Dict[str, Any], stream=False) -> Tuple[Any, bool]:
         """
-        Enhanced query routing with conversational priority handling.
+        Query routing with conversational priority handling.
         
         Args:
             query_analysis: Analysis output from InputProcessor
@@ -35,50 +35,42 @@ class QueryRouter:
         original_query = query_analysis["original_query"]
         query_type = query_analysis.get("query_type", QueryType.UNKNOWN)
         
-        # === PRIORITY 1: Identity/System Queries (check BEFORE conversational) ===
         if self._is_identity_query(original_query):
             logger.info(f"Processing system identity query: {original_query}")
             response = self._handle_identity_query(original_query, stream=stream)
             return response, True
         
-        # === PRIORITY 2: Help Requests ===
         if self._is_help_request(original_query):
             logger.info(f"Processing help request: {original_query}")
             response = self._handle_help_request(original_query, stream=stream)
             return response, True
         
-        # === PRIORITY 3: Enhanced Conversational Detection ===
         # Check for conversational queries AFTER identity queries
-        # This ensures natural conversation patterns are caught but don't override identity queries
-        
-        if self._is_enhanced_conversational_query(original_query):
-            logger.info(f"Processing enhanced conversational query: {original_query}")
+        if self._is_conversational_query(original_query):
+            logger.info(f"Processing conversational query: {original_query}")
             response = self.conversation_handler.handle_conversation(original_query, stream=stream)
             return response, True
         
-        # === PRIORITY 4: System Commands ===
         if query_type == QueryType.COMMAND:
             logger.info(f"Processing system command: {original_query}")
             # Handle system commands (not streaming these)
             return self.command_handler.handle_command(original_query)
         
-        # === PRIORITY 5: Legacy Conversational (if not caught above) ===
         elif query_type == QueryType.CONVERSATIONAL:
             logger.info(f"Processing legacy conversational query: {original_query}")
             # Handle conversational queries (now with streaming support)
             response = self.conversation_handler.handle_conversation(original_query, stream=stream)
             return response, True
         
-        # === PRIORITY 6: All Other Queries (RAG Pipeline) ===
         else:
             logger.info(f"Processing {query_type.value} query through RAG pipeline: {original_query}")
             # Handle all other query types with retrieval system
             response = self.retrieval_handler.process_query(query_analysis, stream=stream)
             return response, True
     
-    def _is_enhanced_conversational_query(self, query: str) -> bool:
+    def _is_conversational_query(self, query: str) -> bool:
         """
-        Enhanced conversational query detection that catches more patterns.
+        Conversational query detection that catches more patterns.
         Uses the ConversationHandler's detection logic for consistency.
         
         Args:
@@ -87,11 +79,11 @@ class QueryRouter:
         Returns:
             True if it's a conversational query that should be handled by ConversationHandler
         """
-        # Delegate to the ConversationHandler's enhanced detection
+        # Delegate to the ConversationHandler's detection
         if hasattr(self.conversation_handler, 'is_conversational_query'):
             return self.conversation_handler.is_conversational_query(query)
         
-        enhanced_conversational_patterns = [
+        conversational_patterns = [
             # Greetings and social
             r'\b(?:hi|hello|hey|greetings|howdy|good\s*(?:morning|afternoon|evening))\b',
             r'\bhow\s+are\s+you\b',
@@ -145,7 +137,7 @@ class QueryRouter:
         ]
         
         query_lower = query.lower().strip()
-        for pattern in enhanced_conversational_patterns:
+        for pattern in conversational_patterns:
             if re.search(pattern, query_lower, re.IGNORECASE):
                 logger.debug(f"Matched conversational pattern: {pattern} in query: {query}")
                 return True

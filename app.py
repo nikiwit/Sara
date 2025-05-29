@@ -6,6 +6,7 @@ import os
 import time
 import types
 import logging
+from datetime import datetime
 from langchain.memory import ConversationBufferMemory
 from langchain_core.messages import SystemMessage
 
@@ -146,21 +147,21 @@ class CustomRAG:
         logger.info("Reindexing documents")
         print("Reindexing documents. This may take a while...")
         
-        # Close existing resources properly
+        # Complete cleanup of existing resources
         if self.vector_store is not None:
             try:
-                # Force close ChromaDB client
-                ChromaDBManager.close()
+                # Force close ChromaDB client completely
+                ChromaDBManager.force_cleanup()
                 self.vector_store = None
                 
                 # Force garbage collection
                 import gc
                 gc.collect()
-                time.sleep(1.0)  # Give more time for cleanup
+                time.sleep(1.5)  # Give more time for cleanup
             except Exception as e:
                 logger.warning(f"Error closing vector store: {e}")
         
-        # Reset the vector store directory with proper permissions
+        # Reset the vector store directory with permissions
         if not VectorStoreManager.reset_chroma_db_with_permissions(Config.PERSIST_PATH):
             logger.error("Failed to reset vector store")
             print("Failed to reset vector store. Check permissions.")
@@ -180,20 +181,52 @@ class CustomRAG:
                 print("Failed to create document chunks.")
                 return False
                 
-            # Get a fresh client with proper permissions
-            client = ChromaDBManager.get_client(reset=True)
+            # Get a completely fresh client for reindexing
+            client = ChromaDBManager.get_client(force_new=True)
             
             # Reuse existing embeddings instead of recreating
             if self.embeddings is None:
                 self.embeddings = VectorStoreManager.create_embeddings()
                 
-            # Create vector store with chunks
-            self.vector_store = VectorStoreManager._create_new_vector_store(
-                client, "apu_kb_collection", chunks, self.embeddings)
+            # Create vector store with chunks using force_new flag
+            collection, self.vector_store = ChromaDBManager.get_or_create_collection(
+                client, "apu_kb_collection", 
+                metadata={"reindexed_at": datetime.now().isoformat()},
+                embedding_function=self.embeddings,
+                force_new=True  # This ensures fresh collection
+            )
             
-            if not self.vector_store:
-                logger.error("Failed to create vector store")
-                print("Failed to create vector store.")
+            # Documents with better error handling
+            try:
+                # Sanitize metadata before adding
+                sanitized_chunks = VectorStoreManager.sanitize_metadata(chunks)
+                
+                # Documents in batches to avoid memory issues
+                batch_size = 50  # Smaller batches for stability
+                total_chunks = len(sanitized_chunks)
+                
+                for i in range(0, total_chunks, batch_size):
+                    batch = sanitized_chunks[i:i + batch_size]
+                    try:
+                        self.vector_store.add_documents(documents=batch)
+                        logger.info(f"Added batch {i//batch_size + 1}/{(total_chunks + batch_size - 1)//batch_size}")
+                    except Exception as e:
+                        logger.error(f"Error adding batch {i//batch_size + 1}: {e}")
+                        raise
+                
+                # Explicitly persist if supported
+                if hasattr(self.vector_store, 'persist'):
+                    self.vector_store.persist()
+                    
+            except Exception as e:
+                logger.error(f"Error adding documents to vector store: {e}")
+                print(f"Error adding documents to vector store: {e}")
+                return False
+            
+            # Verify the vector store works
+            if not VectorStoreManager.check_vector_store_health(self.vector_store):
+                logger.error("Vector store health check failed after reindexing")
+                print("Vector store health check failed after reindexing.")
                 return False
                 
             # Create a backup of the newly created vector store
@@ -202,8 +235,9 @@ class CustomRAG:
             # Print statistics
             VectorStoreManager.print_document_statistics(self.vector_store)
             
-            # Reinitialize retrieval handler with new vector store
-            self.retrieval_handler = RetrievalHandler(self.vector_store, self.embeddings, self.memory, self.context_processor)
+            # Reinitialize handlers with new vector store
+            self.retrieval_handler = RetrievalHandler(
+                self.vector_store, self.embeddings, self.memory, self.context_processor)
             
             # Update query router with new retrieval handler
             self.query_router = QueryRouter(
@@ -213,12 +247,14 @@ class CustomRAG:
                 memory=self.memory
             )
                 
-            print(f"Reindexing completed successfully! Added {len(chunks)} chunks to the vector store.")
+            print(f"✅ Reindexing completed successfully! Added {len(chunks)} chunks to the vector store.")
             return True
             
         except Exception as e:
             logger.error(f"Error during reindexing: {e}")
-            print(f"Error during reindexing: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            print(f"❌ Error during reindexing: {e}")
             return False
     
     def run_cli(self):
@@ -229,7 +265,7 @@ class CustomRAG:
             
         # Print banner and instructions
         print("\n" + "="*60)
-        print("📚 Enhanced CustomRAG - APU Knowledge Base Assistant 📚")
+        print("📚 APURAG - APU Knowledge Base Assistant 📚")
         print("="*60)
         print("Ask questions about APU using natural language.")
         print("Commands:")

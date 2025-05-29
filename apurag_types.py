@@ -1,5 +1,5 @@
 """
-Type definitions and enums for the Enhanced ApuRAG system.
+Type definitions and enums for the ApuRAG system.
 """
 
 from enum import Enum
