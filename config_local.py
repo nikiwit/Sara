@@ -11,9 +11,9 @@ class LocalConfig(Config):
     # Override with local-specific settings
     
     # Use smaller models suitable for laptops
-    EMBEDDING_MODEL_NAME = os.environ.get("CUSTOMRAG_EMBEDDING_MODEL", "all-MiniLM-L6-v2")
-    LLM_MODEL_NAME = os.environ.get("CUSTOMRAG_LLM_MODEL", "deepseek-r1:1.5b")
-    
+    EMBEDDING_MODEL_NAME = os.environ.get("CUSTOMRAG_EMBEDDING_MODEL", "BAAI/bge-base-en-v1.5")
+    LLM_MODEL_NAME = os.environ.get("CUSTOMRAG_LLM_MODEL", "qwen2.5:3b-instruct")
+
     # Smaller chunk sizes for faster processing
     CHUNK_SIZE = int(os.environ.get("CUSTOMRAG_CHUNK_SIZE", "400"))
     CHUNK_OVERLAP = int(os.environ.get("CUSTOMRAG_CHUNK_OVERLAP", "100"))

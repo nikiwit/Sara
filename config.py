@@ -39,8 +39,45 @@ logging.basicConfig(
 )
 logger = logging.getLogger("CustomRAG")
 
+# FIXED: Add NLTK error handling and fallback
+def setup_nltk_with_fallback():
+    """Setup NLTK with proper error handling and fallback options."""
+    try:
+        import nltk
+        # Try to download required NLTK data with error handling
+        try:
+            nltk.data.find('corpora/wordnet')
+            logger.info("NLTK WordNet data already available")
+        except LookupError:
+            try:
+                logger.info("Attempting to download NLTK WordNet data...")
+                nltk.download('wordnet', quiet=True, raise_on_error=True)
+                logger.info("Successfully downloaded NLTK WordNet data")
+            except Exception as e:
+                logger.warning(f"Failed to download NLTK WordNet data: {e}")
+                logger.info("NLTK will use fallback methods for text processing")
+                
+        # Try to download other useful NLTK data
+        try:
+            nltk.data.find('tokenizers/punkt')
+        except LookupError:
+            try:
+                nltk.download('punkt', quiet=True, raise_on_error=True)
+                logger.debug("Downloaded NLTK punkt tokenizer")
+            except Exception as e:
+                logger.debug(f"Could not download NLTK punkt tokenizer: {e}")
+                
+    except ImportError:
+        logger.info("NLTK not available - using basic text processing methods")
+    except Exception as e:
+        logger.warning(f"NLTK setup encountered an error: {e}")
+        logger.info("Continuing with fallback text processing methods")
+
 class Config:
     """Base configuration settings for the RAG application."""
+    
+    # Class variable to track setup status
+    _setup_completed = False
     
     # Environment
     ENV = ENV
@@ -51,8 +88,8 @@ class Config:
     PERSIST_PATH = os.environ.get("CUSTOMRAG_VECTOR_PATH", os.path.join(SCRIPT_DIR, "vector_store"))
     
     # Embedding and retrieval settings
-    EMBEDDING_MODEL_NAME = os.environ.get("CUSTOMRAG_EMBEDDING_MODEL", "all-MiniLM-L6-v2")
-    LLM_MODEL_NAME = os.environ.get("CUSTOMRAG_LLM_MODEL", "deepseek-r1:1.5b")
+    EMBEDDING_MODEL_NAME = os.environ.get("CUSTOMRAG_EMBEDDING_MODEL", "BAAI/bge-base-en-v1.5")
+    LLM_MODEL_NAME = os.environ.get("CUSTOMRAG_LLM_MODEL", "qwen2.5:3b-instruct")
     
     # Chunking settings
     CHUNK_SIZE = int(os.environ.get("CUSTOMRAG_CHUNK_SIZE", "500"))
@@ -109,8 +146,16 @@ class Config:
     @classmethod
     def setup(cls):
         """Set up the configuration and ensure directories exist."""
+        # FIXED: Prevent duplicate setup logging
+        if cls._setup_completed:
+            logger.debug("Configuration setup already completed, skipping duplicate setup")
+            return
+            
         # Ensure data directory exists
         os.makedirs(cls.DATA_PATH, exist_ok=True)
+        
+        # FIXED: Setup NLTK with proper error handling
+        setup_nltk_with_fallback()
         
         # Log environment and configuration
         logger.info(f"Running in {cls.ENV} environment")
@@ -136,6 +181,10 @@ class Config:
             logger.info("APU document filtering is ENABLED - only files starting with 'apu_' will be processed")
         else:
             logger.info("APU document filtering is DISABLED - all compatible files will be processed")
+            
+        # Mark setup as completed
+        cls._setup_completed = True
+        logger.debug("Configuration setup completed successfully")
 
 # Load environment-specific configuration
 if ENV == "production":

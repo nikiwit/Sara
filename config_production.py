@@ -11,8 +11,8 @@ class ProductionConfig(Config):
     # Override with production-specific settings
     
     # Use larger models leveraging H100 capabilities
-    EMBEDDING_MODEL_NAME = os.environ.get("CUSTOMRAG_EMBEDDING_MODEL", "all-mpnet-base-v2")
-    LLM_MODEL_NAME = os.environ.get("CUSTOMRAG_LLM_MODEL", "deepseek-r1:7b")
+    EMBEDDING_MODEL_NAME = os.environ.get("CUSTOMRAG_EMBEDDING_MODEL", "BAAI/bge-large-en-v1.5")
+    LLM_MODEL_NAME = os.environ.get("CUSTOMRAG_LLM_MODEL", "qwen2.5:7b-instruct")
     
     # Optimized chunk sizes
     CHUNK_SIZE = int(os.environ.get("CUSTOMRAG_CHUNK_SIZE", "800"))
