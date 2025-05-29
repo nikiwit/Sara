@@ -36,8 +36,8 @@ class CustomRAG:
     
     def initialize(self):
         """Set up all components of the RAG system."""
-        # Setup configuration
-        Config.setup()
+        # FIXED: Remove duplicate Config.setup() call since main.py already handles this
+        # Config.setup() - This was causing duplicate configuration logging
         
         # Check dependencies
         DocumentProcessor.check_dependencies()
@@ -56,7 +56,7 @@ class CustomRAG:
         system_message = SystemMessage(content="I am an AI assistant that helps with answering questions about APU. I can provide information about academic procedures, administrative processes, and university services.")
         self.memory.chat_memory.messages.append(system_message)
         
-        # Create embeddings
+        # Create embeddings with caching
         try:
             self.embeddings = VectorStoreManager.create_embeddings()
         except Exception as e:
@@ -142,27 +142,28 @@ class CustomRAG:
         return vector_store_valid
     
     def reindex_documents(self):
-        """Reindex all documents in the data directory."""
+        """Reindex all documents in the data directory with improved error handling."""
         logger.info("Reindexing documents")
         print("Reindexing documents. This may take a while...")
         
-        # Close existing resources
+        # Close existing resources properly
         if self.vector_store is not None:
             try:
-                # Force reset of ChromaDB client
+                # Force close ChromaDB client
                 ChromaDBManager.close()
                 self.vector_store = None
                 
                 # Force garbage collection
                 import gc
                 gc.collect()
-                time.sleep(0.5)
+                time.sleep(1.0)  # Give more time for cleanup
             except Exception as e:
                 logger.warning(f"Error closing vector store: {e}")
         
-        # Reset the vector store directory
-        if not VectorStoreManager.reset_chroma_db(Config.PERSIST_PATH):
+        # Reset the vector store directory with proper permissions
+        if not VectorStoreManager.reset_chroma_db_with_permissions(Config.PERSIST_PATH):
             logger.error("Failed to reset vector store")
+            print("Failed to reset vector store. Check permissions.")
             return False
         
         # Load and process documents
@@ -170,18 +171,21 @@ class CustomRAG:
             documents = DocumentProcessor.load_documents(Config.DATA_PATH)
             if not documents:
                 logger.error("No documents found to index")
+                print("No documents found to index.")
                 return False
                 
             chunks = DocumentProcessor.split_documents(documents)
             if not chunks:
                 logger.error("Failed to create document chunks")
+                print("Failed to create document chunks.")
                 return False
                 
-            # Get a fresh client
+            # Get a fresh client with proper permissions
             client = ChromaDBManager.get_client(reset=True)
             
-            # Create fresh embeddings
-            self.embeddings = VectorStoreManager.create_embeddings()
+            # Reuse existing embeddings instead of recreating
+            if self.embeddings is None:
+                self.embeddings = VectorStoreManager.create_embeddings()
                 
             # Create vector store with chunks
             self.vector_store = VectorStoreManager._create_new_vector_store(
@@ -189,6 +193,7 @@ class CustomRAG:
             
             if not self.vector_store:
                 logger.error("Failed to create vector store")
+                print("Failed to create vector store.")
                 return False
                 
             # Create a backup of the newly created vector store
@@ -213,6 +218,7 @@ class CustomRAG:
             
         except Exception as e:
             logger.error(f"Error during reindexing: {e}")
+            print(f"Error during reindexing: {e}")
             return False
     
     def run_cli(self):
@@ -265,12 +271,9 @@ class CustomRAG:
                                 full_response += token
                             print()  
                             
-                            # Now update memory with the full response
-                            self.memory.chat_memory.add_user_message(query)
-                            self.memory.chat_memory.add_ai_message(full_response)
+                            # Memory update is handled within the handlers now
                         else:
                             # Handle non-streamed responses
-                            # print(f"Response: {response}")
                             print(f"{response}")
                     
                     if not should_continue:

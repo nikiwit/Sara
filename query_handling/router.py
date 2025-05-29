@@ -35,25 +35,25 @@ class QueryRouter:
         original_query = query_analysis["original_query"]
         query_type = query_analysis.get("query_type", QueryType.UNKNOWN)
         
-        # === PRIORITY 1: Enhanced Conversational Detection ===
-        # Check for conversational queries BEFORE using query_analysis classification
-        # This ensures natural conversation patterns are caught early
-        
-        if self._is_enhanced_conversational_query(original_query):
-            logger.info(f"Processing enhanced conversational query: {original_query}")
-            response = self.conversation_handler.handle_conversation(original_query, stream=stream)
-            return response, True
-        
-        # === PRIORITY 2: Identity/System Queries ===
+        # === PRIORITY 1: Identity/System Queries (check BEFORE conversational) ===
         if self._is_identity_query(original_query):
             logger.info(f"Processing system identity query: {original_query}")
             response = self._handle_identity_query(original_query, stream=stream)
             return response, True
         
-        # === PRIORITY 3: Help Requests ===
+        # === PRIORITY 2: Help Requests ===
         if self._is_help_request(original_query):
             logger.info(f"Processing help request: {original_query}")
             response = self._handle_help_request(original_query, stream=stream)
+            return response, True
+        
+        # === PRIORITY 3: Enhanced Conversational Detection ===
+        # Check for conversational queries AFTER identity queries
+        # This ensures natural conversation patterns are caught but don't override identity queries
+        
+        if self._is_enhanced_conversational_query(original_query):
+            logger.info(f"Processing enhanced conversational query: {original_query}")
+            response = self.conversation_handler.handle_conversation(original_query, stream=stream)
             return response, True
         
         # === PRIORITY 4: System Commands ===
@@ -91,7 +91,6 @@ class QueryRouter:
         if hasattr(self.conversation_handler, 'is_conversational_query'):
             return self.conversation_handler.is_conversational_query(query)
         
-        # Fallback enhanced patterns if the method doesn't exist
         enhanced_conversational_patterns = [
             # Greetings and social
             r'\b(?:hi|hello|hey|greetings|howdy|good\s*(?:morning|afternoon|evening))\b',
@@ -101,9 +100,19 @@ class QueryRouter:
             r'\bnice\s+to\s+meet\s+you\b',
             r'\bgood\s+to\s+see\s+you\b',
             r'\bhave\s+a\s+good\s+day\b',
+            
             r'\bbye\b',
             r'\bgoodbye\b',
+            r'\bfarewell\b',
             r'\btake\s+care\b',
+            r'\bsee\s+you\s+later\b',
+            r'\bsee\s+you\s+soon\b',
+            r'\bcatch\s+you\s+later\b',
+            r'\bgotta\s+go\b',
+            r'\bi\s+have\s+to\s+go\b',
+            r'\bi\s+need\s+to\s+leave\b',
+            r'\btalking\s+to\s+you\s+later\b',
+            r'\buntil\s+next\s+time\b',
             
             # System knowledge/capabilities
             r'\bwhat\s+do\s+you\s+know\b',
@@ -138,6 +147,7 @@ class QueryRouter:
         query_lower = query.lower().strip()
         for pattern in enhanced_conversational_patterns:
             if re.search(pattern, query_lower, re.IGNORECASE):
+                logger.debug(f"Matched conversational pattern: {pattern} in query: {query}")
                 return True
         
         return False
@@ -155,10 +165,13 @@ class QueryRouter:
         identity_patterns = [
             r'\bwho\s+are\s+you\b',
             r'\bwhat\s+are\s+you\b',
+            r'\bwhat\s+is\s+your\s+name\b',
+            r'\bwhat\'s\s+your\s+name\b',
+            r'\bwhat\s+model\s+are\s+you\b',
+            r'\bwhat\s+kind\s+of\s+(?:bot|assistant|ai)\s+are\s+you\b',
             r'\bintroduce\s+yourself\b',
             r'\btell\s+me\s+about\s+this\s+system\b',
             r'\bwhat\s+is\s+this\b',
-            r'\bwhat\s+kind\s+of\s+(?:bot|assistant|ai)\b',
             r'\bare\s+you\s+(?:human|real|ai|bot)\b',
             r'\bwhat\s+type\s+of\s+assistant\s+are\s+you\b',
         ]
@@ -166,7 +179,10 @@ class QueryRouter:
         query_lower = query.lower()
         for pattern in identity_patterns:
             if re.search(pattern, query_lower, re.IGNORECASE):
+                logger.debug(f"Router matched identity pattern: {pattern} in query: {query}")
                 return True
+        
+        logger.debug(f"Router found no identity patterns in: {query}")
         return False
     
     def _is_help_request(self, query: str) -> bool:

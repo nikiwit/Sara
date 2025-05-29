@@ -95,7 +95,35 @@ What would you like to explore? 🎯""",
 
         ]
 
-        # Small talk patterns and natural responses
+        # FIXED: Separate farewell patterns from general small talk
+        self.farewell_patterns = [
+            r'\bbye\b',
+            r'\bgoodbye\b',
+            r'\bfarewell\b',
+            r'\bsee\s+you\s+later\b',
+            r'\bsee\s+you\s+soon\b',
+            r'\btake\s+care\b',
+            r'\bcatch\s+you\s+later\b',
+            r'\bgotta\s+go\b',
+            r'\bi\s+have\s+to\s+go\b',
+            r'\bi\s+need\s+to\s+leave\b',
+            r'\btalking\s+to\s+you\s+later\b',
+            r'\buntil\s+next\s+time\b',
+        ]
+
+        # FIXED: Dedicated farewell responses
+        self.farewell_responses = [
+            "Goodbye! Have a wonderful day ahead! 🌈 Feel free to come back anytime if you need APU info!",
+            "Take care! 👋 Remember, I'm always here whenever you need help with APU stuff!",
+            "Bye for now! 😊 Don't hesitate to return if you have any APU questions later!",
+            "See you later! 👋 I'll be here whenever you need APU information or guidance!",
+            "Farewell! 🌟 Hope I was able to help today. Come back anytime for APU assistance!",
+            "Have a great day! 😊 Thanks for chatting - I'm here whenever you need APU support!",
+            "Until next time! 👋 Feel free to return with any APU questions you might have!",
+            "Goodbye and take care! 🌻 I enjoyed helping you today - see you again soon!"
+        ]
+
+        # Small talk patterns (excluding farewells)
         self.small_talk_patterns = [
             r'\bhow\s+is\s+your\s+day\b',
             r'\bhow\s+was\s+your\s+day\b',
@@ -108,23 +136,16 @@ What would you like to explore? 🎯""",
             r'\bwhat\s+a\s+nice\s+day\b',
             r'\bhave\s+a\s+good\s+day\b',
             r'\bhave\s+a\s+great\s+day\b',
-            r'\btake\s+care\b',
-            r'\bsee\s+you\s+later\b',
-            r'\bbye\b',
-            r'\bgoodbye\b',
-            r'\bfarewell\b',
         ]
 
+        # Small talk responses (excluding farewells)
         self.small_talk_responses = [
             "My day's been great, thanks for asking! 😊 Helping students like you makes it even better. What can I do for you?",
             "Nice to meet you too! 🤝 I'm excited to help you navigate APU. What would you like to know?",
             "Aw, thanks! 😄 I hope you're having a wonderful day too. What APU info can I dig up for you?",
             "It's been a good day! Always enjoy chatting about APU stuff. 🌟 What brings you here today?",
             "Everything's going smoothly on my end! ✨ Ready and eager to help with your APU questions. What's up?",
-            "Thanks! Have an amazing day ahead! 🌈 Feel free to come back anytime if you need APU info!",
-            "Take care! 👋 Remember, I'm always here whenever you need help with APU stuff!",
-            "Bye for now! 😊 Don't hesitate to return if you have any APU questions later!",
-            "See you later! 👋 I'll be here whenever you need APU information or guidance!"
+            "Thank you! I hope you have an amazing day too! 🌈 What can I help you with regarding APU?",
         ]
 
         # Acknowledgement patterns with enthusiastic responses
@@ -163,7 +184,7 @@ What would you like to explore? 🎯""",
             r'\bi\s+need\s+more\s+information\b',
             r'\bcan\s+you\s+be\s+more\s+specific\b',
             r'\bhuh\b',
-            r'\bwhat\b',
+            # FIXED: Removed overly broad \bwhat\b pattern that was matching everything
         ]
 
         self.clarification_responses = [
@@ -217,41 +238,44 @@ What would you like to explore? 🎯""",
         """Use fuzzy matching to detect conversational patterns even with typos."""
         corrected_query = self._correct_spelling(query)
         
+        # DEBUGGING: Log the corrected query
+        logger.debug(f"Fuzzy matching: '{query}' -> '{corrected_query}'")
+        
         # First try exact pattern matching on corrected query
         for pattern in patterns:
             if re.search(pattern, corrected_query, re.IGNORECASE):
+                logger.debug(f"Matched exact pattern: {pattern}")
                 return True
         
-        # If no exact match, try fuzzy matching against common phrases
-        common_phrases = [
-            "how are you", "how are you doing", "what do you know",
-            "what can you do", "tell me about yourself", "hello",
-            "hi", "hey", "thanks", "thank you", "goodbye", "bye"
-        ]
+        # FIXED: Remove the problematic global fuzzy matching that was matching everything
+        # The exact pattern matching above should be sufficient for conversational queries
+        # If we need fuzzy matching, it should be pattern-category specific, not global
         
-        query_lower = corrected_query.lower().strip()
-        
-        for phrase in common_phrases:
-            similarity = SequenceMatcher(None, query_lower, phrase).ratio()
-            if similarity >= threshold:
-                return True
-        
+        logger.debug(f"No pattern matches found for: '{query}'")
         return False
     
     def is_conversational_query(self, query: str) -> bool:
         """
-        Conversational query detection with fuzzy matching.
+        Conversational query detection with pattern matching.
+        FIXED: More specific detection that doesn't conflict with identity queries.
         """
-        # Try fuzzy matching for all pattern categories
-        all_patterns = (
-            self.greeting_patterns + 
-            self.knowledge_patterns + 
-            self.acknowledgement_patterns +
-            self.small_talk_patterns +
-            self.clarification_patterns
-        )
+        # DEBUGGING: Log the query being checked
+        logger.debug(f"is_conversational_query checking: '{query}'")
         
-        return self._fuzzy_match_patterns(query, all_patterns, threshold=0.6)
+        # Check each category individually to be more specific
+        greeting_match = self._fuzzy_match_patterns(query, self.greeting_patterns, threshold=0.6)
+        knowledge_match = self._fuzzy_match_patterns(query, self.knowledge_patterns, threshold=0.6)
+        acknowledgement_match = self._fuzzy_match_patterns(query, self.acknowledgement_patterns, threshold=0.6)
+        small_talk_match = self._fuzzy_match_patterns(query, self.small_talk_patterns, threshold=0.6)
+        farewell_match = self._fuzzy_match_patterns(query, self.farewell_patterns, threshold=0.6)
+        clarification_match = self._fuzzy_match_patterns(query, self.clarification_patterns, threshold=0.6)
+        
+        result = (greeting_match or knowledge_match or acknowledgement_match or 
+                 small_talk_match or farewell_match or clarification_match)
+        
+        logger.debug(f"is_conversational_query individual matches - greeting:{greeting_match}, knowledge:{knowledge_match}, ack:{acknowledgement_match}, small_talk:{small_talk_match}, farewell:{farewell_match}, clarification:{clarification_match}")
+        logger.debug(f"is_conversational_query result: {result}")
+        return result
     
     def handle_conversation(self, query: str, stream=False):
         """
@@ -265,8 +289,22 @@ What would you like to explore? 🎯""",
         # Context-aware greeting enhancement
         is_return_user = len(self.memory.chat_memory.messages) > 0
         
-        # Check for greetings with fuzzy matching
-        if self._fuzzy_match_patterns(corrected_query, self.greeting_patterns, threshold=0.6):
+        # DEBUGGING: Log the query and what patterns are being checked
+        logger.debug(f"Processing conversational query: '{query}' -> '{corrected_query}'")
+        
+        # FIXED: Check each pattern category individually with proper logic
+        greeting_match = self._fuzzy_match_patterns(corrected_query, self.greeting_patterns, threshold=0.6)
+        knowledge_match = self._fuzzy_match_patterns(corrected_query, self.knowledge_patterns, threshold=0.6)
+        acknowledgement_match = self._fuzzy_match_patterns(corrected_query, self.acknowledgement_patterns, threshold=0.6)
+        small_talk_match = self._fuzzy_match_patterns(corrected_query, self.small_talk_patterns, threshold=0.6)
+        clarification_match = self._fuzzy_match_patterns(corrected_query, self.clarification_patterns, threshold=0.6)
+        farewell_match = self._fuzzy_match_patterns(corrected_query, self.farewell_patterns, threshold=0.6)
+        
+        logger.debug(f"Pattern matches - greeting:{greeting_match}, knowledge:{knowledge_match}, ack:{acknowledgement_match}, small_talk:{small_talk_match}, clarification:{clarification_match}, farewell:{farewell_match}")
+        
+        # Check for greetings FIRST (most common and should take priority)
+        if greeting_match:
+            logger.debug("Matched greeting patterns")
             if is_return_user:
                 # Returning user - more casual and personalized
                 contextual_greetings = [
@@ -281,30 +319,17 @@ What would you like to explore? 🎯""",
                 response = random.choice(self.greeting_responses)
         
         # Check for system knowledge questions
-        elif self._fuzzy_match_patterns(corrected_query, self.knowledge_patterns):
+        elif knowledge_match:
+            logger.debug("Matched knowledge patterns")
             if is_return_user:
                 base_response = random.choice(self.knowledge_responses)
                 response = base_response + "\n\nSince we've chatted before, feel free to dive deeper into any topic! 🤿"
             else:
                 response = random.choice(self.knowledge_responses)
         
-        # Check for small talk
-        elif self._fuzzy_match_patterns(corrected_query, self.small_talk_patterns):
-            response = random.choice(self.small_talk_responses)
-        
-        # Check for clarification requests
-        elif self._fuzzy_match_patterns(corrected_query, self.clarification_patterns):
-            if is_return_user:
-                recent_topics = self._extract_recent_topics()
-                if recent_topics:
-                    response = f"No worries! 😊 I see we were talking about {recent_topics}. Would you like me to explain that better, or is there something else about APU you'd like to understand?"
-                else:
-                    response = random.choice(self.clarification_responses)
-            else:
-                response = random.choice(self.clarification_responses)
-        
         # Check for acknowledgements
-        elif self._fuzzy_match_patterns(corrected_query, self.acknowledgement_patterns):
+        elif acknowledgement_match:
+            logger.debug("Matched acknowledgement patterns")
             if is_return_user and len(self.memory.chat_memory.messages) > 2:
                 contextual_acknowledgements = [
                     "You're very welcome! 😊 I absolutely love helping with APU questions! Anything else you'd like to explore?",
@@ -316,12 +341,47 @@ What would you like to explore? 🎯""",
             else:
                 response = random.choice(self.acknowledgement_responses)
         
+        # Check for small talk (excluding farewells)
+        elif small_talk_match:
+            logger.debug("Matched small talk patterns")
+            response = random.choice(self.small_talk_responses)
+        
+        # Check for clarification requests
+        elif clarification_match:
+            logger.debug("Matched clarification patterns")
+            if is_return_user:
+                recent_topics = self._extract_recent_topics()
+                if recent_topics:
+                    response = f"No worries! 😊 I see we were talking about {recent_topics}. Would you like me to explain that better, or is there something else about APU you'd like to understand?"
+                else:
+                    response = random.choice(self.clarification_responses)
+            else:
+                response = random.choice(self.clarification_responses)
+        
+        # Check for farewells LAST (to avoid catching other patterns accidentally)
+        elif farewell_match:
+            logger.debug("Matched farewell patterns")
+            if is_return_user:
+                # Returning user - more personal farewell
+                contextual_farewells = [
+                    "Goodbye! 👋 It was great chatting with you again. Feel free to return anytime for APU help!",
+                    "Take care! 😊 Thanks for the conversation - I'm always here when you need APU assistance!",
+                    "See you later! 🌟 I enjoyed helping you today. Come back whenever you have APU questions!",
+                    "Farewell! 💫 Hope our chat was helpful. Don't hesitate to return for more APU info!"
+                ]
+                response = random.choice(contextual_farewells)
+            else:
+                response = random.choice(self.farewell_responses)
+        
         # Generic fallback with personality
         if not response:
+            logger.debug("No patterns matched, using fallback response")
             if is_return_user:
                 response = "I'm here and ready to help! 😊 What APU questions are on your mind today?"
             else:
                 response = "Hi there! 👋 I'm here to help you with anything APU-related. What would you like to know?"
+        
+        logger.debug(f"Selected response type based on pattern matching")
         
         # Update conversation memory
         if not stream:

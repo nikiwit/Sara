@@ -22,6 +22,9 @@ logger = logging.getLogger("CustomRAG")
 class VectorStoreManager:
     """Manages the vector database operations."""
     
+    _cached_embeddings = None
+    _cached_embeddings_model = None
+    
     @staticmethod
     def check_vector_store_health(vector_store):
         """Perform comprehensive health check on vector store."""
@@ -279,18 +282,31 @@ class VectorStoreManager:
     
     @staticmethod
     def create_embeddings(model_name=None):
-        """Create the embedding model."""
+        """Create the embedding model with caching to prevent redundant loading."""
         if model_name is None:
             model_name = Config.EMBEDDING_MODEL_NAME
+        
+        # Check if we already have cached embeddings for this model
+        if (VectorStoreManager._cached_embeddings is not None and 
+            VectorStoreManager._cached_embeddings_model == model_name):
+            logger.debug(f"Using cached embeddings for model: {model_name}")
+            return VectorStoreManager._cached_embeddings
             
         device = VectorStoreManager.get_embedding_device()
         
         try:
+            logger.info(f"Creating new embeddings for model: {model_name}")
             embeddings = HuggingFaceEmbeddings(
                 model_name=model_name,
                 model_kwargs={'device': device},
                 encode_kwargs={'normalize_embeddings': True}
             )
+            
+            # Cache the embeddings
+            VectorStoreManager._cached_embeddings = embeddings
+            VectorStoreManager._cached_embeddings_model = model_name
+            logger.info(f"Cached embeddings for model: {model_name}")
+            
             return embeddings
         except Exception as e:
             logger.error(f"Failed to initialize embedding model: {e}")
@@ -347,6 +363,103 @@ class VectorStoreManager:
         except Exception as e:
             logger.error(f"Failed to create vector store directory: {e}")
             return False
+    
+    @staticmethod
+    def reset_chroma_db_with_permissions(persist_directory):
+        """Reset ChromaDB with enhanced permission handling."""
+        logger.info(f"Resetting vector store at {persist_directory} with permission fixes")
+        
+        # Release resources via garbage collection
+        import gc
+        gc.collect()
+        time.sleep(1.0)  # Give more time for file handles to close
+        
+        # Remove existing directory if it exists
+        if os.path.exists(persist_directory):
+            try:
+                # Fix permissions recursively before removal
+                VectorStoreManager._fix_directory_permissions(persist_directory)
+                
+                # Try Python's built-in directory removal first
+                shutil.rmtree(persist_directory)
+                logger.info("Successfully removed existing vector store directory")
+            except Exception as e:
+                logger.warning(f"Error removing directory with shutil: {e}")
+                
+                # Fallback to system commands with forced removal
+                try:
+                    if sys.platform == 'win32':
+                        os.system(f"rd /s /q \"{persist_directory}\"")
+                    else:
+                        # Use sudo if available for stubborn files
+                        os.system(f"chmod -R 777 \"{persist_directory}\" 2>/dev/null || true")
+                        os.system(f"rm -rf \"{persist_directory}\"")
+                    logger.info("Successfully removed directory using system commands")
+                except Exception as e2:
+                    logger.error(f"Failed to remove directory: {e2}")
+                    return False
+        
+        # Create fresh directory structure with proper permissions
+        try:
+            os.makedirs(persist_directory, exist_ok=True)
+            
+            # Set comprehensive permissions
+            if sys.platform != 'win32':
+                os.chmod(persist_directory, 0o755)
+            else:
+                # Windows: ensure full control
+                import stat
+                os.chmod(persist_directory, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+            
+            # Create .chroma subdirectory for ChromaDB to recognize
+            chroma_subdir = os.path.join(persist_directory, ".chroma")
+            os.makedirs(chroma_subdir, exist_ok=True)
+            
+            if sys.platform != 'win32':
+                os.chmod(chroma_subdir, 0o755)
+                
+            logger.info("Successfully created fresh vector store directory with proper permissions")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create vector store directory: {e}")
+            return False
+    
+    @staticmethod
+    def _fix_directory_permissions(directory):
+        """Fix permissions recursively for directory removal."""
+        try:
+            if sys.platform == 'win32':
+                # Windows permission fix
+                for root, dirs, files in os.walk(directory):
+                    for dir_name in dirs:
+                        try:
+                            dir_path = os.path.join(root, dir_name)
+                            os.chmod(dir_path, 0o777)
+                        except Exception as e:
+                            logger.debug(f"Could not change permissions for directory {dir_name}: {e}")
+                    for file_name in files:
+                        try:
+                            file_path = os.path.join(root, file_name)
+                            os.chmod(file_path, 0o777)
+                        except Exception as e:
+                            logger.debug(f"Could not change permissions for file {file_name}: {e}")
+            else:
+                # Unix-like permission fix
+                for root, dirs, files in os.walk(directory):
+                    for dir_name in dirs:
+                        try:
+                            dir_path = os.path.join(root, dir_name)
+                            os.chmod(dir_path, 0o755)
+                        except Exception as e:
+                            logger.debug(f"Could not change permissions for directory {dir_name}: {e}")
+                    for file_name in files:
+                        try:
+                            file_path = os.path.join(root, file_name)
+                            os.chmod(file_path, 0o644)
+                        except Exception as e:
+                            logger.debug(f"Could not change permissions for file {file_name}: {e}")
+        except Exception as e:
+            logger.warning(f"Error fixing directory permissions: {e}")
     
     @classmethod
     def get_or_create_vector_store(cls, chunks=None, embeddings=None, persist_directory=None):

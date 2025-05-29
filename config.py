@@ -39,7 +39,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("CustomRAG")
 
-# FIXED: Add NLTK error handling and fallback
+# Add NLTK error handling and fallback
 def setup_nltk_with_fallback():
     """Setup NLTK with proper error handling and fallback options."""
     try:
@@ -146,7 +146,7 @@ class Config:
     @classmethod
     def setup(cls):
         """Set up the configuration and ensure directories exist."""
-        # FIXED: Prevent duplicate setup logging
+        # Prevent duplicate setup logging
         if cls._setup_completed:
             logger.debug("Configuration setup already completed, skipping duplicate setup")
             return
@@ -154,7 +154,7 @@ class Config:
         # Ensure data directory exists
         os.makedirs(cls.DATA_PATH, exist_ok=True)
         
-        # FIXED: Setup NLTK with proper error handling
+        # Setup NLTK with proper error handling
         setup_nltk_with_fallback()
         
         # Log environment and configuration
