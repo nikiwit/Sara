@@ -51,6 +51,12 @@ class QueryRouter:
             response = self.conversation_handler.handle_conversation(original_query, stream=stream)
             return response, True
         
+        # Check for session commands explicitly before query_type check
+        if self._is_session_command(original_query):
+            logger.info(f"Processing system command: {original_query}")
+            # Handle system commands (not streaming these)
+            return self.command_handler.handle_command(original_query)
+        
         if query_type == QueryType.COMMAND:
             logger.info(f"Processing system command: {original_query}")
             # Handle system commands (not streaming these)
@@ -205,6 +211,46 @@ class QueryRouter:
         for pattern in help_patterns:
             if re.search(pattern, query_lower, re.IGNORECASE):
                 return True
+        return False
+    
+    def _is_session_command(self, query: str) -> bool:
+        """
+        Check if query is a session management command.
+        
+        Args:
+            query: Original query string
+            
+        Returns:
+            True if it's a session command
+        """
+        session_command_patterns = [
+            # Session management commands
+            r'^new\s+session$',
+            r'^create\s+session$', 
+            r'^start\s+new\s+chat$',
+            r'^list\s+sessions$',
+            r'^show\s+sessions$',
+            r'^sessions$',
+            r'^switch\s+session$',
+            r'^change\s+session$',
+            r'^load\s+session$',
+            r'^session\s+stats$',
+            r'^session\s+statistics$',
+            r'^clear\s+session$',
+            r'^reset\s+session$',
+            
+            # Also handle commands with session IDs
+            r'^switch\s+session\s+[a-f0-9-]+$',
+            r'^load\s+session\s+[a-f0-9-]+$',
+        ]
+        
+        query_lower = query.lower().strip()
+        for pattern in session_command_patterns:
+            if re.match(pattern, query_lower):
+                logger.debug(f"Matched session command pattern: {pattern} in query: {query}")
+                return True
+        
+        logger.debug(f"No session command patterns matched for: {query}")
         return False
     
     def _handle_identity_query(self, query: str, stream=False) -> Union[str, Iterator[str]]:

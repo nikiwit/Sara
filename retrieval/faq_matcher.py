@@ -3,7 +3,7 @@ FAQ matching for direct question-answer retrieval.
 """
 
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Union  # Import Union
 from langchain_core.documents import Document
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
@@ -18,7 +18,7 @@ class FAQMatcher:
         """Initialize the FAQ matcher."""
         self.vector_store = vector_store
     
-    def match_faq(self, query_analysis: Dict[str, Any]) -> Dict[str, Any]:
+    def match_faq(self, query_analysis: Dict[str, Any]) -> Union[Dict[str, Any], None]:
         """
         Try to find a direct FAQ match for the query.
         
@@ -29,13 +29,19 @@ class FAQMatcher:
             Dictionary with match result or None if no good match found
         """
         # Extract query from analysis or get original_query
+        query = None  # Initialize query to None
         if isinstance(query_analysis, dict):
             if "original_query" in query_analysis:
                 query = query_analysis["original_query"]
             else:
-                return None
+                logger.warning("query_analysis missing 'original_query'.  Returning None.")
+                return None  # Explicitly return None when 'original_query' is missing
         else:
-            return None
+            logger.warning("query_analysis is not a dictionary. Returning None.")
+            return None  # Explicitly return None when query_analysis is not a dict
+        
+        if query is None:
+            return None # Exit if query is still None (error case)
         
         # Check if query is a question (ends with ?)
         is_question = query.strip().endswith('?')
@@ -45,6 +51,7 @@ class FAQMatcher:
             all_docs = self.vector_store.get()
             
             if not all_docs or not all_docs.get('documents'):
+                logger.warning("No documents found in vector store. Returning None.")
                 return None
                 
             documents = all_docs.get('documents', [])

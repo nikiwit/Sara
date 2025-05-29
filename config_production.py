@@ -35,6 +35,9 @@ class ProductionConfig(Config):
     MAX_CONTEXT_SIZE = int(os.environ.get("CUSTOMRAG_MAX_CONTEXT_SIZE", "5000"))  # Larger for production
     USE_CONTEXT_COMPRESSION = os.environ.get("CUSTOMRAG_CONTEXT_COMPRESSION", "True").lower() in ("true", "1", "t")
     
+    # Session (chats) management
+    MAX_SESSIONS = 5
+    
     # Ollama API
     OLLAMA_BASE_URL = os.environ.get("CUSTOMRAG_OLLAMA_URL", "http://localhost:11434")
     

@@ -59,6 +59,5 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
-
+sessions/
 # Temporary files
-README_Production_Updates.txt

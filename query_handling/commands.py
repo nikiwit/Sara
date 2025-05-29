@@ -37,6 +37,11 @@ class CommandHandler:
             - clear: Reset the conversation memory
             - reindex: Reindex all documents
             - stats: See document statistics
+            - new session: Create a new chat session
+            - list sessions: Show all available sessions
+            - switch session: Change to a different session
+            - session stats: Show session statistics
+            - clear session: Clear current session memory
             """
             return help_text, True
         
@@ -76,7 +81,57 @@ class CommandHandler:
                 return "Documents have been successfully reindexed.", True
             else:
                 return "Failed to reindex documents. Check the log for details.", True
+
+        # Session management commands
+        elif command_lower in ["new session", "create session", "start new chat"]:
+            success = self.rag_system.switch_session()
+            if success:
+                return "✅ Created new session successfully!", True
+            else:
+                return "❌ Failed to create new session.", True
+
+        elif command_lower in ["list sessions", "show sessions", "sessions"]:
+            self.rag_system.list_sessions_command()
+            return "", True
+
+        elif command_lower in ["switch session", "change session", "load session"]:
+            success = self._handle_switch_session_interactive()
+            if success:
+                return "✅ Session switched successfully!", True
+            else:
+                return "❌ Failed to switch session.", True
+
+        elif command_lower in ["session stats", "session statistics"]:
+            self.rag_system.session_stats_command()
+            return "", True
+
+        elif command_lower in ["clear session", "reset session"]:
+            self.rag_system.session_manager.clear_current_session_memory()
+            return "✅ Session memory cleared!", True
         
         # Unknown command
         else:
             return f"Unknown command: {command}. Type 'help' to see available commands.", True
+
+    def _handle_switch_session_interactive(self):
+        """Handle interactive session switching."""
+        try:
+            self.rag_system.list_sessions_command()
+            session_input = input("\nEnter session ID (first 8 chars) or press Enter to create new: ").strip()
+            
+            if not session_input:
+                # Create new session
+                return self.rag_system.switch_session()
+            
+            # Find full session ID from partial
+            sessions = self.rag_system.session_manager.list_sessions()
+            for session in sessions:
+                if session.session_id.startswith(session_input):
+                    return self.rag_system.switch_session(session.session_id)
+            
+            print(f"Session starting with '{session_input}' not found.")
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error in interactive session switch: {e}")
+            return False

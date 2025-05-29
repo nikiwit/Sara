@@ -9,6 +9,7 @@ import logging
 from datetime import datetime
 from langchain.memory import ConversationBufferMemory
 from langchain_core.messages import SystemMessage
+from session_management import SessionManager
 
 from config import Config
 from document_processing import DocumentProcessor
@@ -24,7 +25,7 @@ class CustomRAG:
     """Main RAG application class for command line interface."""
     
     def __init__(self):
-        """Initialize the RAG application."""
+        """Initialize the RAG application with session management."""
         self.vector_store = None
         self.embeddings = None
         self.memory = None
@@ -34,11 +35,10 @@ class CustomRAG:
         self.conversation_handler = None
         self.command_handler = None
         self.query_router = None
+        self.session_manager = SessionManager(max_sessions=Config.MAX_SESSIONS)
     
     def initialize(self):
         """Set up all components of the RAG system."""
-        # FIXED: Remove duplicate Config.setup() call since main.py already handles this
-        # Config.setup() - This was causing duplicate configuration logging
         
         # Check dependencies
         DocumentProcessor.check_dependencies()
@@ -47,15 +47,12 @@ class CustomRAG:
         self.input_processor = InputProcessor()
         self.context_processor = ContextProcessor()
         
-        # Create memory
-        self.memory = ConversationBufferMemory(
-            return_messages=True,
-            memory_key="chat_history"
-        )
+        # Create or load a session
+        if not self.session_manager.current_session:
+            self.session_manager.create_session("Default Session")
         
-        # System message to memory
-        system_message = SystemMessage(content="I am an AI assistant that helps with answering questions about APU. I can provide information about academic procedures, administrative processes, and university services.")
-        self.memory.chat_memory.messages.append(system_message)
+        # Use session memory instead of creating new memory
+        self.memory = self.session_manager.current_session.memory
         
         # Create embeddings with caching
         try:
@@ -256,6 +253,61 @@ class CustomRAG:
             logger.error(traceback.format_exc())
             print(f"❌ Error during reindexing: {e}")
             return False
+
+    def switch_session(self, session_id: str = None):
+        """Switch to a different session or create a new one."""
+        if session_id:
+            session = self.session_manager.load_session(session_id)
+            if not session:
+                print(f"Session {session_id} not found.")
+                return False
+        else:
+            # Create new session
+            title = input("Enter session title (or press Enter for default): ").strip()
+            session = self.session_manager.create_session(title if title else None)
+        
+        # Update memory reference
+        self.memory = session.memory
+        
+        # Update handlers with new memory
+        if self.conversation_handler:
+            self.conversation_handler.memory = self.memory
+        if self.retrieval_handler:
+            self.retrieval_handler.memory = self.memory
+        if self.query_router:
+            self.query_router.memory = self.memory
+        
+        print(f"Switched to session: {session.metadata.title} ({session.metadata.session_id[:8]})")
+        return True
+
+    def list_sessions_command(self):
+        """List all available sessions."""
+        sessions = self.session_manager.list_sessions()
+        if not sessions:
+            print("No sessions found.")
+            return
+        
+        print("\n📚 Available Sessions:")
+        print("-" * 80)
+        for i, session in enumerate(sessions, 1):
+            current_marker = "➤ " if (self.session_manager.current_session and 
+                                    session.session_id == self.session_manager.current_session.metadata.session_id) else "  "
+            print(f"{current_marker}{i}. {session.title}")
+            print(f"     ID: {session.session_id[:8]}... | Messages: {session.message_count} | Last: {session.last_accessed.strftime('%Y-%m-%d %H:%M')}")
+        print("-" * 80)
+
+    def session_stats_command(self):
+        """Show session statistics."""
+        stats = self.session_manager.get_session_statistics()
+        current_session = self.session_manager.current_session
+        
+        print(f"\n📊 Session Statistics:")
+        print(f"   Sessions: {stats['total_sessions']}/{stats['max_sessions']}")
+        print(f"   Total Messages: {stats['total_messages']}")
+        if current_session:
+            print(f"   Current Session: {current_session.metadata.title}")
+            print(f"   Current ID: {stats['current_session_id'][:8]}...")
+            print(f"   Current Messages: {stats['current_session_messages']}")
     
     def run_cli(self):
         """Run the interactive command line interface."""
@@ -274,7 +326,18 @@ class CustomRAG:
         print("  - Type 'clear' to reset the conversation memory")
         print("  - Type 'reindex' to reindex all documents")
         print("  - Type 'stats' to see document statistics")
+        print("  - Type 'new session' to create a new chat session")
+        print("  - Type 'list sessions' to see all sessions")
+        print("  - Type 'switch session' to change sessions")
+        print("  - Type 'session stats' to see session statistics")
+        print("  - Type 'clear session' to clear current session memory")
         print("="*60 + "\n")
+        
+        # Show current session info
+        current_session = self.session_manager.current_session
+        if current_session:
+            print(f"📍 Current Session: {current_session.metadata.title} ({current_session.metadata.session_id[:8]}...)")
+            print(f"   Messages: {current_session.metadata.message_count} | Created: {current_session.metadata.created_at.strftime('%Y-%m-%d %H:%M')}\n")
         
         # Main interaction loop
         while True:
@@ -300,17 +363,22 @@ class CustomRAG:
                     if response:
                         # Handle streamed responses
                         if isinstance(response, types.GeneratorType) or hasattr(response, '__iter__'):
-                            # print("Response: ", end="", flush=True)
                             full_response = ""
                             for token in response:
                                 print(token, end="", flush=True)
                                 full_response += token
                             print()  
                             
-                            # Memory update is handled within the handlers now
+                            # Save conversation to current session
+                            if full_response.strip() and not query_analysis["original_query"].lower().startswith(('exit', 'quit', 'help', 'clear', 'reindex', 'stats', 'new session', 'list sessions', 'switch session', 'session stats', 'clear session')):
+                                self.session_manager.add_conversation(query, full_response.strip())
                         else:
                             # Handle non-streamed responses
                             print(f"{response}")
+                            
+                            # Save conversation to current session
+                            if response and response.strip() and not query_analysis["original_query"].lower().startswith(('exit', 'quit', 'help', 'clear', 'reindex', 'stats', 'new session', 'list sessions', 'switch session', 'session stats', 'clear session')):
+                                self.session_manager.add_conversation(query, response.strip())
                     
                     if not should_continue:
                         break
@@ -332,6 +400,10 @@ class CustomRAG:
     def cleanup(self):
         """Clean up resources before shutdown."""
         logger.info("Cleaning up resources")
+        
+        # Save current session before cleanup
+        if self.session_manager and self.session_manager.current_session:
+            self.session_manager.save_current_session()
         
         # Close ChromaDB client
         ChromaDBManager.close()
