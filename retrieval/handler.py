@@ -100,7 +100,6 @@ class RetrievalHandler:
             search_type="similarity",
             search_kwargs={
                 "k": self.enhanced_retrieval_k,
-                "fetch_k": self.enhanced_retrieval_k * 2  # Fetch more candidates for better filtering
             }
         )
         
@@ -109,7 +108,6 @@ class RetrievalHandler:
             search_type="mmr",
             search_kwargs={
                 "k": self.enhanced_retrieval_k,
-                "fetch_k": self.enhanced_retrieval_k * 3,  # Increased diversity pool
                 "lambda_mult": 0.6  # Balance between relevance and diversity
             }
         )
