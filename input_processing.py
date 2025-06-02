@@ -108,7 +108,6 @@ class InputProcessor:
         Normalize query by converting to lowercase, removing punctuation,
         and standardizing whitespace.
         """
-        # Convert to lowercase
         normalized = query.lower()
         
         # Remove punctuation except apostrophes in contractions
@@ -181,7 +180,7 @@ class InputProcessor:
         # Extract education/APU-specific terms
         edu_terms = self._extract_education_terms(normalized_query, tokens)
         
-        # Identify query type (enhanced with APU-specific types)
+        # Identify query type
         query_type = self.classify_query_type(normalized_query, tokens, edu_terms)
         
         # Generate expanded queries if enabled
@@ -242,7 +241,8 @@ class InputProcessor:
             if abbr in query:
                 edu_terms.append(abbr.lower())
         
-        return list(set(edu_terms))  # Remove duplicates
+        # Remove duplicates
+        return list(set(edu_terms))
     
     def classify_query_type(self, query: str, tokens: List[str], edu_terms: List[str]) -> QueryType:
         """
@@ -261,7 +261,7 @@ class InputProcessor:
             if re.search(pattern, query, re.IGNORECASE):
                 return QueryType.COMMAND
         
-        # Check for identity queries (ENHANCED WITH MORE PATTERNS)
+        # Check for identity queries with comprehensive patterns
         identity_patterns = [
             # Basic identity questions
             r'\bwho\s+(?:are|r)\s+(?:you|u)\b',
@@ -440,7 +440,8 @@ class InputProcessor:
         Returns:
             List of expanded query strings
         """
-        expanded_queries = [query]  # Start with the original query
+        # Start with the original query
+        expanded_queries = [query]
         
         # Skip expansion for very short queries or conversational queries
         if len(keywords) < 2:
@@ -480,4 +481,5 @@ class InputProcessor:
                 if len(expanded_queries) >= Config.EXPANSION_FACTOR:
                     break
         
-        return expanded_queries[:Config.EXPANSION_FACTOR]  # Limit to avoid too many variations
+        # Limit to avoid too many variations
+        return expanded_queries[:Config.EXPANSION_FACTOR]

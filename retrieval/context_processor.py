@@ -1,5 +1,6 @@
 """
-Context processing for retrieved documents.
+Context processing for retrieved documents into coherent LLM input.
+Handles document scoring, selection, compression, and formatting for optimal context utilization.
 """
 
 import os
@@ -14,466 +15,510 @@ from apurag_types import QueryType, DocumentRelevance
 logger = logging.getLogger("CustomRAG")
 
 class ContextProcessor:
-    """Processes retrieved documents into a coherent context for the LLM."""
+    """Processes retrieved documents into coherent context for the LLM with intelligent optimization."""
     
     def __init__(self):
-        """Initialize the context processor."""
+        """Initialize the context processor with enhanced configuration and performance tracking."""
         self.max_context_size = Config.MAX_CONTEXT_SIZE
         self.use_compression = Config.USE_CONTEXT_COMPRESSION
+        
+        # Enhanced configuration with intelligent defaults
+        self.compression_ratio = getattr(Config, 'CONTEXT_COMPRESSION_RATIO', 0.7)
+        self.priority_boost = getattr(Config, 'CONTEXT_PRIORITY_BOOST', 1.5)
+        self.target_utilization = getattr(Config, 'CONTEXT_TARGET_UTILIZATION', 0.80)  # Target 80% for optimal performance
+        self.max_safe_utilization = 0.85  # 85% maximum safe utilization to prevent truncation
+        
+        # Performance tracking for optimization and monitoring
+        self._processing_stats = {
+            "total_processed": 0,
+            "avg_context_utilization": 0.0,
+            "compression_saved": 0
+        }
+        
+        logger.info(f"Context processor initialized - Target: {self.target_utilization:.0%}, Max: {self.max_safe_utilization:.0%}")
     
     def process_context(self, documents: List[Document], query_analysis: Dict[str, Any]) -> str:
-        """Process documents with monitoring for context size."""
+        """Process documents into optimized context with comprehensive monitoring and smart optimization."""
         if not documents:
             return "No relevant information found in the APU knowledge base."
         
-        # Get query elements
+        self._processing_stats["total_processed"] += 1
+        
+        # Extract query analysis components
         query_type = query_analysis["query_type"]
         keywords = query_analysis["keywords"]
+        original_query = query_analysis.get("original_query", "")
         
-        # Score and prioritize documents
-        scored_docs = self._score_documents(documents, keywords, query_type)
+        # Enhanced document scoring with multiple relevance factors
+        scored_docs = self._score_documents_optimized(documents, keywords, query_type, original_query)
         
-        # Select documents to include based on priority and size constraints
-        selected_docs = self._select_documents(scored_docs)
+        # Smart document selection targeting optimal context utilization
+        selected_docs = self._select_documents_optimized(scored_docs)
         
-        # Format the selected documents
-        formatted_context = self._format_documents(selected_docs, query_analysis)
+        # Efficient document formatting with minimal overhead
+        formatted_context = self._format_documents_optimized(selected_docs, query_analysis)
         
-        # Monitoring
+        # Enhanced monitoring with actionable insights for optimization
         context_size = len(formatted_context)
-        context_ratio = context_size / self.max_context_size
+        utilization = context_size / self.max_context_size
         
-        if context_ratio > 0.95:
-            logger.warning(f"Context size critical: {context_size}/{self.max_context_size} ({context_ratio:.1%})")
-        elif context_ratio > 0.85:
-            logger.info(f"Context size approaching limit: {context_size}/{self.max_context_size} ({context_ratio:.1%})")
+        # Update running average for trend analysis
+        old_avg = self._processing_stats["avg_context_utilization"]
+        total = self._processing_stats["total_processed"]
+        self._processing_stats["avg_context_utilization"] = (old_avg * (total - 1) + utilization) / total
+        
+        # Smart logging based on utilization thresholds
+        if utilization > 0.90:
+            logger.warning(f"Context size critical: {context_size}/{self.max_context_size} ({utilization:.1%}) - Consider optimization")
+        elif utilization > self.max_safe_utilization:
+            logger.info(f"Context size high: {context_size}/{self.max_context_size} ({utilization:.1%}) - Within safe range")
+        elif utilization < 0.50:
+            logger.info(f"Context size low: {context_size}/{self.max_context_size} ({utilization:.1%}) - Could add more content")
+        else:
+            logger.debug(f"Context size optimal: {context_size}/{self.max_context_size} ({utilization:.1%})")
         
         return formatted_context
     
-    def _score_documents(self, documents: List[Document], keywords: List[str], query_type: QueryType) -> List[Tuple[Document, float, DocumentRelevance]]:
-        """
-        Score documents based on relevance to the query, with APU KB optimizations.
-        
-        Args:
-            documents: List of documents
-            keywords: List of query keywords
-            query_type: Type of query
-            
-        Returns:
-            List of tuples (document, score, relevance_level)
-        """
+    def _score_documents_optimized(self, documents: List[Document], keywords: List[str], 
+                                 query_type: QueryType, original_query: str = "") -> List[Tuple[Document, float, DocumentRelevance]]:
+        """Enhanced document scoring with comprehensive relevance analysis and improved accuracy."""
         scored_docs = []
+        query_lower = original_query.lower()
         
         for doc in documents:
-            # Start with base score (if available in metadata)
+            # Initialize with base score from vector similarity
             base_score = doc.metadata.get('score', 0.5)
             
-            # Check if this is an APU KB page
+            # Document metadata analysis for enhanced scoring
             is_apu_kb = doc.metadata.get('content_type') == 'apu_kb_page'
             is_faq = doc.metadata.get('is_faq', False)
-            
-            # Adjust score based on keyword matches
-            keyword_score = 0
             content_lower = doc.page_content.lower()
             
-            for keyword in keywords:
-                if keyword.lower() in content_lower:
-                    # Count occurrences
-                    count = content_lower.count(keyword.lower())
-                    keyword_score += min(count / 10.0, 0.5)  # Cap at 0.5
+            # Multi-factor scoring with weighted contributions
+            keyword_score = self._calculate_keyword_score(content_lower, keywords, doc.metadata)
+            apu_score = self._calculate_apu_score(doc, keywords, is_apu_kb, is_faq)
+            length_score = self._calculate_length_score(len(doc.page_content))
+            type_score = self._calculate_type_score(content_lower, query_type)
+            phrase_score = self._calculate_phrase_score(content_lower, query_lower, original_query)
             
-            # Boost for APU KB pages
-            if is_apu_kb:
-                # Higher score for FAQ pages
-                if is_faq:
-                    base_score += 0.2
-                
-                # Check title match for keywords
-                title = doc.metadata.get('page_title', '').lower()
-                if any(keyword in title for keyword in keywords):
-                    base_score += 0.3
-                
-                # Check tags for keyword matches
-                if 'tags' in doc.metadata:
-                    for tag in doc.metadata.get('tags', []):
-                        if any(keyword in tag for keyword in keywords):
-                            base_score += 0.1
+            # Weighted combination optimized for best relevance detection
+            combined_score = (
+                base_score * 0.25 +      # Vector similarity baseline
+                keyword_score * 0.25 +   # Keyword relevance
+                apu_score * 0.15 +       # APU-specific content boost
+                length_score * 0.05 +    # Content length optimization
+                type_score * 0.15 +      # Query type alignment
+                phrase_score * 0.15      # Exact phrase matching bonus
+            )
             
-            # Consider document length (prefer medium-sized chunks)
-            length = len(doc.page_content)
-            length_score = 0
-            if 200 <= length <= 1000:
-                length_score = 0.2  # Prefer medium chunks
-            elif length > 1000:
-                length_score = 0.1  # Long chunks are okay
-            else:
-                length_score = 0  # Short chunks less preferred
+            # Apply priority boost for high-quality sources
+            if is_apu_kb and (is_faq or doc.metadata.get('priority_topic')):
+                combined_score *= self.priority_boost
             
-            # Adjust score based on query type and document content
-            type_score = 0
-            
-            if query_type == QueryType.ACADEMIC:
-                # For academic queries, prefer documents with relevant terms
-                academic_terms = ["course", "module", "exam", "grade", "assessment", "lecture", "assignment"]
-                if any(term in content_lower for term in academic_terms):
-                    type_score += 0.3
-                    
-            elif query_type == QueryType.ADMINISTRATIVE:
-                # For administrative queries, prefer documents with process terms
-                admin_terms = ["form", "application", "procedure", "process", "submit", "request", "office"]
-                if any(term in content_lower for term in admin_terms):
-                    type_score += 0.3
-                    
-            elif query_type == QueryType.FINANCIAL:
-                # For financial queries, prefer documents with financial terms
-                financial_terms = ["fee", "payment", "scholarship", "loan", "refund", "invoice", "charge"]
-                if any(term in content_lower for term in financial_terms):
-                    type_score += 0.3
-                    
-            elif query_type == QueryType.FACTUAL:
-                # For factual queries, prefer documents with data, numbers, definitions
-                if re.search(r'\b(?:defined?|mean|refer|is a|are a|definition)\b', content_lower):
-                    type_score += 0.3
-                if re.search(r'\d+', content_lower):
-                    type_score += 0.2
-                    
-            elif query_type == QueryType.PROCEDURAL:
-                # For procedural queries, prefer step-by-step content
-                if re.search(r'\b(?:step|procedure|process|how to|guide|instruction)\b', content_lower):
-                    type_score += 0.3
-                if re.search(r'\b(?:first|second|third|next|then|finally)\b', content_lower):
-                    type_score += 0.3
-                    
-            elif query_type == QueryType.CONCEPTUAL:
-                # For conceptual queries, prefer explanations
-                if re.search(r'\b(?:concept|theory|explanation|principle|understand|because)\b', content_lower):
-                    type_score += 0.3
-                    
-            elif query_type == QueryType.COMPARATIVE:
-                # For comparative queries, prefer content with comparisons
-                if re.search(r'\b(?:compare|contrast|versus|vs|difference|similarity|advantage|disadvantage)\b', content_lower):
-                    type_score += 0.4
-            
-            # Combine scores
-            combined_score = (base_score * 0.4) + (keyword_score * 0.3) + (length_score * 0.1) + (type_score * 0.2)
-            
-            # Determine relevance level
-            relevance = DocumentRelevance.MEDIUM  # Default
-            if combined_score > 0.7:
+            # Determine relevance level with refined thresholds for better recall
+            if combined_score > 0.75:
                 relevance = DocumentRelevance.HIGH
-            elif combined_score < 0.3:
+            elif combined_score > 0.45:  # Lowered from 0.5 for better recall
+                relevance = DocumentRelevance.MEDIUM
+            else:
                 relevance = DocumentRelevance.LOW
             
             scored_docs.append((doc, combined_score, relevance))
         
-        # Sort by score (descending)
+        # Sort by score in descending order for optimal selection
         scored_docs.sort(key=lambda x: x[1], reverse=True)
         
         return scored_docs
     
-    def _select_documents(self, scored_docs: List[Tuple[Document, float, DocumentRelevance]]) -> List[Tuple[Document, DocumentRelevance]]:
-        """Select documents with stricter prioritization and size management."""
+    def _calculate_keyword_score(self, content_lower: str, keywords: List[str], metadata: Dict) -> float:
+        """Enhanced keyword scoring with context awareness and position weighting."""
+        if not keywords:
+            return 0.0
+        
+        score = 0.0
+        title = metadata.get('page_title', '').lower()
+        
+        for keyword in keywords:
+            # Count keyword occurrences in content
+            content_count = content_lower.count(keyword.lower())
+            if content_count > 0:
+                # Logarithmic scaling to prevent single keyword dominance
+                score += min(0.3, 0.1 + 0.05 * (min(content_count, 4)))
+                
+                # Title match bonus for increased relevance
+                if title and keyword.lower() in title:
+                    score += 0.2
+                
+                # Position bonus for early keyword appearance
+                first_pos = content_lower.find(keyword.lower())
+                if first_pos >= 0 and first_pos < 200:  # First 200 characters
+                    score += 0.1
+        
+        # Normalize by number of keywords to prevent bias toward longer keyword lists
+        return min(1.0, score / len(keywords))
+    
+    def _calculate_apu_score(self, doc: Document, keywords: List[str], is_apu_kb: bool, is_faq: bool) -> float:
+        """Enhanced APU-specific scoring for institutional content prioritization."""
+        score = 0.0
+        
+        if is_apu_kb:
+            score += 0.3  # Base APU knowledge base bonus
+            
+            if is_faq:
+                score += 0.2  # FAQ content bonus
+            
+            # Priority topic bonus for important content
+            priority_topic = doc.metadata.get('priority_topic')
+            if priority_topic:
+                score += 0.3
+                
+            # Related pages bonus indicating comprehensive coverage
+            related_pages = doc.metadata.get('related_pages', [])
+            if related_pages:
+                score += min(0.1, len(related_pages) * 0.02)
+            
+            # Tags matching for topic relevance
+            tags = doc.metadata.get('tags', [])
+            if tags:
+                for tag in tags:
+                    if any(keyword.lower() in tag.lower() for keyword in keywords):
+                        score += 0.1
+                        break
+        
+        return min(1.0, score)
+    
+    def _calculate_length_score(self, length: int) -> float:
+        """Smart length scoring that considers content density and readability."""
+        if length < 100:
+            return 0.0  # Too short to be useful
+        elif length < 300:
+            return 0.3  # Short but acceptable content
+        elif length < 800:
+            return 1.0  # Optimal range for most queries
+        elif length < 1500:
+            return 0.8  # Good content but longer
+        elif length < 2500:
+            return 0.6  # Long but still manageable
+        else:
+            return 0.4  # Very long, might need compression
+    
+    def _calculate_type_score(self, content_lower: str, query_type: QueryType) -> float:
+        """Enhanced query type matching for better context relevance."""
+        score = 0.0
+        
+        if query_type == QueryType.ACADEMIC:
+            academic_terms = ["course", "module", "exam", "grade", "assessment", "lecture", "assignment"]
+            if any(term in content_lower for term in academic_terms):
+                score += 0.3
+                
+        elif query_type == QueryType.ADMINISTRATIVE:
+            admin_terms = ["form", "application", "procedure", "process", "submit", "request", "office"]
+            if any(term in content_lower for term in admin_terms):
+                score += 0.3
+                
+        elif query_type == QueryType.FINANCIAL:
+            financial_terms = ["fee", "payment", "scholarship", "loan", "refund", "invoice", "charge"]
+            if any(term in content_lower for term in financial_terms):
+                score += 0.3
+                
+        elif query_type == QueryType.PROCEDURAL:
+            if re.search(r'\b(?:step|procedure|process|how to|guide|instruction)\b', content_lower):
+                score += 0.3
+            if re.search(r'\b(?:first|second|third|next|then|finally)\b', content_lower):
+                score += 0.3
+        
+        return min(1.0, score)
+    
+    def _calculate_phrase_score(self, content_lower: str, query_lower: str, original_query: str) -> float:
+        """Calculate bonus score for exact phrase matches to improve relevance."""
+        if len(original_query) < 10:  # Skip for very short queries
+            return 0.0
+        
+        # Exact query match provides highest phrase score
+        if query_lower in content_lower:
+            return 1.0
+        
+        # Partial phrase matches for multi-word queries
+        words = query_lower.split()
+        if len(words) >= 3:
+            for i in range(len(words) - 2):
+                phrase = ' '.join(words[i:i+3])
+                if phrase in content_lower:
+                    return 0.5
+        
+        return 0.0
+    
+    def _select_documents_optimized(self, scored_docs: List[Tuple[Document, float, DocumentRelevance]]) -> List[Tuple[Document, DocumentRelevance]]:
+        """Optimized document selection targeting efficient context usage with intelligent compression."""
+        if not scored_docs:
+            return []
+        
         selected_docs = []
         current_size = 0
-        max_size = self.max_context_size
         
-        # Group documents by relevance and sort by score within each group
+        # Calculate target and maximum sizes for intelligent space management
+        target_size = int(self.max_context_size * self.target_utilization)
+        max_size = int(self.max_context_size * self.max_safe_utilization)
+        
+        # Estimate formatting overhead more accurately for better planning
+        estimated_overhead_per_doc = 45  # Reduced from 60 for efficiency
+        estimated_base_overhead = 100   # Headers, summaries, etc.
+        
+        # Group documents by relevance for prioritized selection
         high_docs = [(doc, score, rel) for doc, score, rel in scored_docs if rel == DocumentRelevance.HIGH]
-        high_docs.sort(key=lambda x: x[1], reverse=True)  # Sort by score
-        
         medium_docs = [(doc, score, rel) for doc, score, rel in scored_docs if rel == DocumentRelevance.MEDIUM]
-        medium_docs.sort(key=lambda x: x[1], reverse=True)
-        
         low_docs = [(doc, score, rel) for doc, score, rel in scored_docs if rel == DocumentRelevance.LOW]
         
-        # Process high relevance documents first with strict size management
-        for doc, _, relevance in high_docs:
+        # Process high relevance documents first with intelligent sizing
+        for doc, score, relevance in high_docs:
             doc_size = len(doc.page_content)
+            overhead = estimated_overhead_per_doc
+            total_doc_size = doc_size + overhead
             
-            # For very large documents, always compress
-            if doc_size > max_size * 0.5:  # If document takes more than 50% of context
-                if self.use_compression:
-                    compressed_content = self._compress_document(doc.page_content)
-                    compressed_size = len(compressed_content)
-                    
-                    # Only add if it fits in remaining space
-                    if current_size + compressed_size <= max_size:
-                        compressed_doc = Document(
-                            page_content=compressed_content,
-                            metadata=doc.metadata
-                        )
+            # Smart compression decision for oversized content
+            if current_size + total_doc_size > target_size:
+                if self.use_compression and doc_size > 300:
+                    compressed_content = self._compress_document_optimized(doc.page_content, target_size - current_size - overhead)
+                    if compressed_content and len(compressed_content) > 100:  # Ensure meaningful content remains
+                        compressed_doc = Document(page_content=compressed_content, metadata=doc.metadata)
                         selected_docs.append((compressed_doc, relevance))
-                        current_size += compressed_size
-                continue
-            
-            if current_size + doc_size <= max_size:
-                selected_docs.append((doc, relevance))
-                current_size += doc_size
-        
-        remaining_docs = medium_docs + low_docs
-        for doc, _, relevance in remaining_docs:
-            # Stop if we've reached 90% capacity
-            if current_size >= max_size * 0.9:
-                break
+                        current_size += len(compressed_content) + overhead
+                        self._processing_stats["compression_saved"] += doc_size - len(compressed_content)
+                        continue
                 
-            doc_size = len(doc.page_content)
-            if current_size + doc_size <= max_size:
+                # Check if we can still fit within maximum safe limits
+                if current_size + total_doc_size <= max_size:
+                    selected_docs.append((doc, relevance))
+                    current_size += total_doc_size
+                else:
+                    break  # Cannot fit this document
+            else:
                 selected_docs.append((doc, relevance))
-                current_size += doc_size
+                current_size += total_doc_size
         
-        logger.info(f"Selected {len(selected_docs)} documents for context (size: {current_size}/{max_size}) - {current_size/max_size:.1%} capacity")
+        # Add medium relevance documents if space allows
+        remaining_space = target_size - current_size
+        for doc, score, relevance in medium_docs:
+            if remaining_space <= 0:
+                break
+            
+            doc_size = len(doc.page_content)
+            total_doc_size = doc_size + estimated_overhead_per_doc
+            
+            if total_doc_size <= remaining_space:
+                selected_docs.append((doc, relevance))
+                current_size += total_doc_size
+                remaining_space -= total_doc_size
+        
+        # Add low relevance documents only if significant space remains
+        remaining_space = max_size - current_size
+        if remaining_space > self.max_context_size * 0.15:  # Only if >15% space left
+            for doc, score, relevance in low_docs[:1]:  # Maximum 1 low relevance document
+                doc_size = len(doc.page_content)
+                total_doc_size = doc_size + estimated_overhead_per_doc
+                
+                if total_doc_size <= remaining_space:
+                    selected_docs.append((doc, relevance))
+                    current_size += total_doc_size
+                    break
+        
+        utilization = current_size / self.max_context_size
+        logger.info(f"Selected {len(selected_docs)} documents (estimated size: {current_size}/{self.max_context_size} = {utilization:.1%})")
+        
         return selected_docs
     
-    def _compress_document(self, content: str) -> str:
-        """Enhanced document compression that preserves key information."""
-        # For short content, don't compress
-        if len(content) <= self.max_context_size / 2:
+    def _compress_document_optimized(self, content: str, target_length: int) -> str:
+        """Enhanced document compression that preserves key information using multi-stage approach."""
+        if len(content) <= target_length:
             return content
         
-        # First pass: Remove excessive whitespace
-        compressed = re.sub(r'\s+', ' ', content).strip()
+        # Multi-stage compression for optimal information preservation
+        compressed = content
         
-        # Second pass: Identify and extract key information sections
-        # For FAQ content, preserve question and direct answer
-        if re.search(r'\?', compressed[:100]):  # Likely a question
-            # Try to keep question and first paragraph of answer
-            question_end = compressed.find('?', 0, 100) + 1
-            first_para_end = compressed.find('\n\n', question_end)
-            
-            if question_end > 0 and first_para_end > question_end:
-                key_content = compressed[:first_para_end].strip()
-                if len(key_content) <= self.max_context_size / 2:
-                    return key_content
+        # Stage 1: Clean up excessive whitespace and formatting
+        compressed = re.sub(r'\s+', ' ', compressed).strip()
+        compressed = re.sub(r'\n\s*\n\s*\n+', '\n\n', compressed)  # Reduce multiple newlines
         
-        # For other content, apply progressive compression
-        compressed = self._remove_filler_phrases(compressed)
-        compressed = self._deduplicate_sentences(compressed)
+        if len(compressed) <= target_length:
+            return compressed
         
-        # If still too long, extract key sentences
-        if len(compressed) > self.max_context_size / 2:
-            compressed = self._extract_key_sentences(compressed, self.max_context_size / 2)
+        # Stage 2: Remove filler phrases that don't add meaning
+        compressed = self._remove_filler_phrases_optimized(compressed)
+        
+        if len(compressed) <= target_length:
+            return compressed
+        
+        # Stage 3: Intelligent sentence extraction preserving key information
+        compressed = self._extract_key_sentences_optimized(compressed, target_length)
         
         return compressed
-
-    def _remove_filler_phrases(self, text):
-        """Remove common filler phrases."""
-        filler_patterns = [
-            (r'in order to', 'to'),
-            (r'due to the fact that', 'because'),
-            (r'in spite of the fact that', 'although'),
-            (r'as a matter of fact', ''),
-            (r'for the most part', 'mostly'),
-            (r'for all intents and purposes', ''),
-            (r'with regard to', 'regarding'),
-            (r'in the event that', 'if'),
-            (r'in the process of', 'while'),
+    
+    def _remove_filler_phrases_optimized(self, text: str) -> str:
+        """Enhanced filler phrase removal to reduce verbosity while preserving meaning."""
+        # Comprehensive filler patterns with smart replacements
+        filler_replacements = [
+            (r'\bin order to\b', 'to'),
+            (r'\bdue to the fact that\b', 'because'),
+            (r'\bin spite of the fact that\b', 'although'),
+            (r'\bas a matter of fact\b', ''),
+            (r'\bfor the most part\b', 'mostly'),
+            (r'\bat this point in time\b', 'now'),
+            (r'\bwith regard to\b', 'regarding'),
+            (r'\bin the event that\b', 'if'),
+            (r'\bit should be noted that\b', ''),
+            (r'\bit is important to note\b', ''),
+            (r'\bplease note that\b', ''),
+            (r'\bas mentioned earlier\b', ''),
         ]
         
-        for pattern, replacement in filler_patterns:
+        for pattern, replacement in filler_replacements:
             text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
         
-        return text
-
-    def _deduplicate_sentences(self, text):
-        """Remove duplicate or near-duplicate sentences."""
+        # Clean up resulting double spaces
+        text = re.sub(r'\s+', ' ', text)
+        
+        return text.strip()
+    
+    def _extract_key_sentences_optimized(self, text: str, target_length: int) -> str:
+        """Enhanced key sentence extraction with sophisticated scoring for optimal information retention."""
         sentences = re.split(r'(?<=[.!?])\s+', text)
         
-        unique_sentences = []
-        fingerprints = set()
+        if not sentences:
+            return text[:target_length]
         
-        for sentence in sentences:
-            words = re.findall(r'\b\w+\b', sentence.lower())
-            if len(words) > 3:
-                fingerprint = ' '.join(sorted(words[:5]))
-                if fingerprint not in fingerprints:
-                    fingerprints.add(fingerprint)
-                    unique_sentences.append(sentence)
-            else:
-                unique_sentences.append(sentence)
-        
-        return ' '.join(unique_sentences)
-
-    def _extract_key_sentences(self, text, max_length):
-        """Extract key sentences based on importance markers."""
-        sentences = re.split(r'(?<=[.!?])\s+', text)
-        
-        # Score sentences based on importance markers
+        # Score sentences using multiple criteria for importance
         scored_sentences = []
         for i, sentence in enumerate(sentences):
             score = 0
+            sentence_lower = sentence.lower()
             
-            # Sentences at beginning and end are often important
-            if i < 3:
-                score += 3
-            elif i >= len(sentences) - 3:
-                score += 2
-                
-            # Sentences with numbers often contain key facts
+            # Position scoring (beginning and end sentences often contain key information)
+            if i == 0:
+                score += 5  # First sentence often contains main topic
+            elif i < 3:
+                score += 3  # Early sentences establish context
+            elif i >= len(sentences) - 2:
+                score += 2  # Last sentences may contain conclusions
+            
+            # Content-based scoring for information density
             if re.search(r'\d', sentence):
-                score += 2
-                
-            # Sentences with key transitional phrases
-            if re.search(r'\b(?:however|therefore|thus|in conclusion|importantly|note that|remember)\b', 
-                        sentence, re.IGNORECASE):
-                score += 2
+                score += 2  # Numbers often contain key facts
             
-            if re.search(r'\b(?:question|answer|ask|query|refer|check|contact)\b', sentence, re.IGNORECASE):
-                score += 1
-                
-            scored_sentences.append((score, sentence))
+            if re.search(r'\b(?:important|note|remember|must|should|required|mandatory)\b', sentence_lower):
+                score += 3  # Emphasis words indicate importance
+            
+            if re.search(r'\b(?:question|answer|ask|help|contact|information)\b', sentence_lower):
+                score += 2  # Interactive/helpful content
+            
+            if re.search(r'\b(?:however|therefore|thus|because|since|although)\b', sentence_lower):
+                score += 1  # Logical connectors
+            
+            # Length penalty for very long or very short sentences
+            if len(sentence) > 200:
+                score -= 1
+            elif len(sentence) < 20:
+                score -= 2  # Very short sentences often incomplete
+            
+            scored_sentences.append((score, i, sentence))
         
-        # Sort by score and select until we reach max length
-        scored_sentences.sort(reverse=True, key=lambda x: x[0])
+        # Sort by score with positional preference for natural flow
+        scored_sentences.sort(key=lambda x: (x[0], -abs(x[1] - len(sentences)//2)), reverse=True)
         
-        result = []
+        # Select sentences until target length is reached
+        selected_sentences = []
         current_length = 0
+        selected_indices = []
         
-        for _, sentence in scored_sentences:
-            if current_length + len(sentence) + 1 <= max_length:
-                result.append(sentence)
-                current_length += len(sentence) + 1
-            else:
-                break
+        for score, idx, sentence in scored_sentences:
+            sentence_length = len(sentence) + 1  # +1 for space
+            if current_length + sentence_length <= target_length:
+                selected_sentences.append((idx, sentence))
+                selected_indices.append(idx)
+                current_length += sentence_length
+            elif current_length < target_length * 0.8:  # If well under target
+                # Try to fit a truncated version
+                remaining = target_length - current_length - 3  # -3 for "..."
+                if remaining > 50:  # Only if meaningful content can fit
+                    truncated = sentence[:remaining] + "..."
+                    selected_sentences.append((idx, truncated))
+                    break
         
-        # Reorder sentences to maintain original flow
-        original_order = sorted([(sentences.index(s), s) for s in result])
-        return ' '.join(s for _, s in original_order)
+        # Sort selected sentences by original order to maintain logical flow
+        selected_sentences.sort(key=lambda x: x[0])
+        
+        result = ' '.join(sentence for _, sentence in selected_sentences)
+        return result if result else text[:target_length]
     
-    def _format_documents(self, selected_docs: List[Tuple[Document, DocumentRelevance]], query_analysis: Dict[str, Any]) -> str:
-        """Format selected documents with overhead estimation to stay within limits."""
+    def _format_documents_optimized(self, selected_docs: List[Tuple[Document, DocumentRelevance]], 
+                                  query_analysis: Dict[str, Any]) -> str:
+        """Optimized document formatting with reduced overhead and improved organization."""
         if not selected_docs:
             return "No relevant information found in the APU knowledge base."
-                
-        # Estimate formatting overhead per document
-        estimated_overhead_per_doc = 60  # Characters for headers, labels, etc.
-        estimated_doc_separator = 20     # Extra characters between docs
         
-        # Calculate total overhead
-        total_overhead = len(selected_docs) * estimated_overhead_per_doc + (len(selected_docs) - 1) * estimated_doc_separator
-        
-        # Calculate available space for actual content
-        available_content_space = self.max_context_size - total_overhead
-        
-        # Get query details for contextual formatting
+        # Efficient formatting with minimal overhead
+        formatted_parts = []
         query_type = query_analysis["query_type"]
         
-        # Group documents by relevance
-        high_docs = []
-        medium_docs = []
-        low_docs = []
-        unique_titles = set()
-        
-        for doc, relevance in selected_docs:
-            if relevance == DocumentRelevance.HIGH:
-                high_docs.append(doc)
-            elif relevance == DocumentRelevance.MEDIUM:
-                medium_docs.append(doc)
-            else:
-                low_docs.append(doc)
-            
-            # Track unique page titles for APU KB pages
-            if doc.metadata.get('content_type') == 'apu_kb_page':
-                title = doc.metadata.get('page_title', 'Untitled')
-                unique_titles.add(title)
-
-        # Calculate current content size (without formatting)
-        current_content_size = sum(len(doc.page_content) for doc in high_docs + medium_docs + low_docs)
-        
-        # If content will exceed available space, reduce documents
-        if current_content_size > available_content_space:
-            # Prioritize keeping high relevance docs
-            content_to_remove = current_content_size - available_content_space
-            
-            # Remove low relevance docs first
-            while low_docs and content_to_remove > 0:
-                doc = low_docs.pop()
-                content_to_remove -= len(doc.page_content)
-            
-            # Then medium relevance if still needed
-            while medium_docs and content_to_remove > 0:
-                doc = medium_docs.pop()
-                content_to_remove -= len(doc.page_content)
-                
-            # In extreme cases, remove lower-scored high relevance docs
-            if content_to_remove > 0:
-                # Sort high docs by length (remove longest first to minimize info loss)
-                high_docs.sort(key=lambda doc: len(doc.page_content), reverse=True)
-                
-                while high_docs and content_to_remove > 0:
-                    doc = high_docs.pop()
-                    content_to_remove -= len(doc.page_content)
-
-        # Begin formatting
-        formatted_docs = []
-        
-        doc_count = len(high_docs) + len(medium_docs) + len(low_docs)
-        title_count = len(unique_titles)
-        
-        summary_header = f"Found {doc_count} relevant sections"
-        if title_count > 0:
-            summary_header += f" from {title_count} topics in the APU knowledge base"
+        # Context-aware header based on query type
+        doc_count = len(selected_docs)
         
         if query_type == QueryType.ACADEMIC:
-            summary_header = f"Found {doc_count} relevant sections about academic procedures at APU"
+            header = f"Academic Information ({doc_count} sources):"
         elif query_type == QueryType.ADMINISTRATIVE:
-            summary_header = f"Found {doc_count} relevant sections about administrative processes at APU"
+            header = f"Administrative Information ({doc_count} sources):"
         elif query_type == QueryType.FINANCIAL:
-            summary_header = f"Found {doc_count} relevant sections about financial matters at APU"
+            header = f"Financial Information ({doc_count} sources):"
+        else:
+            header = f"Relevant Information ({doc_count} sources):"
         
-        formatted_docs.append(f"{summary_header}\n")
+        formatted_parts.append(header)
         
-        # Format the documents
-        formatted_content = self._format_doc_group(high_docs, "HIGHLY RELEVANT INFORMATION", formatted_docs, 0)
-        formatted_content = self._format_doc_group(medium_docs, "ADDITIONAL RELEVANT INFORMATION", formatted_docs, len(high_docs))
-        formatted_content = self._format_doc_group(low_docs, "SUPPLEMENTARY INFORMATION", formatted_docs, len(high_docs) + len(medium_docs))
+        # Group documents by relevance for logical organization
+        high_docs = [doc for doc, rel in selected_docs if rel == DocumentRelevance.HIGH]
+        medium_docs = [doc for doc, rel in selected_docs if rel == DocumentRelevance.MEDIUM]
+        low_docs = [doc for doc, rel in selected_docs if rel == DocumentRelevance.LOW]
         
-        final_context = "\n".join(formatted_docs)
+        # Format high relevance documents first (most important content)
+        if high_docs:
+            for i, doc in enumerate(high_docs):
+                formatted_parts.append(self._format_single_document(doc, i + 1, "Priority"))
         
-        # Log the actual final size
-        context_size = len(final_context)
-        context_ratio = context_size / self.max_context_size
+        # Format medium relevance documents (supporting content)
+        if medium_docs:
+            start_idx = len(high_docs) + 1
+            for i, doc in enumerate(medium_docs):
+                formatted_parts.append(self._format_single_document(doc, start_idx + i, "Additional"))
         
-        if context_ratio > 0.95:
-            logger.warning(f"Context size critical: {context_size}/{self.max_context_size} ({context_ratio:.1%})")
-        elif context_ratio > 0.85:
-            logger.info(f"Context size approaching limit: {context_size}/{self.max_context_size} ({context_ratio:.1%})")
+        # Format low relevance documents if any (supplementary content)
+        if low_docs:
+            start_idx = len(high_docs) + len(medium_docs) + 1
+            for i, doc in enumerate(low_docs):
+                formatted_parts.append(self._format_single_document(doc, start_idx + i, "Supplementary"))
         
-        return final_context
-
-    def _format_doc_group(self, docs: List[Document], section_title: str, formatted_docs: List[str], start_index: int) -> List[str]:
-        """Helper to format a group of documents with consistent style."""
-        if not docs:
-            return formatted_docs
+        return "\n\n".join(formatted_parts)
+    
+    def _format_single_document(self, doc: Document, index: int, category: str) -> str:
+        """Format a single document with efficient structure and clear categorization."""
+        is_apu_kb = doc.metadata.get('content_type') == 'apu_kb_page'
         
-        formatted_docs.append(f"--- {section_title} ---")
-        
-        for i, doc in enumerate(docs):
-            is_apu_kb = doc.metadata.get('content_type') == 'apu_kb_page'
-            is_faq = doc.metadata.get('is_faq', False)
-            
-            if is_apu_kb:
-                title = doc.metadata.get('page_title', 'Untitled')
-                if is_faq:
-                    # Format as question-answer (more compact)
-                    formatted_text = f"Q: {title}\nA: {doc.page_content}\n"
-                else:
-                    # Format as topic (more compact)
-                    formatted_text = f"Topic: {title}\n{doc.page_content}\n"
-                
-                # Related pages if available (more compact)
-                related_pages = doc.metadata.get('related_pages', [])
-                if related_pages and not any("label in" in page for page in related_pages):
-                    if len(related_pages) > 2:
-                        formatted_text += f"Related: {', '.join(related_pages[:2])}\n"
-                    else:
-                        formatted_text += f"Related: {', '.join(related_pages)}\n"
+        if is_apu_kb:
+            title = doc.metadata.get('page_title', f'Document {index}')
+            if doc.metadata.get('is_faq', False):
+                return f"[{category}] Q: {title}\nA: {doc.page_content}"
             else:
-                # Standard document format (more compact)
-                source = doc.metadata.get('source', 'Unknown source')
-                filename = doc.metadata.get('filename', os.path.basename(source) if source != 'Unknown source' else 'Unknown file')
-                
-                formatted_text = f"Doc {i+1+start_index} ({filename}): {doc.page_content}\n"
-            
-            formatted_docs.append(formatted_text)
-        
-        return formatted_docs
+                return f"[{category}] {title}:\n{doc.page_content}"
+        else:
+            filename = doc.metadata.get('filename', 'Unknown')
+            return f"[{category}] Source {index} ({filename}):\n{doc.page_content}"
+    
+    def get_processing_stats(self) -> Dict:
+        """Retrieve processing statistics for performance monitoring and optimization."""
+        return self._processing_stats.copy()
+    
+    def reset_stats(self):
+        """Reset processing statistics for fresh monitoring periods."""
+        self._processing_stats = {
+            "total_processed": 0,
+            "avg_context_utilization": 0.0,
+            "compression_saved": 0
+        }

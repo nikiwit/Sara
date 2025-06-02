@@ -1,5 +1,6 @@
 """
-Document loaders and processors.
+Document loaders and processors for general document processing.
+Handles loading, processing, and splitting documents from various file formats.
 """
 
 import os
@@ -14,18 +15,16 @@ from langchain_community.document_loaders import (
 )
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-from config import Config
-from .parsers import APUKnowledgeBaseLoader, APUKnowledgeBaseParser
-from .splitters import APUKnowledgeBaseTextSplitter
+from config import config as Config
 
 logger = logging.getLogger("CustomRAG")
 
 class DocumentProcessor:
-    """Handles loading, processing, and splitting documents."""
+    """Handles loading, processing, and splitting documents from various file formats."""
     
     @staticmethod
     def check_dependencies() -> bool:
-        """Verify that required dependencies are installed."""
+        """Verify that required dependencies are installed for document processing."""
         missing_deps = []
         
         try:
@@ -57,41 +56,67 @@ class DocumentProcessor:
         return True
     
     @staticmethod
+    def should_process_file(filename: str) -> bool:
+        """Determine if a file should be processed based on filtering settings."""
+        # Check if content filtering is enabled
+        if hasattr(Config, 'FILTER_CONTENT') and Config.FILTER_CONTENT:
+            # Add your custom filtering logic here if needed
+            # For now, process all files when no specific filter is set
+            return True
+        
+        # Process all files by default
+        return True
+    
+    @staticmethod
     def get_file_loader(file_path: str):
-        """Returns appropriate loader based on file extension with error handling."""
+        """Returns appropriate loader based on file extension with comprehensive error handling."""
         ext = os.path.splitext(file_path)[1].lower()
-        filename = os.path.basename(file_path)  # Define filename variable
+        filename = os.path.basename(file_path)
 
         try:
-            # Check if this is an APU knowledge base file - DIRECT HANDLING
-            if 'apu_kb' in filename.lower():
-                logger.info(f"Detected APU KB file: {filename} - Using direct KB loader")
-                # Create a custom loader that directly calls the static method
-                class DirectAPUKBLoader(BaseLoader):
+            # Check for specialized knowledge base format (if you have any)
+            if filename.lower().endswith(('.kb', '.knowledge')):
+                logger.info(f"Detected knowledge base file: {filename} - Using specialized loader")
+                
+                class KnowledgeBaseLoader(BaseLoader):
                     def __init__(self, file_path):
                         self.file_path = file_path
+                        self.filename = os.path.basename(file_path)
+                    
                     def load(self):
-                        logger.info(f"DirectAPUKBLoader: Loading {self.file_path}")
+                        logger.info(f"KnowledgeBaseLoader: Loading {self.filename}")
                         try:
                             with open(self.file_path, 'r', encoding='utf-8') as f:
                                 text = f.read()
-                                logger.info(f"DirectAPUKBLoader: Successfully read file with {len(text)} characters")
+                            logger.info(f"KnowledgeBaseLoader: Read {len(text)} characters from {self.filename}")
                             
-                            # Parse directly with the parser
-                            docs = APUKnowledgeBaseParser.parse_apu_kb(
-                                text, 
-                                source=self.file_path, 
-                                filename=os.path.basename(self.file_path)
-                            )
-                            logger.info(f"DirectAPUKBLoader: Parsed {len(docs)} documents")
+                            # Simple parsing - split by double newlines for sections
+                            sections = text.split('\n\n')
+                            docs = []
+                            
+                            for i, section in enumerate(sections):
+                                if section.strip():
+                                    doc = Document(
+                                        page_content=section.strip(),
+                                        metadata={
+                                            'source': self.file_path,
+                                            'filename': self.filename,
+                                            'section': i + 1,
+                                            'content_type': 'knowledge_base'
+                                        }
+                                    )
+                                    docs.append(doc)
+                            
+                            logger.info(f"KnowledgeBaseLoader: Parsed {len(docs)} sections from {self.filename}")
                             return docs
+                            
                         except Exception as e:
-                            logger.error(f"DirectAPUKBLoader error: {e}")
+                            logger.error(f"KnowledgeBaseLoader error for {self.filename}: {e}")
                             return []
                 
-                return DirectAPUKBLoader(file_path)
+                return KnowledgeBaseLoader(file_path)
             
-            # Regular file types
+            # Standard file type handlers
             if ext == '.pdf':
                 return PyPDFLoader(file_path)
             elif ext in ['.docx', '.doc']:
@@ -103,8 +128,10 @@ class DocumentProcessor:
                 try:
                     return UnstructuredEPubLoader(file_path)
                 except Exception as e:
-                    logger.warning(f"UnstructuredEPubLoader failed: {e}, trying alternative EPUB loader")
-                    # Use DocumentProcessor instead of cls
+                    logger.warning(f"UnstructuredEPubLoader failed for {filename}: {e}")
+                    logger.info("Trying alternative EPUB loader")
+                    
+                    # Fallback to custom EPUB loader
                     docs = DocumentProcessor.load_epub(file_path)
                     if docs:
                         class CustomEpubLoader(BaseLoader):
@@ -115,295 +142,137 @@ class DocumentProcessor:
                         return CustomEpubLoader(docs)
                     return None
             elif ext in ['.txt', '.md', '.csv']:
-                # Special case for apu_kb.txt (redundant check for safety)
-                if 'apu_kb' in filename.lower():
-                    logger.info(f"Detected APU KB file in .txt handler: {filename}")
-                    # Create a custom loader that directly calls the static method
-                    class DirectAPUKBLoader(BaseLoader):
-                        def __init__(self, file_path):
-                            self.file_path = file_path
-                        def load(self):
-                            logger.info(f"DirectAPUKBLoader (txt handler): Loading {self.file_path}")
-                            try:
-                                with open(self.file_path, 'r', encoding='utf-8') as f:
-                                    text = f.read()
-                                    logger.info(f"DirectAPUKBLoader (txt handler): Successfully read file with {len(text)} characters")
-                                
-                                # Parse directly with the parser
-                                docs = APUKnowledgeBaseParser.parse_apu_kb(
-                                    text, 
-                                    source=self.file_path, 
-                                    filename=os.path.basename(self.file_path)
-                                )
-                                logger.info(f"DirectAPUKBLoader (txt handler): Parsed {len(docs)} documents")
-                                return docs
-                            except Exception as e:
-                                logger.error(f"DirectAPUKBLoader (txt handler) error: {e}")
-                                return []
-                    
-                    return DirectAPUKBLoader(file_path)
-                else:
-                    return TextLoader(file_path)
+                return TextLoader(file_path, encoding='utf-8')
             else:
                 logger.warning(f"Unsupported file type: {ext} for file {filename}")
                 return None
+                
         except Exception as e:
-            logger.error(f"Error creating loader for {file_path}: {str(e)}")
+            logger.error(f"Error creating loader for {file_path}: {e}")
             return None
     
     @classmethod
     def load_documents(cls, path: str, extensions: List[str] = None) -> List:
         """
-        Load documents from specified path with specified extensions.
-        Returns a list of documents or empty list if none found.
-        
-        Filtering behavior:
-        - When FILTER_APU_ONLY=true: Only loads files starting with "apu_"
-        - Otherwise: Loads all files with supported extensions
+        Load documents from specified path with comprehensive file type support.
         """
         if extensions is None:
-            extensions = Config.SUPPORTED_EXTENSIONS
-                
-        # Use the configuration variable for filtering
-        filter_apu_only = Config.FILTER_APU_ONLY
-        
-        if filter_apu_only:
-            logger.info("APU-only filtering is ENABLED - loading only files starting with 'apu_'")
-        else:
-            logger.info("APU-only filtering is DISABLED - loading all compatible files")
+            extensions = getattr(Config, 'SUPPORTED_EXTENSIONS', ['.txt', '.pdf', '.docx', '.md', '.epub'])
         
         logger.info(f"Loading documents from: {path}")
         
-        # Verify data directory exists and list all files
+        # Validate data directory
+        if not os.path.exists(path):
+            logger.error(f"Data directory does not exist: {path}")
+            return []
+        
         try:
-            if not os.path.exists(path):
-                logger.error(f"Data directory does not exist: {path}")
-                return []
-                
-            logger.info(f"Data directory exists: {path}")
-            
-            # List all files in the directory
+            # List all files in directory for debugging
             all_files_in_dir = os.listdir(path)
             logger.info(f"Files in data directory: {all_files_in_dir}")
             
-            # Check specifically for apu_kb.txt
-            apu_kb_path = os.path.join(path, "apu_kb.txt")
-            if os.path.exists(apu_kb_path):
-                logger.info(f"apu_kb.txt exists at: {apu_kb_path}")
-                logger.info(f"apu_kb.txt size: {os.path.getsize(apu_kb_path)} bytes")
-                logger.info(f"apu_kb.txt permissions: {oct(os.stat(apu_kb_path).st_mode)[-3:]}")
-            else:
-                logger.error(f"apu_kb.txt NOT FOUND at: {apu_kb_path}")
-                
-                # Try to find any file with apu_kb in the name
-                apu_files = [f for f in all_files_in_dir if 'apu_kb' in f.lower()]
-                if apu_files:
-                    logger.info(f"Found potential APU KB files: {apu_files}")
-                else:
-                    logger.error("No files with 'apu_kb' in name found in data directory")
-        except Exception as e:
-            logger.error(f"Error checking data directory: {e}")
-        
-        try:
-            # Find all files with supported extensions
-            all_files = []
+            # Find compatible files
+            compatible_files = []
+            skipped_files = []
+            
             for root, _, files in os.walk(path):
                 for file in files:
                     file_path = os.path.join(root, file)
-                    ext = os.path.splitext(file_path)[1].lower()
+                    ext = os.path.splitext(file)[1].lower()
                     
-                    # Only process files with supported extensions
-                    if ext in extensions:
-                        # Apply APU-only filtering if enabled
-                        if filter_apu_only and not file.lower().startswith("apu_"):
-                            logger.info(f"Skipping non-APU document: {file}")
-                            continue
-                        
-                        all_files.append(file_path)
-                        logger.info(f"Added file to processing list: {file}")
-
-            if not all_files:
+                    # Skip non-supported extensions
+                    if ext not in extensions:
+                        continue
+                    
+                    # Apply content filtering if enabled
+                    if not cls.should_process_file(file):
+                        skipped_files.append(file)
+                        continue
+                    
+                    compatible_files.append(file_path)
+                    logger.info(f"Added file to processing queue: {file}")
+            
+            # Log filtering results
+            if skipped_files:
+                logger.info(f"Skipped {len(skipped_files)} files due to filtering: {skipped_files}")
+            
+            if not compatible_files:
                 logger.warning(f"No compatible documents found in {path}")
                 return []
 
-            logger.info(f"Found {len(all_files)} compatible files")
+            logger.info(f"Found {len(compatible_files)} compatible files for processing")
 
-            # SPECIAL DIRECT HANDLING FOR APU_KB.TXT
-            apu_kb_path = os.path.join(path, "apu_kb.txt")
-            if os.path.exists(apu_kb_path) and os.path.isfile(apu_kb_path):
-                logger.info(f"DIRECT HANDLING: Found apu_kb.txt at {apu_kb_path}")
-                try:
-                    with open(apu_kb_path, 'r', encoding='utf-8') as f:
-                        text = f.read()
-                        logger.info(f"DIRECT HANDLING: Successfully read apu_kb.txt with {len(text)} characters")
-                    
-                    # Parse directly with the parser
-                    apu_docs = APUKnowledgeBaseParser.parse_apu_kb(
-                        text, 
-                        source=apu_kb_path, 
-                        filename="apu_kb.txt"
-                    )
-                    
-                    if apu_docs:
-                        logger.info(f"DIRECT HANDLING: Successfully parsed {len(apu_docs)} documents from apu_kb.txt")
-                        
-                        # Metadata
-                        for doc in apu_docs:
-                            doc.metadata['source'] = apu_kb_path
-                            doc.metadata['filename'] = "apu_kb.txt"
-                            try:
-                                doc.metadata['timestamp'] = os.path.getmtime(apu_kb_path)
-                            except:
-                                doc.metadata['timestamp'] = 0
-                        
-                        # Load each file with its appropriate loader
-                        all_documents = apu_docs
-                        
-                        # Also process other files
-                        for file_path in all_files:
-                            if 'apu_kb' not in os.path.basename(file_path).lower():  # Skip apu_kb.txt as we already processed it
-                                try:
-                                    filename = os.path.basename(file_path)
-                                    logger.info(f"Processing file: {filename}")
-                                    
-                                    # Regular loader path
-                                    logger.info(f"Getting loader for: {filename}")
-                                    loader = cls.get_file_loader(file_path)
-                                    
-                                    if loader:
-                                        logger.info(f"Loader created for {filename}, type: {type(loader).__name__}")
-                                        docs = loader.load()
-                                        
-                                        if docs:
-                                            logger.info(f"Loader returned {len(docs)} documents")
-                                            # Source metadata for each document
-                                            for doc in docs:
-                                                if not hasattr(doc, 'metadata') or doc.metadata is None:
-                                                    doc.metadata = {}
-                                                doc.metadata['source'] = file_path
-                                                doc.metadata['filename'] = os.path.basename(file_path)
-                                                
-                                                # Timestamp for sorting by recency if needed
-                                                try:
-                                                    doc.metadata['timestamp'] = os.path.getmtime(file_path)
-                                                except:
-                                                    doc.metadata['timestamp'] = 0
-
-                                            all_documents.extend(docs)
-                                            logger.info(f"Loaded {len(docs)} sections from {os.path.basename(file_path)}")
-                                        else:
-                                            logger.warning(f"Loader returned no documents for {filename}")
-                                    else:
-                                        logger.warning(f"No loader created for {filename}")
-                                except Exception as e:
-                                    logger.error(f"Error loading {file_path}: {str(e)}")
-                                    continue
-                        
-                        # Filter out empty documents
-                        valid_documents = [doc for doc in all_documents if doc.page_content and doc.page_content.strip()]
-                        
-                        if not valid_documents:
-                            logger.warning("No document content could be extracted successfully")
-                                
-                        logger.info(f"Successfully loaded {len(valid_documents)} total document sections")
-                        return valid_documents
-                except Exception as e:
-                    logger.error(f"DIRECT HANDLING: Error processing apu_kb.txt: {e}")
-                    # Continue with regular processing as fallback
-            else:
-                logger.warning(f"DIRECT HANDLING: apu_kb.txt not found at {apu_kb_path}")
-
-            # Load each file with its appropriate loader
+            # Process each file
             all_documents = []
-            for file_path in all_files:
+            
+            for file_path in compatible_files:
                 try:
                     filename = os.path.basename(file_path)
                     logger.info(f"Processing file: {filename}")
                     
-                    # Special direct handling for apu_kb.txt
-                    if 'apu_kb' in filename.lower():
-                        logger.info(f"DIRECT PROCESSING for APU KB file: {filename}")
-                        try:
-                            with open(file_path, 'r', encoding='utf-8') as f:
-                                text = f.read()
-                                logger.info(f"Successfully read APU KB file with {len(text)} characters")
-                            
-                            # Parse directly with the parser
-                            docs = APUKnowledgeBaseParser.parse_apu_kb(
-                                text, 
-                                source=file_path, 
-                                filename=filename
-                            )
-                            
-                            if docs:
-                                logger.info(f"Successfully parsed {len(docs)} documents from APU KB file")
-                                # Timestamp for sorting by recency if needed
-                                for doc in docs:
-                                    try:
-                                        doc.metadata['timestamp'] = os.path.getmtime(file_path)
-                                    except:
-                                        doc.metadata['timestamp'] = 0
-                                
-                                all_documents.extend(docs)
-                                logger.info(f"Added {len(docs)} APU KB documents to collection")
-                            else:
-                                logger.warning(f"No documents parsed from APU KB file: {filename}")
-                            
-                            continue  # Skip the regular loader path
-                        except Exception as e:
-                            logger.error(f"Error in direct APU KB processing: {e}")
-                            # Fall through to regular loader as backup
-                    
-                    # Regular loader path
-                    logger.info(f"Getting loader for: {filename}")
+                    # Get appropriate loader
                     loader = cls.get_file_loader(file_path)
                     
-                    if loader:
-                        logger.info(f"Loader created for {filename}, type: {type(loader).__name__}")
-                        docs = loader.load()
+                    if not loader:
+                        logger.warning(f"No loader available for {filename}")
+                        continue
+                    
+                    # Load documents
+                    logger.info(f"Loading documents from {filename} using {type(loader).__name__}")
+                    docs = loader.load()
+                    
+                    if not docs:
+                        logger.warning(f"No documents loaded from {filename}")
+                        continue
+                    
+                    logger.info(f"Loaded {len(docs)} document sections from {filename}")
+                    
+                    # Add metadata to each document
+                    for doc in docs:
+                        if not hasattr(doc, 'metadata') or doc.metadata is None:
+                            doc.metadata = {}
                         
-                        if docs:
-                            logger.info(f"Loader returned {len(docs)} documents")
-                            # Source metadata to each document
-                            for doc in docs:
-                                if not hasattr(doc, 'metadata') or doc.metadata is None:
-                                    doc.metadata = {}
-                                doc.metadata['source'] = file_path
-                                doc.metadata['filename'] = os.path.basename(file_path)
-                                
-                                # Timestamp for sorting by recency if needed
-                                try:
-                                    doc.metadata['timestamp'] = os.path.getmtime(file_path)
-                                except:
-                                    doc.metadata['timestamp'] = 0
-
-                            all_documents.extend(docs)
-                            logger.info(f"Loaded {len(docs)} sections from {os.path.basename(file_path)}")
-                        else:
-                            logger.warning(f"Loader returned no documents for {filename}")
-                    else:
-                        logger.warning(f"No loader created for {filename}")
+                        doc.metadata.update({
+                            'source': file_path,
+                            'filename': filename,
+                            'file_type': os.path.splitext(filename)[1].lower(),
+                        })
+                        
+                        # Add timestamp
+                        try:
+                            doc.metadata['timestamp'] = os.path.getmtime(file_path)
+                        except Exception as e:
+                            logger.debug(f"Could not get timestamp for {filename}: {e}")
+                            doc.metadata['timestamp'] = 0
+                    
+                    all_documents.extend(docs)
+                    
                 except Exception as e:
-                    logger.error(f"Error loading {file_path}: {str(e)}")
+                    logger.error(f"Error processing {file_path}: {e}")
                     continue
 
             # Filter out empty documents
             valid_documents = [doc for doc in all_documents if doc.page_content and doc.page_content.strip()]
             
             if not valid_documents:
-                logger.warning("No document content could be extracted successfully")
-                    
-            logger.info(f"Successfully loaded {len(valid_documents)} total document sections")
+                logger.warning("No valid document content could be extracted")
+                return []
+            
+            # Log final statistics
+            logger.info(f"Successfully loaded {len(valid_documents)} document sections from {len(compatible_files)} files")
+            
             return valid_documents
 
         except Exception as e:
-            logger.error(f"Document loading error: {e}")
+            logger.error(f"Error during document loading: {e}")
+            import traceback
+            logger.debug(traceback.format_exc())
             return []
     
     @staticmethod
     def load_epub(file_path: str):
         """
-        Custom EPUB loader using ebooklib.
+        Custom EPUB loader using ebooklib for comprehensive content extraction.
         Returns a list of LangChain Document objects.
         """
         try:
@@ -419,114 +288,161 @@ class DocumentProcessor:
             documents = []
             h2t = html2text.HTML2Text()
             h2t.ignore_links = False
+            h2t.ignore_images = True
+            h2t.body_width = 0  # No line wrapping
             
-            # Get book title and metadata
-            title = book.get_metadata('DC', 'title')[0][0] if book.get_metadata('DC', 'title') else "Unknown Title"
+            # Get book metadata
+            title = "Unknown Title"
+            try:
+                title_meta = book.get_metadata('DC', 'title')
+                if title_meta:
+                    title = title_meta[0][0]
+            except Exception as e:
+                logger.debug(f"Could not extract EPUB title: {e}")
             
             # Process each chapter/item
+            chapter_count = 0
             for item in book.get_items():
                 if item.get_type() == epub.ITEM_DOCUMENT:
-                    # Extract HTML content
-                    html_content = item.get_content().decode('utf-8')
-                    
-                    # Parse with BeautifulSoup
-                    soup = BeautifulSoup(html_content, 'html.parser')
-                    
-                    # Get plain text content
-                    text = h2t.handle(str(soup))
-                    
-                    if text.strip():
-                        # Create a document with metadata
-                        doc = Document(
-                            page_content=text,
-                            metadata={
-                                'source': file_path,
-                                'filename': filename,
-                                'title': title,
-                                'chapter': item.get_name(),
-                            }
-                        )
-                        documents.append(doc)
+                    try:
+                        # Extract HTML content
+                        html_content = item.get_content().decode('utf-8')
+                        
+                        # Parse with BeautifulSoup for better cleaning
+                        soup = BeautifulSoup(html_content, 'html.parser')
+                        
+                        # Remove script and style elements
+                        for script in soup(["script", "style"]):
+                            script.decompose()
+                        
+                        # Convert to text
+                        text = h2t.handle(str(soup))
+                        
+                        if text.strip():
+                            chapter_count += 1
+                            
+                            # Create document with comprehensive metadata
+                            doc = Document(
+                                page_content=text.strip(),
+                                metadata={
+                                    'source': file_path,
+                                    'filename': filename,
+                                    'title': title,
+                                    'chapter': item.get_name() or f"Chapter_{chapter_count}",
+                                    'chapter_number': chapter_count,
+                                    'file_type': '.epub'
+                                }
+                            )
+                            documents.append(doc)
+                            
+                    except Exception as e:
+                        logger.warning(f"Error processing EPUB chapter {item.get_name()}: {e}")
+                        continue
             
-            logger.info(f"Extracted {len(documents)} sections from EPUB")
+            logger.info(f"Extracted {len(documents)} chapters from EPUB: {filename}")
             return documents
             
+        except ImportError:
+            logger.error("ebooklib not available for EPUB processing")
+            logger.error("Install with: pip install EbookLib")
+            return None
         except Exception as e:
-            logger.error(f"Error loading EPUB file {file_path}: {str(e)}")
+            logger.error(f"Error loading EPUB file {file_path}: {e}")
             return None
     
     @staticmethod
     def split_documents(documents: List, chunk_size: int = None, chunk_overlap: int = None) -> List:
         """
-        Split documents into smaller chunks for better retrieval.
-        
-        Args:
-            documents: List of documents to split
-            chunk_size: Size of each chunk (in characters)
-            chunk_overlap: Overlap between chunks (in characters)
-            
-        Returns:
-            List of document chunks
+        Split documents into smaller chunks for optimal retrieval performance.
         """
         if not documents:
             logger.warning("No documents to split")
             return []
             
         if chunk_size is None:
-            chunk_size = Config.CHUNK_SIZE
+            chunk_size = getattr(Config, 'CHUNK_SIZE', 1000)
             
         if chunk_overlap is None:
-            chunk_overlap = Config.CHUNK_OVERLAP
+            chunk_overlap = getattr(Config, 'CHUNK_OVERLAP', 200)
             
         logger.info(f"Splitting {len(documents)} documents into chunks (size={chunk_size}, overlap={chunk_overlap})")
         
         try:
-            # Group documents by type
-            apu_kb_docs = []
+            # Group documents by type for specialized splitting if needed
+            knowledge_base_docs = []
             standard_docs = []
             
             for doc in documents:
-                if doc.metadata.get('content_type') == 'apu_kb_page':
-                    apu_kb_docs.append(doc)
+                if doc.metadata.get('content_type') == 'knowledge_base':
+                    knowledge_base_docs.append(doc)
                 else:
                     standard_docs.append(doc)
             
-            logger.info(f"Document split: {len(apu_kb_docs)} APU KB docs, {len(standard_docs)} standard docs")
+            logger.info(f"Document categorization: {len(knowledge_base_docs)} knowledge base docs, {len(standard_docs)} standard docs")
             
             chunked_documents = []
             
-            # Use APU KB specific splitter for knowledge base pages
-            if apu_kb_docs:
-                apu_kb_splitter = APUKnowledgeBaseTextSplitter(
-                    chunk_size=chunk_size,
-                    chunk_overlap=chunk_overlap,
-                    length_function=len,
-                    is_separator_regex=False,
-                )
-                kb_chunks = apu_kb_splitter.split_documents(apu_kb_docs)
-                logger.info(f"APU KB splitter created {len(kb_chunks)} chunks from {len(apu_kb_docs)} documents")
-                chunked_documents.extend(kb_chunks)
+            # Use specialized splitter for knowledge base content if available
+            if knowledge_base_docs:
+                try:
+                    # Try to use specialized splitter if available
+                    try:
+                        from .splitters import KnowledgeBaseTextSplitter
+                        kb_splitter = KnowledgeBaseTextSplitter(
+                            chunk_size=chunk_size,
+                            chunk_overlap=chunk_overlap,
+                            length_function=len,
+                            is_separator_regex=False,
+                        )
+                        kb_chunks = kb_splitter.split_documents(knowledge_base_docs)
+                        logger.info(f"Knowledge base splitter created {len(kb_chunks)} chunks from {len(knowledge_base_docs)} documents")
+                        chunked_documents.extend(kb_chunks)
+                    except ImportError:
+                        logger.info("Specialized knowledge base splitter not available, using standard splitter")
+                        standard_docs.extend(knowledge_base_docs)
+                except Exception as e:
+                    logger.error(f"Error in knowledge base splitting: {e}")
+                    # Fallback to standard splitter
+                    logger.info("Falling back to standard splitter for knowledge base docs")
+                    standard_docs.extend(knowledge_base_docs)
             
             # Use standard splitter for other documents
             if standard_docs:
-                standard_splitter = RecursiveCharacterTextSplitter(
-                    chunk_size=chunk_size,
-                    chunk_overlap=chunk_overlap,
-                    length_function=len,
-                    is_separator_regex=False,
-                )
-                std_chunks = standard_splitter.split_documents(standard_docs)
-                logger.info(f"Standard splitter created {len(std_chunks)} chunks from {len(standard_docs)} documents")
-                chunked_documents.extend(std_chunks)
+                try:
+                    standard_splitter = RecursiveCharacterTextSplitter(
+                        chunk_size=chunk_size,
+                        chunk_overlap=chunk_overlap,
+                        length_function=len,
+                        is_separator_regex=False,
+                        separators=["\n\n", "\n", " ", ""]  # Standard hierarchical separators
+                    )
+                    std_chunks = standard_splitter.split_documents(standard_docs)
+                    logger.info(f"Standard splitter created {len(std_chunks)} chunks from {len(standard_docs)} documents")
+                    chunked_documents.extend(std_chunks)
+                except Exception as e:
+                    logger.error(f"Error in standard document splitting: {e}")
+                    raise
             
-            # Remove any empty chunks
-            valid_chunks = [chunk for chunk in chunked_documents if chunk.page_content and chunk.page_content.strip()]
+            # Filter out empty or very small chunks
+            min_chunk_size = max(10, chunk_size // 20)  # At least 10 chars, or 5% of chunk size
+            valid_chunks = []
             
-            # Log statistics
-            logger.info(f"Created {len(valid_chunks)} chunks from {len(documents)} documents")
+            for chunk in chunked_documents:
+                if chunk.page_content and len(chunk.page_content.strip()) >= min_chunk_size:
+                    valid_chunks.append(chunk)
+                else:
+                    logger.debug(f"Filtered out small chunk: {len(chunk.page_content) if chunk.page_content else 0} chars")
+            
+            # Final statistics
+            logger.info(f"Document splitting complete:")
+            logger.info(f"  Input: {len(documents)} documents")
+            logger.info(f"  Output: {len(valid_chunks)} valid chunks")
+            logger.info(f"  Filtered: {len(chunked_documents) - len(valid_chunks)} small/empty chunks")
             
             return valid_chunks
             
         except Exception as e:
             logger.error(f"Error splitting documents: {e}")
+            import traceback
+            logger.debug(traceback.format_exc())
             return []
