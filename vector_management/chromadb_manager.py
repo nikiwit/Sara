@@ -1,39 +1,23 @@
 """
-ChromaDB client management and configuration.
+ChromaDB client management with optimized initialization and error handling.
 """
 
+import os
 import logging
-from datetime import datetime
 import chromadb
 from chromadb.config import Settings
-from config import Config
+from langchain_chroma import Chroma
+import time
+from datetime import datetime
 
 logger = logging.getLogger("CustomRAG")
 
 class ChromaDBManager:
-    """Singleton manager for ChromaDB client lifecycle."""
+    """Singleton manager for ChromaDB client lifecycle with optimized settings."""
+    
     _instance = None
     _client = None
     
-    @classmethod
-    def force_cleanup(cls):
-        """Force cleanup of all ChromaDB client resources."""
-        if cls._client is not None:
-            try:
-                # Try multiple cleanup methods
-                if hasattr(cls._client, 'close'):
-                    cls._client.close()
-                if hasattr(cls._client, 'clear_system_cache'):
-                    cls._client.clear_system_cache()
-                if hasattr(cls._client, '_producer') and hasattr(cls._client._producer, 'stop'):
-                    cls._client._producer.stop()
-                    
-            except Exception as e:
-                logger.warning(f"Error during force cleanup: {e}")
-            finally:
-                cls._client = None
-                logger.info("Forced ChromaDB client cleanup completed")
-
     @classmethod
     def get_client(cls, persist_directory=None, reset=False, force_new=False):
         """Get or create a ChromaDB client with proper configuration.
@@ -44,6 +28,7 @@ class ChromaDBManager:
             force_new: Force creation of completely new client (for reindexing)
         """
         if persist_directory is None:
+            from config import Config
             persist_directory = Config.PERSIST_PATH
             
         # Force new client for reindexing operations
@@ -53,14 +38,16 @@ class ChromaDBManager:
                 cls.force_cleanup()
                 
                 # Wait for cleanup to complete
-                import time
                 time.sleep(0.5)
                 
-                # Create new client with fresh settings
+                # Ensure directory exists
+                os.makedirs(persist_directory, exist_ok=True)
+                
+                # Create new client with optimized settings for faster startup
                 cls._client = chromadb.PersistentClient(
                     path=persist_directory,
                     settings=Settings(
-                        anonymized_telemetry=False,
+                        anonymized_telemetry=False,  # Disable telemetry for faster startup
                         allow_reset=True,
                         is_persistent=True,
                         persist_directory=persist_directory  # Explicit persist directory
@@ -72,10 +59,10 @@ class ChromaDBManager:
                 raise
         
         return cls._client
-
+    
     @classmethod
     def get_or_create_collection(cls, client, name, metadata=None, embedding_function=None, force_new=False):
-        """Get or create a collection with metadata.
+        """Get or create a collection with metadata and optimized error handling.
         
         Args:
             client: ChromaDB client
@@ -84,6 +71,8 @@ class ChromaDBManager:
             embedding_function: Function for embeddings
             force_new: Force creation of new collection (delete existing if present)
         """
+        from config import Config
+        
         if metadata is None:
             metadata = {}
             
@@ -116,18 +105,23 @@ class ChromaDBManager:
                 logger.info(f"Using existing collection: {name}")
                 collection = client.get_collection(name)
                 
-                # Update metadata for existing collection
+                # Update metadata for existing collection (handle distance function warning)
                 if hasattr(collection, 'modify') and full_metadata:
                     try:
-                        collection.modify(metadata=full_metadata)
+                        # Only update non-conflicting metadata to avoid distance function warning
+                        safe_metadata = {k: v for k, v in full_metadata.items() 
+                                       if k not in ['hnsw:space']}  # Avoid distance function conflicts
+                        if safe_metadata:
+                            collection.modify(metadata=safe_metadata)
+                            logger.debug(f"Updated collection metadata")
                     except Exception as e:
+                        # Log as warning instead of error since this is expected for distance function
                         logger.warning(f"Could not update collection metadata: {e}")
             else:
                 logger.info(f"Creating new collection: {name}")
                 collection = client.create_collection(name=name, metadata=full_metadata)
             
             # Create LangChain wrapper
-            from langchain_chroma import Chroma
             langchain_store = Chroma(
                 client=client,
                 collection_name=name,
@@ -139,6 +133,30 @@ class ChromaDBManager:
         except Exception as e:
             logger.error(f"Error getting/creating collection {name}: {e}")
             raise
+    
+    @classmethod
+    def force_cleanup(cls):
+        """Force cleanup of all ChromaDB client resources."""
+        if cls._client is not None:
+            try:
+                # Try multiple cleanup methods
+                if hasattr(cls._client, 'close'):
+                    cls._client.close()
+                if hasattr(cls._client, 'clear_system_cache'):
+                    cls._client.clear_system_cache()
+                if hasattr(cls._client, '_producer') and hasattr(cls._client._producer, 'stop'):
+                    cls._client._producer.stop()
+                    
+            except Exception as e:
+                logger.warning(f"Error during force cleanup: {e}")
+            finally:
+                cls._client = None
+                logger.info("Forced ChromaDB client cleanup completed")
+                
+                # Give time for cleanup
+                import gc
+                gc.collect()
+                time.sleep(0.5)
     
     @classmethod
     def close(cls):
@@ -156,3 +174,12 @@ class ChromaDBManager:
                 logger.info("Released ChromaDB client resources")
             except Exception as e:
                 logger.error(f"Error during ChromaDB client cleanup: {e}")
+    
+    @classmethod
+    def reset_client(cls):
+        """Reset the ChromaDB client (useful for testing or recovery)."""
+        logger.info("Resetting ChromaDB client")
+        cls.force_cleanup()
+        
+        # Clear any cached references
+        cls._client = None

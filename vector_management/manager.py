@@ -1,5 +1,5 @@
 """
-Vector store management operations and utilities.
+Vector store management operations and utilities with optimized model caching.
 """
 
 import os
@@ -20,10 +20,98 @@ from .chromadb_manager import ChromaDBManager
 logger = logging.getLogger("CustomRAG")
 
 class VectorStoreManager:
-    """Manages the vector database operations."""
+    """Manages the vector database operations with optimized caching."""
     
     _cached_embeddings = None
     _cached_embeddings_model = None
+    
+    @staticmethod
+    def setup_model_cache():
+        """Setup HuggingFace cache directory and ensure proper caching."""
+        # Set up HuggingFace cache directory
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        cache_dir = os.path.join(script_dir, "..", "model_cache", "huggingface")
+        
+        # Ensure cache directory exists
+        os.makedirs(cache_dir, exist_ok=True)
+        
+        # Set HuggingFace environment variables for caching (use HF_HOME instead of deprecated TRANSFORMERS_CACHE)
+        os.environ['HF_HOME'] = cache_dir
+        os.environ['SENTENCE_TRANSFORMERS_HOME'] = os.path.join(cache_dir, "sentence_transformers")
+        
+        # Disable telemetry for faster loading
+        os.environ['TRANSFORMERS_OFFLINE'] = '0'  # Allow downloads but cache aggressively
+        os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
+        
+        # Remove deprecated TRANSFORMERS_CACHE if it exists to avoid warnings
+        if 'TRANSFORMERS_CACHE' in os.environ:
+            del os.environ['TRANSFORMERS_CACHE']
+        
+        logger.info(f"Model cache directory: {cache_dir}")
+        return cache_dir
+    
+    @staticmethod
+    def is_model_cached(model_name):
+        """Check if the model is already cached locally - improved detection."""
+        # Get the HF_HOME directory
+        hf_home = os.environ.get('HF_HOME')
+        if not hf_home:
+            logger.debug("HF_HOME not set, model not cached")
+            return False
+        
+        # Check multiple possible cache locations
+        possible_cache_dirs = [
+            os.path.join(hf_home, "hub"),  # New HF cache structure
+            os.path.join(hf_home, "sentence_transformers"),  # Sentence transformers cache
+            hf_home  # Direct cache
+        ]
+        
+        # Look for model in various formats
+        model_variants = [
+            f"models--{model_name.replace('/', '--')}",  # New HF format
+            model_name.replace('/', '_'),  # Old format
+            model_name,  # Direct name
+            f"sentence-transformers_{model_name.replace('/', '_')}"  # ST format
+        ]
+        
+        for cache_dir in possible_cache_dirs:
+            if not os.path.exists(cache_dir):
+                continue
+                
+            for variant in model_variants:
+                model_path = os.path.join(cache_dir, variant)
+                if os.path.exists(model_path):
+                    # Check for essential files
+                    essential_files = ['config.json']
+                    model_files = ['pytorch_model.bin', 'model.safetensors', 'model.onnx']
+                    tokenizer_files = ['tokenizer.json', 'tokenizer_config.json', 'vocab.txt']
+                    
+                    has_config = any(os.path.exists(os.path.join(model_path, f)) for f in essential_files)
+                    has_model = any(os.path.exists(os.path.join(model_path, f)) for f in model_files)
+                    has_tokenizer = any(os.path.exists(os.path.join(model_path, f)) for f in tokenizer_files)
+                    
+                    if has_config and (has_model or has_tokenizer):
+                        logger.info(f"Model {model_name} found in cache at {model_path}")
+                        return True
+                    else:
+                        logger.debug(f"Model {model_name} partially cached at {model_path}")
+        
+        # Also check if sentence-transformers has it loaded
+        try:
+            import sentence_transformers
+            st_cache = os.path.join(hf_home, "sentence_transformers")
+            if os.path.exists(st_cache):
+                for item in os.listdir(st_cache):
+                    if model_name.replace('/', '_') in item or 'bge-base' in item.lower():
+                        model_dir = os.path.join(st_cache, item)
+                        if os.path.isdir(model_dir) and len(os.listdir(model_dir)) > 3:
+                            logger.info(f"Model {model_name} found in sentence-transformers cache at {model_dir}")
+                            return True
+        except Exception as e:
+            logger.debug(f"Error checking sentence-transformers cache: {e}")
+        
+        logger.debug(f"Model {model_name} not found in cache")
+        return False
     
     @staticmethod
     def check_vector_store_health(vector_store):
@@ -282,32 +370,58 @@ class VectorStoreManager:
     
     @staticmethod
     def create_embeddings(model_name=None):
-        """Create the embedding model with caching to prevent redundant loading."""
+        """Create the embedding model with optimized caching to prevent redundant loading."""
         if model_name is None:
             model_name = Config.EMBEDDING_MODEL_NAME
         
         # Check if we already have cached embeddings for this model
         if (VectorStoreManager._cached_embeddings is not None and 
             VectorStoreManager._cached_embeddings_model == model_name):
-            logger.debug(f"Using cached embeddings for model: {model_name}")
+            logger.info(f"Using cached embeddings for model: {model_name}")
             return VectorStoreManager._cached_embeddings
-            
+        
+        # Setup model cache directory
+        cache_dir = VectorStoreManager.setup_model_cache()
+        
+        # Check if model is already cached locally
+        model_cached = VectorStoreManager.is_model_cached(model_name)
+        
+        if model_cached:
+            logger.info(f"Model {model_name} found in local cache - skipping download")
+        else:
+            logger.info(f"Model {model_name} not cached - will download and cache for future use")
+        
         device = VectorStoreManager.get_embedding_device()
         
         try:
-            logger.info(f"Creating new embeddings for model: {model_name}")
+            # Create embeddings with optimized parameters for faster loading
+            logger.info(f"Creating embeddings for model: {model_name}")
+            
+            # Configure for faster loading - compatible with your sentence-transformers version
+            model_kwargs = {
+                'device': device,
+                'trust_remote_code': False,  # Security best practice
+            }
+            
+            # Fix the show_progress_bar conflict by using only in encode_kwargs
+            encode_kwargs = {
+                'normalize_embeddings': True,
+                'batch_size': 32,  # Optimize batch size for performance
+            }
+            
             embeddings = HuggingFaceEmbeddings(
                 model_name=model_name,
-                model_kwargs={'device': device},
-                encode_kwargs={'normalize_embeddings': True}
+                model_kwargs=model_kwargs,
+                encode_kwargs=encode_kwargs
             )
             
             # Cache the embeddings
             VectorStoreManager._cached_embeddings = embeddings
             VectorStoreManager._cached_embeddings_model = model_name
-            logger.info(f"Cached embeddings for model: {model_name}")
+            logger.info(f"Successfully cached embeddings for model: {model_name}")
             
             return embeddings
+            
         except Exception as e:
             logger.error(f"Failed to initialize embedding model: {e}")
             raise

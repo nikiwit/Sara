@@ -60,4 +60,4 @@ Thumbs.db
 tmp/
 temp/
 sessions/
-# Temporary files
+model_cache/
