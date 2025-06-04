@@ -1,12 +1,12 @@
 """
-Production configuration for APURAG system optimized for HGX H100 G593-SD2.
+Production configuration for APURAG system optimized for HGX H100 G593-SD2 with conservative model management.
 """
 
 import os
 from config import Config, logger
 
 class ProductionConfig(Config):
-    """Configuration optimized for production HGX H100 environment."""
+    """Configuration optimized for production HGX H100 environment with conservative model management."""
     
     # Override with production-specific settings
     
@@ -55,6 +55,18 @@ class ProductionConfig(Config):
     APU_KB_ANSWER_CONTEXT_SIZE = int(os.environ.get("CUSTOMRAG_APU_KB_ANSWER_SIZE", "3"))
     APU_KB_EXACT_MATCH_BOOST = float(os.environ.get("CUSTOMRAG_APU_KB_EXACT_MATCH_BOOST", "2.0"))
     
+    # Production Model Management - Conservative approach
+    MODEL_CHECK_INTERVAL_DAYS = int(os.environ.get("CUSTOMRAG_MODEL_CHECK_INTERVAL_DAYS", "30"))      # Monthly checks
+    MODEL_WARNING_AGE_DAYS = int(os.environ.get("CUSTOMRAG_MODEL_WARNING_AGE_DAYS", "90"))            # 3 months warning
+    MODEL_CRITICAL_AGE_DAYS = int(os.environ.get("CUSTOMRAG_MODEL_CRITICAL_AGE_DAYS", "180"))          # 6 months critical
+    MODEL_AUTO_UPDATE_PROMPT = os.environ.get("CUSTOMRAG_MODEL_AUTO_UPDATE_PROMPT", "False").lower() in ("true", "1", "t")  # No auto-prompts
+    MODEL_UPDATE_CHECK_ENABLED = os.environ.get("CUSTOMRAG_MODEL_UPDATE_CHECK_ENABLED", "True").lower() in ("true", "1", "t")
+    MODEL_REQUIRE_APPROVAL = os.environ.get("CUSTOMRAG_MODEL_REQUIRE_APPROVAL", "True").lower() in ("true", "1", "t")
+    MODEL_CACHE_CLEANUP = os.environ.get("CUSTOMRAG_MODEL_CACHE_CLEANUP", "True").lower() in ("true", "1", "t")     # Auto-cleanup in prod
+    MODEL_BACKUP_ENABLED = os.environ.get("CUSTOMRAG_MODEL_BACKUP_ENABLED", "True").lower() in ("true", "1", "t")
+    MODEL_MAX_BACKUPS = int(os.environ.get("CUSTOMRAG_MODEL_MAX_BACKUPS", "3"))                        # Keep 3 backups
+    MODEL_NOTIFICATION_EMAIL = os.environ.get("CUSTOMRAG_MODEL_NOTIFICATION_EMAIL", "")
+    
     # Production-specific methods
     @classmethod
     def setup(cls):
@@ -75,3 +87,12 @@ class ProductionConfig(Config):
         if not os.path.isabs(cls.PERSIST_PATH):
             logger.warning(f"Converting relative vector store path to absolute: {cls.PERSIST_PATH}")
             cls.PERSIST_PATH = os.path.abspath(cls.PERSIST_PATH)
+        
+        # Log production model management settings
+        if cls.MODEL_UPDATE_CHECK_ENABLED:
+            logger.info(f"🏭 Production model management: conservative approach")
+            logger.info(f"📅 Checks every {cls.MODEL_CHECK_INTERVAL_DAYS} days, warnings at {cls.MODEL_WARNING_AGE_DAYS} days")
+            if not cls.MODEL_AUTO_UPDATE_PROMPT:
+                logger.info(f"🔒 Manual approval required for all model updates")
+            if cls.MODEL_NOTIFICATION_EMAIL:
+                logger.info(f"📧 Notifications enabled for: {cls.MODEL_NOTIFICATION_EMAIL}")

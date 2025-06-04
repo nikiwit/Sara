@@ -1,5 +1,12 @@
 """
-Configuration settings for the APURAG system with environment-specific support.
+Configuration settings for the APURAG system with environment-specific support and model management.
+
+This module provides comprehensive configuration management including:
+- Environment-specific configuration loading
+- Hardware detection and optimization
+- Model lifecycle management settings
+- Logging and error handling setup
+- Path and resource management
 """
 
 import os
@@ -39,9 +46,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger("CustomRAG")
 
-# Add NLTK error handling and fallback
 def setup_nltk_with_fallback():
-    """Setup NLTK with proper error handling and fallback options."""
+    """
+    Setup NLTK with proper error handling and fallback options.
+    
+    Attempts to download required NLTK data with graceful fallback
+    to basic text processing methods if NLTK is unavailable.
+    """
     try:
         import nltk
         # Try to download required NLTK data with error handling
@@ -74,7 +85,13 @@ def setup_nltk_with_fallback():
         logger.info("Continuing with fallback text processing methods")
 
 class Config:
-    """Base configuration settings for the RAG application."""
+    """
+    Base configuration settings for the RAG application with model management.
+    
+    This class provides centralized configuration management with support for
+    environment-specific overrides, hardware detection, and production-grade
+    model lifecycle management.
+    """
     
     # Class variable to track setup status
     _setup_completed = False
@@ -112,7 +129,7 @@ class Config:
     MAX_CONTEXT_SIZE = int(os.environ.get("CUSTOMRAG_MAX_CONTEXT_SIZE", "4000"))
     USE_CONTEXT_COMPRESSION = os.environ.get("CUSTOMRAG_CONTEXT_COMPRESSION", "True").lower() in ("true", "1", "t")
     
-    # Session (chats) management
+    # Session management
     MAX_SESSIONS = 5
     
     # Ollama API
@@ -122,10 +139,26 @@ class Config:
     MAX_THREADS = int(os.environ.get("CUSTOMRAG_MAX_THREADS", "4"))
     MAX_MEMORY = os.environ.get("CUSTOMRAG_MAX_MEMORY", "4G")
     
-    # Hardware detection
+    # Production Model Management Settings
+    MODEL_CHECK_INTERVAL_DAYS = int(os.environ.get("CUSTOMRAG_MODEL_CHECK_INTERVAL_DAYS", "30"))
+    MODEL_WARNING_AGE_DAYS = int(os.environ.get("CUSTOMRAG_MODEL_WARNING_AGE_DAYS", "60"))
+    MODEL_CRITICAL_AGE_DAYS = int(os.environ.get("CUSTOMRAG_MODEL_CRITICAL_AGE_DAYS", "90"))
+    MODEL_AUTO_UPDATE_PROMPT = os.environ.get("CUSTOMRAG_MODEL_AUTO_UPDATE_PROMPT", "True").lower() in ("true", "1", "t")
+    MODEL_UPDATE_CHECK_ENABLED = os.environ.get("CUSTOMRAG_MODEL_UPDATE_CHECK_ENABLED", "True").lower() in ("true", "1", "t")
+    MODEL_REQUIRE_APPROVAL = os.environ.get("CUSTOMRAG_MODEL_REQUIRE_APPROVAL", "True").lower() in ("true", "1", "t")
+    MODEL_CACHE_CLEANUP = os.environ.get("CUSTOMRAG_MODEL_CACHE_CLEANUP", "False").lower() in ("true", "1", "t")
+    MODEL_BACKUP_ENABLED = os.environ.get("CUSTOMRAG_MODEL_BACKUP_ENABLED", "True").lower() in ("true", "1", "t")
+    MODEL_MAX_BACKUPS = int(os.environ.get("CUSTOMRAG_MODEL_MAX_BACKUPS", "3"))
+    MODEL_NOTIFICATION_EMAIL = os.environ.get("CUSTOMRAG_MODEL_NOTIFICATION_EMAIL", "")
+
     @classmethod
     def has_gpu(cls):
-        """Detect if GPU is available (CUDA or Apple Silicon MPS)."""
+        """
+        Detect if GPU is available (CUDA or Apple Silicon MPS).
+        
+        Returns:
+            bool: True if GPU acceleration is available
+        """
         try:
             import torch
             # Check for CUDA first (for compatibility)
@@ -138,10 +171,15 @@ class Config:
                 return False
         except ImportError:
             return False
-
+    
     @classmethod 
     def get_device_info(cls):
-        """Get detailed device information for logging."""
+        """
+        Get detailed device information for logging.
+        
+        Returns:
+            tuple: (device_type, device_name) for hardware identification
+        """
         try:
             import torch
             if torch.cuda.is_available():
@@ -169,7 +207,12 @@ class Config:
 
     @classmethod
     def setup(cls):
-        """Set up the configuration and ensure directories exist."""
+        """
+        Set up the configuration and ensure directories exist.
+        
+        Performs one-time initialization including directory creation,
+        NLTK setup, hardware detection, and configuration logging.
+        """
         # Prevent duplicate setup logging
         if cls._setup_completed:
             logger.debug("Configuration setup already completed, skipping duplicate setup")
@@ -205,6 +248,17 @@ class Config:
             logger.info("APU document filtering is ENABLED - only files starting with 'apu_' will be processed")
         else:
             logger.info("APU document filtering is DISABLED - all compatible files will be processed")
+        
+        # Log model management settings
+        if cls.MODEL_UPDATE_CHECK_ENABLED:
+            logger.info("Production model management enabled")
+            logger.info(f"Model update checks: every {cls.MODEL_CHECK_INTERVAL_DAYS} days")
+            logger.info(f"Warning threshold: {cls.MODEL_WARNING_AGE_DAYS} days")
+            logger.info(f"Critical threshold: {cls.MODEL_CRITICAL_AGE_DAYS} days")
+            if cls.MODEL_AUTO_UPDATE_PROMPT:
+                logger.info("Auto-prompts enabled for model updates")
+            if cls.MODEL_REQUIRE_APPROVAL:
+                logger.info("Manual approval required for updates")
             
         # Mark setup as completed
         cls._setup_completed = True

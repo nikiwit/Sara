@@ -1,12 +1,12 @@
 """
-Local development configuration for APURAG system.
+Local development configuration for APURAG system with enhanced model management.
 """
 
 import os
 from config import Config, logger
 
 class LocalConfig(Config):
-    """Configuration optimized for local development environments."""
+    """Configuration optimized for local development environments with enhanced model management."""
     
     # Override with local-specific settings
     
@@ -55,6 +55,17 @@ class LocalConfig(Config):
     APU_KB_ANSWER_CONTEXT_SIZE = int(os.environ.get("CUSTOMRAG_APU_KB_ANSWER_SIZE", "2"))
     APU_KB_EXACT_MATCH_BOOST = float(os.environ.get("CUSTOMRAG_APU_KB_EXACT_MATCH_BOOST", "2.0"))
     
+    # Local Development Model Management - More frequent checks for testing
+    MODEL_CHECK_INTERVAL_DAYS = int(os.environ.get("CUSTOMRAG_MODEL_CHECK_INTERVAL_DAYS", "7"))  # Weekly in dev
+    MODEL_WARNING_AGE_DAYS = int(os.environ.get("CUSTOMRAG_MODEL_WARNING_AGE_DAYS", "30"))      # 1 month warning
+    MODEL_CRITICAL_AGE_DAYS = int(os.environ.get("CUSTOMRAG_MODEL_CRITICAL_AGE_DAYS", "60"))     # 2 months critical
+    MODEL_AUTO_UPDATE_PROMPT = os.environ.get("CUSTOMRAG_MODEL_AUTO_UPDATE_PROMPT", "True").lower() in ("true", "1", "t")
+    MODEL_UPDATE_CHECK_ENABLED = os.environ.get("CUSTOMRAG_MODEL_UPDATE_CHECK_ENABLED", "True").lower() in ("true", "1", "t")
+    MODEL_REQUIRE_APPROVAL = os.environ.get("CUSTOMRAG_MODEL_REQUIRE_APPROVAL", "True").lower() in ("true", "1", "t")
+    MODEL_CACHE_CLEANUP = os.environ.get("CUSTOMRAG_MODEL_CACHE_CLEANUP", "False").lower() in ("true", "1", "t")  # Keep cache in dev
+    MODEL_BACKUP_ENABLED = os.environ.get("CUSTOMRAG_MODEL_BACKUP_ENABLED", "True").lower() in ("true", "1", "t")
+    MODEL_MAX_BACKUPS = int(os.environ.get("CUSTOMRAG_MODEL_MAX_BACKUPS", "2"))  # Fewer backups in dev
+    
     # Development-specific methods
     @classmethod
     def setup(cls):
@@ -66,3 +77,7 @@ class LocalConfig(Config):
         logger.info(f"Using reduced resource settings: {cls.MAX_THREADS} threads, {cls.MAX_MEMORY} memory")
         logger.info(f"Stream delay: {cls.STREAM_DELAY}s (faster for development)")
         logger.info(f"Reduced context size: {cls.MAX_CONTEXT_SIZE} tokens")
+        
+        # Log development model management settings
+        if cls.MODEL_UPDATE_CHECK_ENABLED:
+            logger.info(f"🧪 Development model management: checks every {cls.MODEL_CHECK_INTERVAL_DAYS} days")
