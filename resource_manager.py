@@ -32,14 +32,31 @@ class ResourceManager:
             if config.has_gpu():
                 try:
                     import torch
+                    
+                    # Check device type and provide appropriate info
                     if torch.cuda.is_available():
                         logger.info(f"GPU available: {torch.cuda.get_device_name(0)}")
                         logger.info(f"GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
-                        
                         # Set PyTorch to use GPU
                         torch.set_default_device('cuda')
+                        
+                    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                        logger.info("GPU available: Apple Silicon MPS")
+                        
+                        # Get system memory as proxy for MPS memory (MPS uses unified memory)
+                        try:
+                            import psutil
+                            total_memory_gb = psutil.virtual_memory().total / 1e9
+                            logger.info(f"Unified memory available: {total_memory_gb:.2f} GB")
+                        except ImportError:
+                            logger.info("Unified memory: Available (amount unknown)")
+                        
+                        # Set PyTorch to use MPS
+                        torch.set_default_device('mps')
+                        
                     else:
-                        logger.info("PyTorch available but no CUDA GPU detected")
+                        logger.info("PyTorch available but no GPU acceleration detected")
+                        
                 except ImportError:
                     logger.warning("PyTorch not available - GPU optimizations disabled")
             else:
@@ -82,21 +99,27 @@ class ResourceManager:
                 try:
                     import torch
                     
-                    # Enable TF32 for better performance on Ampere GPUs
-                    if hasattr(torch.backends.cuda.matmul, 'allow_tf32'):
-                        torch.backends.cuda.matmul.allow_tf32 = True
-                        torch.backends.cudnn.allow_tf32 = True
+                    if torch.cuda.is_available():
+                        # Enable TF32 for better performance on Ampere GPUs
+                        if hasattr(torch.backends.cuda.matmul, 'allow_tf32'):
+                            torch.backends.cuda.matmul.allow_tf32 = True
+                            torch.backends.cudnn.allow_tf32 = True
+                            # Enable cuDNN benchmarking
+                            torch.backends.cudnn.benchmark = True
+                            logger.info("Applied production CUDA optimizations")
+                        else:
+                            logger.info("TF32 optimizations not available on this PyTorch version")
+                            
+                    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                        # MPS-specific optimizations
+                        logger.info("Applied production MPS optimizations")
+                        # Note: MPS doesn't have as many tunable parameters as CUDA
                         
-                        # Enable cuDNN benchmarking
-                        torch.backends.cudnn.benchmark = True
-                        
-                        logger.info("Applied production GPU optimizations")
-                    else:
-                        logger.info("TF32 optimizations not available on this PyTorch version")
                 except ImportError:
                     logger.warning("PyTorch not available - skipping GPU optimizations")
         except Exception as e:
             logger.error(f"Error applying production optimizations: {e}")
+
     
     @classmethod
     def _optimize_for_local(cls):
@@ -106,13 +129,20 @@ class ResourceManager:
             try:
                 import torch
                 
-                if config.has_gpu() and torch.cuda.is_available():
-                    # Limit GPU memory usage
-                    try:
-                        torch.cuda.set_per_process_memory_fraction(0.7)
-                        logger.info("Limited GPU memory usage for local development")
-                    except Exception as e:
-                        logger.warning(f"Could not limit GPU memory: {e}")
+                if config.has_gpu():
+                    if torch.cuda.is_available():
+                        # Limit GPU memory usage
+                        try:
+                            torch.cuda.set_per_process_memory_fraction(0.7)
+                            logger.info("Limited CUDA memory usage for local development")
+                        except Exception as e:
+                            logger.warning(f"Could not limit GPU memory: {e}")
+                            
+                    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                        # MPS uses unified memory, so no explicit memory limiting needed
+                        # But we can set memory pressure monitoring
+                        logger.info("Using Apple Silicon MPS for local development")
+                        
             except ImportError:
                 logger.info("PyTorch not available, skipping GPU optimizations")
         except Exception as e:

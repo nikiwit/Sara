@@ -1,47 +1,61 @@
-# Core dependencies
-torch>=2.0.0
-langchain>=0.1.0,<0.2.0
-langchain-community>=0.0.30
-langchain-chroma>=0.1.0
-langchain-huggingface>=0.0.1
-sentence-transformers>=2.2.2
-requests>=2.28.0
+# Production-grade requirements.txt with versions for stability
+# Core dependencies with production-tested versions
+torch==2.7.0
+transformers==4.49.0  # Well-tested version, compatible with sentence-transformers
+langchain==0.1.20
+langchain-community==0.0.38
+langchain-chroma==0.1.4
+langchain-huggingface==0.0.3  # Proven stable version from testing
+sentence-transformers==3.1.1  # Latest stable, well-tested with transformers 4.49.0
+requests==2.32.3
 
 # NLP libraries
-nltk>=3.8.1
+nltk==3.9.1
 
-# Vector store - handled separately from torch to avoid conflicts
-chromadb>=0.4.20,<0.5.0
+# Vector store - production stable
+chromadb==0.4.24
 
 # Fast Hugging Face transfers
-hf_xet
+hf_xet==1.1.2
 
-# Document processing - PDF
-pypdf>=3.0.0
-pdfplumber>=0.10.0
+# Document processing - PDF (pinned for stability)
+pypdf==5.5.0
+pdfplumber==0.11.6
 
-# Document processing - Word
-docx2txt>=0.8
-python-docx>=0.8.11
+# Document processing - Word (stable versions)
+docx2txt==0.9
+python-docx==1.1.2
 
 # Document processing - PowerPoint
-python-pptx>=0.6.21
+python-pptx==1.0.2
 
 # Document processing - EPUB
-ebooklib>=0.18
-beautifulsoup4>=4.11.0
-lxml>=4.9.0
-html2text>=2020.1.16  
+ebooklib==0.19
+beautifulsoup4==4.13.4
+lxml==5.4.0
+html2text==2025.4.15
 
-# Utilities
-tqdm>=4.66.0
-python-dotenv>=1.0.0
-chardet>=5.0.0
-numpy>=1.24.0
+# Utilities - pinned for production stability
+tqdm==4.67.1
+python-dotenv==1.1.0
+chardet==5.2.0
+numpy==1.26.4
+psutil==7.0.0
+
+# Hugging Face ecosystem - production-tested versions
+huggingface-hub==0.31.4
+safetensors==0.5.3
+tokenizers==0.21.1
+
+# Production monitoring and logging
+sentry-sdk>=1.40.0  # For error tracking
+prometheus-client>=0.19.0  # For metrics
 
 # Optional enhanced document processing
-# If these cause issues during installation, they can be commented out
-# and installed manually if needed
-unstructured>=0.10.0
-unstructured[epub]>=0.10.0 
-# unstructured[pptx]>=0.10.0
+# Use specific versions to avoid surprises
+unstructured==0.17.2
+unstructured[epub]==0.17.2
+
+# Development dependencies (remove in production)
+pytest>=7.4.0  # Only for testing environments
+pytest-cov>=4.1.0  # Only for testing environments

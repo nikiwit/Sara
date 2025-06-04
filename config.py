@@ -125,12 +125,33 @@ class Config:
     # Hardware detection
     @classmethod
     def has_gpu(cls):
-        """Detect if GPU is available."""
+        """Detect if GPU is available (CUDA or Apple Silicon MPS)."""
         try:
             import torch
-            return torch.cuda.is_available()
+            # Check for CUDA first (for compatibility)
+            if torch.cuda.is_available():
+                return True
+            # Check for Apple Silicon MPS
+            elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                return True
+            else:
+                return False
         except ImportError:
             return False
+
+    @classmethod 
+    def get_device_info(cls):
+        """Get detailed device information for logging."""
+        try:
+            import torch
+            if torch.cuda.is_available():
+                return "cuda", torch.cuda.get_device_name(0)
+            elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                return "mps", "Apple Silicon MPS"
+            else:
+                return "cpu", "CPU"
+        except ImportError:
+            return "cpu", "CPU (PyTorch not available)"
     
     # Miscellaneous
     FORCE_REINDEX = os.environ.get("CUSTOMRAG_FORCE_REINDEX", "False").lower() in ("true", "1", "t")
