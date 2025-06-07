@@ -80,4 +80,4 @@ class LocalConfig(Config):
         
         # Log development model management settings
         if cls.MODEL_UPDATE_CHECK_ENABLED:
-            logger.info(f"🧪 Development model management: checks every {cls.MODEL_CHECK_INTERVAL_DAYS} days")
+            logger.info(f"Development model management: checks every {cls.MODEL_CHECK_INTERVAL_DAYS} days")

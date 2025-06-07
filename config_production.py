@@ -90,9 +90,9 @@ class ProductionConfig(Config):
         
         # Log production model management settings
         if cls.MODEL_UPDATE_CHECK_ENABLED:
-            logger.info(f"🏭 Production model management: conservative approach")
-            logger.info(f"📅 Checks every {cls.MODEL_CHECK_INTERVAL_DAYS} days, warnings at {cls.MODEL_WARNING_AGE_DAYS} days")
+            logger.info(f"Production model management: conservative approach")
+            logger.info(f"Checks every {cls.MODEL_CHECK_INTERVAL_DAYS} days, warnings at {cls.MODEL_WARNING_AGE_DAYS} days")
             if not cls.MODEL_AUTO_UPDATE_PROMPT:
-                logger.info(f"🔒 Manual approval required for all model updates")
+                logger.info(f"Manual approval required for all model updates")
             if cls.MODEL_NOTIFICATION_EMAIL:
-                logger.info(f"📧 Notifications enabled for: {cls.MODEL_NOTIFICATION_EMAIL}")
+                logger.info(f"Notifications enabled for: {cls.MODEL_NOTIFICATION_EMAIL}")
