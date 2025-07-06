@@ -26,7 +26,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from config import Config
 from .chromadb_manager import ChromaDBManager
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class VectorStoreManager:
     """

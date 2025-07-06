@@ -15,9 +15,9 @@ from nltk.stem import WordNetLemmatizer, PorterStemmer
 from nltk.util import ngrams
 
 from config import Config
-from apurag_types import QueryType
+from sara_types import QueryType
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 # Ensure NLTK resources are available
 try:

@@ -7,7 +7,7 @@ import logging
 from contextlib import redirect_stdout
 from typing import Tuple
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class CommandHandler:
     """Handles system commands."""

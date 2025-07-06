@@ -10,7 +10,7 @@ from difflib import SequenceMatcher
 
 from config import Config
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class ConversationHandler:
     """Handles conversational queries with natural personality and fuzzy matching."""
@@ -30,13 +30,13 @@ class ConversationHandler:
 
         # Natural, personable greeting responses
         self.greeting_responses = [
-            "Hey there! I'm doing great, thanks for asking! 😊 Ready to help you with anything APU-related. What's on your mind?",
-            "Hi! I'm fantastic today - hope you are too! ☀️ What can I help you find out about APU?",
-            "Hello! I'm doing well, thank you! A bit busy helping students but I love it! 😄 How can I assist you with APU today?",
-            "Hey! I'm good, thanks for asking! The weather's been nice lately. 🌤️ What APU questions do you have for me?",
+            "Hey there! I'm doing great, thanks for asking! 😊 I'm Sara, ready to help you with anything APU-related. What's on your mind?",
+            "Hi! I'm fantastic today - hope you are too! ☀️ I'm Sara, what can I help you find out about APU?",
+            "Hello! I'm doing well, thank you! A bit busy helping students but I love it! 😄 I'm Sara, how can I assist you with APU today?",
+            "Hey! I'm good, thanks for asking! The weather's been nice lately. 🌤️ I'm Sara, what APU questions do you have for me?",
             "Hi there! I'm doing awesome, thanks! Ready to dive into some APU information with you. What would you like to know?",
-            "Hello! I'm great, thank you for asking! 😊 Always excited to help with APU questions. What brings you here today?",
-            "Hey! I'm doing wonderful, thanks! Hope your day is going well too! What can I help you with regarding APU?"
+            "Hello! I'm great, thank you for asking! 😊 I'm Sara, always excited to help with APU questions. What brings you here today?",
+            "Hey! I'm doing wonderful, thanks! Hope your day is going well too! I'm Sara, what can I help you with regarding APU?"
         ]
 
         # System knowledge patterns
@@ -53,7 +53,7 @@ class ConversationHandler:
 
         # More natural knowledge responses
         self.knowledge_responses = [
-            """Oh, I know quite a bit about APU! 😊 I'm like your friendly neighborhood APU encyclopedia. Here's what I can help you with:
+            """Oh, I know quite a bit about APU! 😊 I'm Sara, your friendly APU assistant. Here's what I can help you with:
 
 🎓 **Academic Stuff:**
 - Course details, requirements, schedules (the nitty-gritty details!)
@@ -79,9 +79,9 @@ class ConversationHandler:
 - All those frequently asked questions
 - Step-by-step guides for tricky procedures
 
-Just ask me anything about APU - I'm here to make your life easier! 🚀""",
+Just ask me anything about APU - I'm Sara, here to make your life easier! 🚀""",
 
-            """Hey! I'm your go-to APU assistant! 😄 Think of me as that helpful friend who somehow knows everything about the university. Here's my expertise:
+            """Hey! I'm Sara, your go-to APU assistant! 😄 Think of me as that helpful friend who somehow knows everything about the university. Here's my expertise:
 
 • **Student Life** - Medical insurance, campus facilities, where to get help when you're stuck
 • **Academics** - Course info, requirements, schedules (I love talking about courses!)
@@ -114,7 +114,7 @@ What would you like to explore? 🎯""",
         # FIXED: Dedicated farewell responses
         self.farewell_responses = [
             "Goodbye! Have a wonderful day ahead! 🌈 Feel free to come back anytime if you need APU info!",
-            "Take care! 👋 Remember, I'm always here whenever you need help with APU stuff!",
+            "Take care! 👋 Remember, I'm Sara, always here whenever you need help with APU stuff!",
             "Bye for now! 😊 Don't hesitate to return if you have any APU questions later!",
             "See you later! 👋 I'll be here whenever you need APU information or guidance!",
             "Farewell! 🌟 Hope I was able to help today. Come back anytime for APU assistance!",
@@ -140,12 +140,12 @@ What would you like to explore? 🎯""",
 
         # Small talk responses (excluding farewells)
         self.small_talk_responses = [
-            "My day's been great, thanks for asking! 😊 Helping students like you makes it even better. What can I do for you?",
-            "Nice to meet you too! 🤝 I'm excited to help you navigate APU. What would you like to know?",
-            "Aw, thanks! 😄 I hope you're having a wonderful day too. What APU info can I dig up for you?",
-            "It's been a good day! Always enjoy chatting about APU stuff. 🌟 What brings you here today?",
-            "Everything's going smoothly on my end! ✨ Ready and eager to help with your APU questions. What's up?",
-            "Thank you! I hope you have an amazing day too! 🌈 What can I help you with regarding APU?",
+            "My day's been great, thanks for asking! 😊 Helping students like you makes it even better. I'm Sara, what can I do for you?",
+            "Nice to meet you too! 🤝 I'm Sara, excited to help you navigate APU. What would you like to know?",
+            "Aw, thanks! 😄 I hope you're having a wonderful day too. I'm Sara, what APU info can I dig up for you?",
+            "It's been a good day! Always enjoy chatting about APU stuff. 🌟 I'm Sara, what brings you here today?",
+            "Everything's going smoothly on my end! ✨ I'm Sara, ready and eager to help with your APU questions. What's up?",
+            "Thank you! I hope you have an amazing day too! 🌈 I'm Sara, what can I help you with regarding APU?",
         ]
 
         # Acknowledgement patterns with enthusiastic responses
@@ -163,14 +163,14 @@ What would you like to explore? 🎯""",
         ]
 
         self.acknowledgement_responses = [
-            "You're so welcome! 😊 Happy I could help! Got any other APU questions for me?",
+            "You're so welcome! 😊 Happy I could help! Got any other questions for me?",
             "No problem at all! 🎉 That's what I'm here for! What else can I help you with?",
-            "My pleasure! 😄 I love helping with APU stuff. Anything else on your mind?",
-            "Glad I could help out! ✨ Feel free to ask if you need anything else about APU!",
+            "My pleasure! 😄 I'm Sara, and I love helping with APU stuff. Anything else on your mind?",
+            "Glad I could help out! ✨ Feel free to ask if you need anything else!",
             "Awesome! 🙌 You're all set then! Come back anytime if you need more APU info!",
-            "Perfect! 🎯 That's exactly what I like to hear! Any other APU questions?",
+            "Perfect! 🎯 That's exactly what I like to hear! Any other questions?",
             "Woohoo! 🎉 Mission accomplished! Let me know if you need help with anything else!",
-            "Yes! 🌟 So happy that hit the spot! I'm here if you need more APU assistance!"
+            "Yes! 🌟 So happy that hit the spot! I'm Sara, here if you need more APU assistance!"
         ]
 
         # Clarification patterns with encouraging responses
@@ -188,11 +188,11 @@ What would you like to explore? 🎯""",
         ]
 
         self.clarification_responses = [
-            "No worries at all! 😊 Let me help clarify things. What specific part about APU would you like me to explain better?",
-            "Of course! 🤗 I'd be happy to break it down for you. What particular APU topic needs more explanation?",
-            "Totally understand! 💡 Sometimes APU stuff can be confusing. What specific area can I help make clearer?",
-            "No problem! 😄 I'm here to make things crystal clear. What APU topic would you like me to dive deeper into?",
-            "Absolutely! ✨ I love explaining things! What specific APU question can I help you understand better?"
+            "No worries at all! 😊 Let me help clarify things. What specific topic would you like me to explain better?",
+            "Of course! 🤗 I'd be happy to break it down for you. What particular topic needs more explanation?",
+            "Totally understand! 💡 Sometimes information can be confusing. What specific area can I help make clearer?",
+            "No problem! 😄 I'm here to make things crystal clear. What topic would you like me to dive deeper into?",
+            "Absolutely! ✨ I love explaining things! What specific question can I help you understand better?"
         ]
 
         # Common typos and their corrections for fuzzy matching

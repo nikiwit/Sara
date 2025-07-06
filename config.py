@@ -1,5 +1,5 @@
 """
-Configuration settings for the APURAG system with environment-specific support and model management.
+Configuration settings for the Sara system with environment-specific support and model management.
 
 This module provides comprehensive configuration management including:
 - Environment-specific configuration loading
@@ -16,7 +16,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 # Determine environment
-ENV = os.environ.get("APURAG_ENV", "local").lower()
+ENV = os.environ.get("SARA_ENV", "local").lower()
 
 # Load environment-specific .env file
 if ENV == "production":
@@ -33,18 +33,21 @@ else:
     load_dotenv()  # Fallback to default .env
 
 # Configure logging
-log_level_name = os.environ.get("CUSTOMRAG_LOG_LEVEL", "INFO")
+log_level_name = os.environ.get("SARA_LOG_LEVEL", "INFO")
 log_level = getattr(logging, log_level_name.upper(), logging.INFO)
+
+# Ensure logs directory exists
+os.makedirs("logs", exist_ok=True)
 
 logging.basicConfig(
     level=log_level,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("customrag.log"),
+        logging.FileHandler("logs/sara.log"),
         logging.StreamHandler()
     ]
 )
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 def setup_nltk_with_fallback():
     """
@@ -86,11 +89,11 @@ def setup_nltk_with_fallback():
 
 class Config:
     """
-    Base configuration settings for the RAG application with model management.
+    Base configuration settings for the Sara application with model management.
     
     This class provides centralized configuration management with support for
     environment-specific overrides, hardware detection, and production-grade
-    model lifecycle management.
+    model lifecycle management for Sara.
     """
     
     # Class variable to track setup status
@@ -101,55 +104,55 @@ class Config:
     
     # Paths
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATA_PATH = os.environ.get("CUSTOMRAG_DATA_PATH", os.path.join(SCRIPT_DIR, "data"))
-    PERSIST_PATH = os.environ.get("CUSTOMRAG_VECTOR_PATH", os.path.join(SCRIPT_DIR, "vector_store"))
+    DATA_PATH = os.environ.get("SARA_DATA_PATH", os.path.join(SCRIPT_DIR, "data"))
+    PERSIST_PATH = os.environ.get("SARA_VECTOR_PATH", os.path.join(SCRIPT_DIR, "vector_store"))
     
     # Embedding and retrieval settings
-    EMBEDDING_MODEL_NAME = os.environ.get("CUSTOMRAG_EMBEDDING_MODEL", "BAAI/bge-base-en-v1.5")
-    LLM_MODEL_NAME = os.environ.get("CUSTOMRAG_LLM_MODEL", "qwen2.5:3b-instruct")
+    EMBEDDING_MODEL_NAME = os.environ.get("SARA_EMBEDDING_MODEL", "BAAI/bge-base-en-v1.5")
+    LLM_MODEL_NAME = os.environ.get("SARA_LLM_MODEL", "qwen2.5:3b-instruct")
     
     # Chunking settings
-    CHUNK_SIZE = int(os.environ.get("CUSTOMRAG_CHUNK_SIZE", "500"))
-    CHUNK_OVERLAP = int(os.environ.get("CUSTOMRAG_CHUNK_OVERLAP", "150"))
+    CHUNK_SIZE = int(os.environ.get("SARA_CHUNK_SIZE", "500"))
+    CHUNK_OVERLAP = int(os.environ.get("SARA_CHUNK_OVERLAP", "150"))
     
     # Response streaming speed
     STREAM_DELAY = 0.015  # Consistent streaming delay across all responses
     
     # Retrieval settings
-    RETRIEVER_K = int(os.environ.get("CUSTOMRAG_RETRIEVER_K", "6"))
-    RETRIEVER_SEARCH_TYPE = os.environ.get("CUSTOMRAG_SEARCH_TYPE", "hybrid")
-    KEYWORD_RATIO = float(os.environ.get("CUSTOMRAG_KEYWORD_RATIO", "0.4"))
-    FAQ_MATCH_WEIGHT = float(os.environ.get("CUSTOMRAG_FAQ_MATCH_WEIGHT", "0.5"))
+    RETRIEVER_K = int(os.environ.get("SARA_RETRIEVER_K", "6"))
+    RETRIEVER_SEARCH_TYPE = os.environ.get("SARA_SEARCH_TYPE", "hybrid")
+    KEYWORD_RATIO = float(os.environ.get("SARA_KEYWORD_RATIO", "0.4"))
+    FAQ_MATCH_WEIGHT = float(os.environ.get("SARA_FAQ_MATCH_WEIGHT", "0.5"))
     
     # Query processing settings
-    USE_QUERY_EXPANSION = os.environ.get("CUSTOMRAG_QUERY_EXPANSION", "True").lower() in ("true", "1", "t")
-    EXPANSION_FACTOR = int(os.environ.get("CUSTOMRAG_EXPANSION_FACTOR", "3"))
+    USE_QUERY_EXPANSION = os.environ.get("SARA_QUERY_EXPANSION", "True").lower() in ("true", "1", "t")
+    EXPANSION_FACTOR = int(os.environ.get("SARA_EXPANSION_FACTOR", "3"))
     
     # Context processing settings
-    MAX_CONTEXT_SIZE = int(os.environ.get("CUSTOMRAG_MAX_CONTEXT_SIZE", "4000"))
-    USE_CONTEXT_COMPRESSION = os.environ.get("CUSTOMRAG_CONTEXT_COMPRESSION", "True").lower() in ("true", "1", "t")
+    MAX_CONTEXT_SIZE = int(os.environ.get("SARA_MAX_CONTEXT_SIZE", "4000"))
+    USE_CONTEXT_COMPRESSION = os.environ.get("SARA_CONTEXT_COMPRESSION", "True").lower() in ("true", "1", "t")
     
     # Session management
     MAX_SESSIONS = 5
     
     # Ollama API
-    OLLAMA_BASE_URL = os.environ.get("CUSTOMRAG_OLLAMA_URL", "http://localhost:11434")
+    OLLAMA_BASE_URL = os.environ.get("SARA_OLLAMA_URL", "http://localhost:11434")
     
     # Resource settings
-    MAX_THREADS = int(os.environ.get("CUSTOMRAG_MAX_THREADS", "4"))
-    MAX_MEMORY = os.environ.get("CUSTOMRAG_MAX_MEMORY", "4G")
+    MAX_THREADS = int(os.environ.get("SARA_MAX_THREADS", "4"))
+    MAX_MEMORY = os.environ.get("SARA_MAX_MEMORY", "4G")
     
     # Production Model Management Settings
-    MODEL_CHECK_INTERVAL_DAYS = int(os.environ.get("CUSTOMRAG_MODEL_CHECK_INTERVAL_DAYS", "30"))
-    MODEL_WARNING_AGE_DAYS = int(os.environ.get("CUSTOMRAG_MODEL_WARNING_AGE_DAYS", "60"))
-    MODEL_CRITICAL_AGE_DAYS = int(os.environ.get("CUSTOMRAG_MODEL_CRITICAL_AGE_DAYS", "90"))
-    MODEL_AUTO_UPDATE_PROMPT = os.environ.get("CUSTOMRAG_MODEL_AUTO_UPDATE_PROMPT", "True").lower() in ("true", "1", "t")
-    MODEL_UPDATE_CHECK_ENABLED = os.environ.get("CUSTOMRAG_MODEL_UPDATE_CHECK_ENABLED", "True").lower() in ("true", "1", "t")
-    MODEL_REQUIRE_APPROVAL = os.environ.get("CUSTOMRAG_MODEL_REQUIRE_APPROVAL", "True").lower() in ("true", "1", "t")
-    MODEL_CACHE_CLEANUP = os.environ.get("CUSTOMRAG_MODEL_CACHE_CLEANUP", "False").lower() in ("true", "1", "t")
-    MODEL_BACKUP_ENABLED = os.environ.get("CUSTOMRAG_MODEL_BACKUP_ENABLED", "True").lower() in ("true", "1", "t")
-    MODEL_MAX_BACKUPS = int(os.environ.get("CUSTOMRAG_MODEL_MAX_BACKUPS", "3"))
-    MODEL_NOTIFICATION_EMAIL = os.environ.get("CUSTOMRAG_MODEL_NOTIFICATION_EMAIL", "")
+    MODEL_CHECK_INTERVAL_DAYS = int(os.environ.get("SARA_MODEL_CHECK_INTERVAL_DAYS", "30"))
+    MODEL_WARNING_AGE_DAYS = int(os.environ.get("SARA_MODEL_WARNING_AGE_DAYS", "60"))
+    MODEL_CRITICAL_AGE_DAYS = int(os.environ.get("SARA_MODEL_CRITICAL_AGE_DAYS", "90"))
+    MODEL_AUTO_UPDATE_PROMPT = os.environ.get("SARA_MODEL_AUTO_UPDATE_PROMPT", "True").lower() in ("true", "1", "t")
+    MODEL_UPDATE_CHECK_ENABLED = os.environ.get("SARA_MODEL_UPDATE_CHECK_ENABLED", "True").lower() in ("true", "1", "t")
+    MODEL_REQUIRE_APPROVAL = os.environ.get("SARA_MODEL_REQUIRE_APPROVAL", "True").lower() in ("true", "1", "t")
+    MODEL_CACHE_CLEANUP = os.environ.get("SARA_MODEL_CACHE_CLEANUP", "False").lower() in ("true", "1", "t")
+    MODEL_BACKUP_ENABLED = os.environ.get("SARA_MODEL_BACKUP_ENABLED", "True").lower() in ("true", "1", "t")
+    MODEL_MAX_BACKUPS = int(os.environ.get("SARA_MODEL_MAX_BACKUPS", "3"))
+    MODEL_NOTIFICATION_EMAIL = os.environ.get("SARA_MODEL_NOTIFICATION_EMAIL", "")
 
     @classmethod
     def has_gpu(cls):
@@ -192,7 +195,7 @@ class Config:
             return "cpu", "CPU (PyTorch not available)"
     
     # Miscellaneous
-    FORCE_REINDEX = os.environ.get("CUSTOMRAG_FORCE_REINDEX", "False").lower() in ("true", "1", "t")
+    FORCE_REINDEX = os.environ.get("SARA_FORCE_REINDEX", "False").lower() in ("true", "1", "t")
     LOG_LEVEL = log_level_name
     
     # APU filtering setting
@@ -202,8 +205,8 @@ class Config:
     SUPPORTED_EXTENSIONS = ['.pdf', '.txt', '.docx', '.doc', '.md', '.ppt', '.pptx', '.epub']
     
     # APU KB specific settings
-    APU_KB_ANSWER_CONTEXT_SIZE = int(os.environ.get("CUSTOMRAG_APU_KB_ANSWER_SIZE", "3"))
-    APU_KB_EXACT_MATCH_BOOST = float(os.environ.get("CUSTOMRAG_APU_KB_EXACT_MATCH_BOOST", "2.0"))
+    APU_KB_ANSWER_CONTEXT_SIZE = int(os.environ.get("SARA_APU_KB_ANSWER_SIZE", "3"))
+    APU_KB_EXACT_MATCH_BOOST = float(os.environ.get("SARA_APU_KB_EXACT_MATCH_BOOST", "2.0"))
 
     @classmethod
     def setup(cls):

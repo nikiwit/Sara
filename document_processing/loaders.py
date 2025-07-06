@@ -18,7 +18,7 @@ from config import Config
 from .parsers import APUKnowledgeBaseLoader, APUKnowledgeBaseParser
 from .splitters import APUKnowledgeBaseTextSplitter
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class DocumentProcessor:
     """Handles loading, processing, and splitting documents."""

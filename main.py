@@ -1,5 +1,5 @@
 """
-Main entry point for APURAG system with enhanced error handling.
+Main entry point for Sara system with enhanced error handling.
 """
 
 import os
@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from config import config
 
 # Configure logging before other imports
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 def setup_signal_handlers():
     """Setup signal handlers for graceful shutdown."""
@@ -57,11 +57,11 @@ def create_and_run_app():
     rag_app = None
     try:
         with error_context("application initialization"):
-            from app import CustomRAG
-            rag_app = CustomRAG()
+            from app import Sara
+            rag_app = Sara()
         
         with error_context("application execution"):
-            logger.info(f"Starting APURAG in {config.ENV} environment")
+            logger.info(f"Starting Sara in {config.ENV} environment")
             rag_app.run_cli()
             
     except KeyboardInterrupt:
@@ -84,7 +84,7 @@ def create_and_run_app():
             except Exception as e:
                 logger.error(f"Error during cleanup: {e}", exc_info=True)
         
-        logger.info("APURAG shutdown complete")
+        logger.info("Sara shutdown complete")
     
     return 0
 

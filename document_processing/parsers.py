@@ -8,7 +8,7 @@ import logging
 from typing import List, Dict, Any, Optional
 from langchain_core.documents import Document
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class APUKnowledgeBaseParser:
     """Parser for APU Knowledge Base content."""

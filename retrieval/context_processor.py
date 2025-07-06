@@ -9,9 +9,9 @@ from typing import List, Dict, Any, Tuple
 from langchain_core.documents import Document
 
 from config import Config
-from apurag_types import QueryType, DocumentRelevance
+from sara_types import QueryType, DocumentRelevance
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class ContextProcessor:
     """Processes retrieved documents into a coherent context for the LLM."""

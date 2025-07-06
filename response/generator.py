@@ -11,7 +11,7 @@ from typing import List, Iterator, Union
 
 from config import Config
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class RAGSystem:
     """Manages the RAG processing pipeline."""

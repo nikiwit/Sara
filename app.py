@@ -1,7 +1,7 @@
 """
-Main CustomRAG application class with production model management.
+Main Sara application class with production model management.
 
-This module provides the primary interface for the CustomRAG system, including:
+This module provides the primary interface for the Sara system, including:
 - Interactive command-line interface
 - Session management and conversation history
 - Production model lifecycle management
@@ -26,13 +26,13 @@ from vector_management import VectorStoreManager, ChromaDBManager
 from retrieval import ContextProcessor, RetrievalHandler
 from response import RAGSystem
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
-class CustomRAG:
+class Sara:
     """
-    Main RAG application class for command line interface with production features.
+    Main Sara application class for command line interface with production features.
     
-    This class orchestrates all components of the RAG system including document processing,
+    This class orchestrates all components of the Sara system including document processing,
     query routing, conversation management, and model lifecycle operations.
     """
     
@@ -289,7 +289,7 @@ class CustomRAG:
         
         elif command == 'help':
             help_text = [
-                "\nAPURAG Commands:",
+                "\nSara Commands:",
                 "=" * 40,
                 "Query Commands:",
                 "  Just type your question naturally!",
@@ -660,9 +660,9 @@ class CustomRAG:
             
         # Print banner and instructions
         print("\n" + "="*60)
-        print("APURAG - APU Knowledge Base Assistant")
+        print("Sara - Your APU Knowledge Assistant")
         print("="*60)
-        print("Ask questions about APU using natural language.")
+        print("Ask questions about APU using natural language. I'm Sara, your friendly assistant.")
         print("Commands:")
         print("  - Type 'help' to see available commands")
         print("  - Type 'help production' for model management commands")

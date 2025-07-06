@@ -8,7 +8,7 @@ import logging
 import threading
 from config import config
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class ResourceManager:
     """Manages system resources based on environment configuration."""

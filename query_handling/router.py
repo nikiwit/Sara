@@ -6,10 +6,10 @@ import re
 import time
 import logging
 from typing import Dict, Any, Tuple, Union, Iterator
-from apurag_types import QueryType
+from sara_types import QueryType
 from config import Config
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class QueryRouter:
     """Routes queries to appropriate handlers based on query type with conversational support."""
@@ -268,7 +268,7 @@ class QueryRouter:
         is_return_user = self.memory and len(self.memory.chat_memory.messages) > 0
         
         if is_return_user:
-            response = """Since we've chatted before, you know I'm an AI assistant built specifically for APU (Asia Pacific University)! 
+            response = """Since we've chatted before, you know I'm Sara - your intelligent assistant for APU (Asia Pacific University)! 
 
 I'm here to help with:
 • Academic programs and course information
@@ -277,9 +277,9 @@ I'm here to help with:
 • Student services and support
 • Financial information and policies
 
-I use APU's official knowledge base to provide accurate, up-to-date information. What specific APU topic can I help you explore further?"""
+I use APU's official knowledge base to provide accurate, up-to-date information. What specific APU topic can I help you explore?"""
         else:
-            response = """Hello! I'm an AI assistant built specifically for APU (Asia Pacific University). 
+            response = """Hello! I'm Sara, your intelligent assistant for APU (Asia Pacific University). 
 
 🎓 **My Purpose:** I'm designed to help students, staff, and visitors find information about APU services, procedures, and policies.
 

@@ -10,7 +10,7 @@ from langchain_chroma import Chroma
 import time
 from datetime import datetime
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class ChromaDBManager:
     """Singleton manager for ChromaDB client lifecycle with optimized settings."""

@@ -9,7 +9,7 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.util import ngrams
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class FAQMatcher:
     """Specialized matcher for FAQ content in the APU knowledge base."""

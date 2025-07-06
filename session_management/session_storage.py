@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 from .session_types import ChatSession, SessionMetadata
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class SessionStorage:
     """Handles session persistence to disk."""

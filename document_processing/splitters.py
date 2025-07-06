@@ -6,7 +6,7 @@ import logging
 from typing import List
 from langchain_core.documents import Document
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class APUKnowledgeBaseTextSplitter:
     """Custom text splitter for APU Knowledge Base content."""

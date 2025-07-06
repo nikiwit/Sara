@@ -16,11 +16,11 @@ from nltk.corpus import stopwords
 from nltk.util import ngrams
 
 from config import Config
-from apurag_types import QueryType, RetrievalStrategy
+from sara_types import QueryType, RetrievalStrategy
 from .system_info import SystemInformation
 from .faq_matcher import FAQMatcher
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class RetrievalHandler:
     """Handles document retrieval using multiple strategies."""

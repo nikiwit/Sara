@@ -9,7 +9,7 @@ from datetime import datetime
 from .session_storage import SessionStorage
 from .session_types import ChatSession, SessionMetadata
 
-logger = logging.getLogger("CustomRAG")
+logger = logging.getLogger("Sara")
 
 class SessionManager:
     """Manages chat sessions with automatic cleanup and limits."""
