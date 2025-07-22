@@ -310,6 +310,12 @@ class InputProcessor:
             r'\bhow\s+are\s+you\b',
             r'\b(?:thanks|thank\s*you)\b',
             r'\bappreciate\s*(?:it|that)\b',
+            # Addressing/naming queries
+            r'\bhow\s+(?:can|do|should)\s+i\s+(?:call|address|refer\s+to)\s+you\b',
+            r'\bwhat\s+(?:can|do|should)\s+i\s+call\s+you\b',
+            r'\bwhat\s+should\s+i\s+call\s+you\b',
+            r'\bhow\s+should\s+i\s+address\s+you\b',
+            r'\bwhat\s+do\s+i\s+call\s+you\b',
         ]
         
         for pattern in conversational_patterns:

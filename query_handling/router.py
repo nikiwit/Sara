@@ -122,6 +122,13 @@ class QueryRouter:
             r'\bwhat\s+kind\s+of\s+questions\s+can\s+you\s+answer\b',
             r'\bwhat\s+topics\s+can\s+you\s+help\s+with\b',
             
+            # Addressing/naming queries
+            r'\bhow\s+(?:can|do|should)\s+i\s+(?:call|address|refer\s+to)\s+you\b',
+            r'\bwhat\s+(?:can|do|should)\s+i\s+call\s+you\b',
+            r'\bwhat\s+should\s+i\s+call\s+you\b',
+            r'\bhow\s+should\s+i\s+address\s+you\b',
+            r'\bwhat\s+do\s+i\s+call\s+you\b',
+            
             # Acknowledgments and responses
             r'\b(?:thanks|thank\s*you)\b',
             r'\bappreciate\s*(?:it|that)\b',

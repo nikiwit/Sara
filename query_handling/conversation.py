@@ -187,6 +187,26 @@ What would you like to explore? 🎯""",
             # FIXED: Removed overly broad \bwhat\b pattern that was matching everything
         ]
 
+        # Addressing/naming patterns
+        self.naming_patterns = [
+            r'\bhow\s+(?:can|do|should)\s+i\s+(?:call|address|refer\s+to)\s+you\b',
+            r'\bwhat\s+(?:can|do|should)\s+i\s+call\s+you\b',
+            r'\bwhat\s+should\s+i\s+call\s+you\b',
+            r'\bhow\s+should\s+i\s+address\s+you\b',
+            r'\bwhat\s+do\s+i\s+call\s+you\b',
+            r'\bwhat\s+is\s+your\s+name\b',
+            r'\bwhat\'s\s+your\s+name\b',
+        ]
+
+        # Naming/addressing responses
+        self.naming_responses = [
+            "You can call me Sara! 😊 I'm your friendly APU assistant, here to help with any questions about Asia Pacific University. What can I help you with today?",
+            "I'm Sara! 🌟 Feel free to call me Sara - I'm your go-to assistant for anything APU-related. What would you like to know?",
+            "Just call me Sara! 😄 I'm here to help you navigate APU information and services. What brings you here today?",
+            "You can call me Sara! 👋 I'm your APU assistant, ready to help with any questions about the university. How can I assist you?",
+            "I'm Sara! 😊 That's what everyone calls me. I'm here to help with APU questions and information. What can I help you explore?",
+        ]
+
         self.clarification_responses = [
             "No worries at all! 😊 Let me help clarify things. What specific topic would you like me to explain better?",
             "Of course! 🤗 I'd be happy to break it down for you. What particular topic needs more explanation?",
@@ -269,11 +289,12 @@ What would you like to explore? 🎯""",
         small_talk_match = self._fuzzy_match_patterns(query, self.small_talk_patterns, threshold=0.6)
         farewell_match = self._fuzzy_match_patterns(query, self.farewell_patterns, threshold=0.6)
         clarification_match = self._fuzzy_match_patterns(query, self.clarification_patterns, threshold=0.6)
+        naming_match = self._fuzzy_match_patterns(query, self.naming_patterns, threshold=0.6)
         
         result = (greeting_match or knowledge_match or acknowledgement_match or 
-                 small_talk_match or farewell_match or clarification_match)
+                 small_talk_match or farewell_match or clarification_match or naming_match)
         
-        logger.debug(f"is_conversational_query individual matches - greeting:{greeting_match}, knowledge:{knowledge_match}, ack:{acknowledgement_match}, small_talk:{small_talk_match}, farewell:{farewell_match}, clarification:{clarification_match}")
+        logger.debug(f"is_conversational_query individual matches - greeting:{greeting_match}, knowledge:{knowledge_match}, ack:{acknowledgement_match}, small_talk:{small_talk_match}, farewell:{farewell_match}, clarification:{clarification_match}, naming:{naming_match}")
         logger.debug(f"is_conversational_query result: {result}")
         return result
     
@@ -299,8 +320,9 @@ What would you like to explore? 🎯""",
         small_talk_match = self._fuzzy_match_patterns(corrected_query, self.small_talk_patterns, threshold=0.6)
         clarification_match = self._fuzzy_match_patterns(corrected_query, self.clarification_patterns, threshold=0.6)
         farewell_match = self._fuzzy_match_patterns(corrected_query, self.farewell_patterns, threshold=0.6)
+        naming_match = self._fuzzy_match_patterns(corrected_query, self.naming_patterns, threshold=0.6)
         
-        logger.debug(f"Pattern matches - greeting:{greeting_match}, knowledge:{knowledge_match}, ack:{acknowledgement_match}, small_talk:{small_talk_match}, clarification:{clarification_match}, farewell:{farewell_match}")
+        logger.debug(f"Pattern matches - greeting:{greeting_match}, knowledge:{knowledge_match}, ack:{acknowledgement_match}, small_talk:{small_talk_match}, clarification:{clarification_match}, farewell:{farewell_match}, naming:{naming_match}")
         
         # Check for greetings FIRST (most common and should take priority)
         if greeting_match:
@@ -357,6 +379,11 @@ What would you like to explore? 🎯""",
                     response = random.choice(self.clarification_responses)
             else:
                 response = random.choice(self.clarification_responses)
+        
+        # Check for naming/addressing queries
+        elif naming_match:
+            logger.debug("Matched naming patterns")
+            response = random.choice(self.naming_responses)
         
         # Check for farewells LAST (to avoid catching other patterns accidentally)
         elif farewell_match:
