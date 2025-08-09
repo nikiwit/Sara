@@ -80,6 +80,12 @@ class InputProcessor:
             "APU": ["Asia Pacific University", "university", "school", "campus"],
             "timetable": ["schedule", "class schedule", "calendar"],
             "intake": ["batch", "cohort", "entry", "enrollment period"],
+            # Login/Authentication synonyms
+            "login": ["sign in", "log in", "signin", "access", "authenticate", "log into"],
+            "cannot": ["unable", "can't", "could not", "couldn't", "trouble", "problem", "issue"],
+            "apspace": ["APSpace", "ap space", "student portal", "student system"],
+            "apkey": ["APKey", "student ID", "authentication", "credentials", "password"],
+            "troubleshoot": ["fix", "resolve", "solve", "help", "debug"],
         }
         
         # APU-specific abbreviations
@@ -106,10 +112,24 @@ class InputProcessor:
     def normalize_query(self, query: str) -> str:
         """
         Normalize query by converting to lowercase, removing punctuation,
-        and standardizing whitespace.
+        and standardizing whitespace with intelligent pattern matching.
         """
         # Convert to lowercase
         normalized = query.lower()
+        
+        # Handle common APU/login related patterns BEFORE removing punctuation
+        login_patterns = {
+            r'\b(?:cannot|can not|unable to|trouble|problem|issue).*?(?:login|log in|sign in|access|signin)\b': 'unable sign in',
+            r'\blogin.*?(?:apspace|ap space)\b': 'sign in APSpace',
+            r'\b(?:apspace|ap space).*?(?:login|access|sign in)\b': 'APSpace sign in',
+            r'\bapkey.*?(?:problem|issue|trouble)\b': 'APKey trouble',
+            r'\bsign.*?in.*?(?:problem|issue|trouble)\b': 'sign in trouble'
+        }
+        
+        for pattern, replacement in login_patterns.items():
+            if re.search(pattern, normalized):
+                normalized = re.sub(pattern, replacement, normalized)
+                break  # Only apply first matching pattern
         
         # Remove punctuation except apostrophes in contractions
         normalized = re.sub(r'[^\w\s\']', ' ', normalized)

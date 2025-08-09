@@ -97,8 +97,8 @@ class FAQMatcher:
                 score = similarity + content_match
                 
                 # Update best match if better
-                # Increased threshold to 0.7 to prevent irrelevant matches
-                if score > best_score and score > 0.7:
+                # Reduced threshold back to 0.5 for better login query matching
+                if score > best_score and score > 0.5:
                     best_score = score
                     best_match = {
                         "document": Document(
@@ -177,6 +177,12 @@ class FAQMatcher:
             ("medical insurance", ["medical insurance", "health insurance"]),
             ("student id", ["student id", "id card"]),
             ("visa application", ["visa application", "visa"]),
+            # Enhanced login-related phrases
+            ("unable sign in", ["unable to sign in", "sign in", "login", "apkey troubleshooting"]),
+            ("cannot login", ["unable to sign in", "sign in", "login", "apkey troubleshooting"]),
+            ("login problem", ["unable to sign in", "sign in", "login", "apkey troubleshooting"]),
+            ("apspace", ["unable to sign in", "sign in", "login", "apkey troubleshooting"]),
+            ("apkey", ["unable to sign in", "apkey troubleshooting", "apkey"]),
         ]
         
         phrase_boost = 0
@@ -194,6 +200,9 @@ class FAQMatcher:
         if phrase_boost == 0:
             # More specific domain keyword matching
             domain_keywords = [
+                # Login/authentication terms - high priority
+                ("login", ["login", "sign in", "apkey", "password", "authenticate", "access",
+                          "troubleshooting", "unable", "cannot", "apspace", "cas"]),
                 # Financial terms - only boost if both query and title are financial
                 ("financial", ["fee", "payment", "pay", "cash", "credit", "debit", "invoice", 
                               "receipt", "outstanding", "due", "overdue", "installment",

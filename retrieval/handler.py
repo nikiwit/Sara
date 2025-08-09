@@ -8,17 +8,21 @@ import math
 import time
 import types
 import logging
+from collections import Counter, defaultdict
 from typing import List, Dict, Any, Union, Iterator, Tuple
 from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage, AIMessage
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.util import ngrams
+import numpy as np
 
 from config import Config
 from sara_types import QueryType, RetrievalStrategy
 from .system_info import SystemInformation
 from .faq_matcher import FAQMatcher
+from .reranker import AdvancedReranker, LightweightReranker
+# from query_processing.decomposer import QueryDecomposer
 
 logger = logging.getLogger("Sara")
 
@@ -37,15 +41,26 @@ class RetrievalHandler:
         
         # Initialize FAQ matcher for direct FAQ matching
         self.faq_matcher = FAQMatcher(vector_store)
+        
+        # Initialize reranker for improved document ranking
+        try:
+            self.reranker = AdvancedReranker()
+            logger.info("Initialized AdvancedReranker with cross-encoder model")
+        except Exception as e:
+            logger.warning(f"Failed to initialize AdvancedReranker, falling back to LightweightReranker: {e}")
+            self.reranker = LightweightReranker()
+        
+        # Initialize query decomposer for complex queries
+        # self.query_decomposer = QueryDecomposer()
     
     def _create_retrievers(self) -> Dict[RetrievalStrategy, Any]:
         """Create retrievers for different strategies."""
         retrievers = {}
         
-        # Semantic search retriever
+        # Semantic search retriever with higher retrieval count for better matching
         retrievers[RetrievalStrategy.SEMANTIC] = self.vector_store.as_retriever(
             search_type="similarity",
-            search_kwargs={"k": Config.RETRIEVER_K}
+            search_kwargs={"k": Config.RETRIEVER_K * 2}  # Double the search space
         )
         
         # MMR retriever for diversity
@@ -53,8 +68,8 @@ class RetrievalHandler:
             search_type="mmr",
             search_kwargs={
                 "k": Config.RETRIEVER_K,
-                "fetch_k": Config.RETRIEVER_K * 3,
-                "lambda_mult": 0.5
+                "fetch_k": Config.RETRIEVER_K * 4,  # Increased fetch for better diversity
+                "lambda_mult": 0.3  # Lower lambda for more diversity
             }
         )
         
@@ -140,8 +155,8 @@ class RetrievalHandler:
         # First try direct FAQ matching for a quick answer
         faq_match_result = self.faq_matcher.match_faq(query_analysis)
         
-        # Increased threshold to 0.7 to prevent irrelevant matches
-        if faq_match_result and faq_match_result.get("match_score", 0) > 0.7:
+        # Reduced threshold back to 0.5 for better login query matching
+        if faq_match_result and faq_match_result.get("match_score", 0) > 0.5:
             # High confidence direct FAQ match
             logger.info(f"Found direct FAQ match with score {faq_match_result['match_score']}")
             
@@ -174,11 +189,9 @@ class RetrievalHandler:
             return response
         
         # If no good FAQ match, proceed with standard retrieval
-        # Select retrieval strategy based on query type
+        # Standard retrieval (query decomposition temporarily disabled)
         retrieval_strategy = self._select_retrieval_strategy(query_type)
         logger.info(f"Selected retrieval strategy: {retrieval_strategy.value}")
-        
-        # Retrieve relevant documents
         context_docs = self._retrieve_documents(expanded_queries, retrieval_strategy)
         
         # If no documents found, try a fallback strategy
@@ -481,10 +494,10 @@ class RetrievalHandler:
             except Exception as e:
                 logger.error(f"Error retrieving documents for query '{query}': {e}")
         
-        # Sort docs by relevance score if available
-        all_docs = self._rerank_documents(all_docs, queries[0])
+        # Apply advanced reranking using cross-encoder model
+        all_docs = self.reranker.rerank_documents(queries[0], all_docs, top_k=Config.RETRIEVER_K)
         
-        logger.info(f"Retrieved {len(all_docs)} unique documents")
+        logger.info(f"Retrieved and reranked {len(all_docs)} documents")
         return all_docs
     
     def _keyword_retrieval(self, query: str) -> List[Document]:
@@ -575,44 +588,272 @@ class RetrievalHandler:
     
     def _hybrid_retrieval(self, query: str) -> List[Document]:
         """
-        Perform hybrid retrieval (semantic + keyword).
+        Perform advanced hybrid retrieval using BM25 + semantic fusion.
         
         Args:
             query: Query string
             
         Returns:
-            List of documents
+            List of documents with fused scores
         """
-        # Get semantic search results
+        # Get semantic search results with scores
         semantic_docs = self.retrievers[RetrievalStrategy.SEMANTIC].invoke(query)
         
-        # Get keyword search results
-        keyword_docs = self._keyword_retrieval(query)
+        # Get BM25 scores for all documents
+        bm25_docs_with_scores = self._bm25_retrieval(query)
         
-        # Combine results with deduplication
-        seen_ids = set()
-        combined_docs = []
+        # Perform score fusion using Reciprocal Rank Fusion (RRF)
+        fused_docs = self._reciprocal_rank_fusion(
+            semantic_docs, bm25_docs_with_scores, query
+        )
         
-        # Semantic docs first (with higher weight)
-        for doc in semantic_docs:
+        return fused_docs
+    
+    def _bm25_retrieval(self, query: str) -> List[Tuple[Document, float]]:
+        """
+        Perform BM25 retrieval with scores.
+        
+        Args:
+            query: Query string
+            
+        Returns:
+            List of (Document, BM25_score) tuples
+        """
+        # Get all documents from the vector store
+        all_docs = self.vector_store.get()
+        
+        if not all_docs or not all_docs.get('documents'):
+            return []
+            
+        documents = all_docs.get('documents', [])
+        metadatas = all_docs.get('metadatas', [])
+        
+        # Preprocess query
+        query_tokens = self._tokenize_and_clean(query)
+        if not query_tokens:
+            return []
+        
+        # Build document corpus for BM25
+        corpus = []
+        doc_objects = []
+        
+        for i, doc_text in enumerate(documents):
+            if not doc_text or i >= len(metadatas):
+                continue
+                
+            doc_tokens = self._tokenize_and_clean(doc_text)
+            if doc_tokens:  # Only include non-empty documents
+                corpus.append(doc_tokens)
+                doc_objects.append(Document(
+                    page_content=doc_text,
+                    metadata=metadatas[i]
+                ))
+        
+        if not corpus:
+            return []
+        
+        # Calculate BM25 scores
+        scores = self._calculate_bm25_scores(query_tokens, corpus)
+        
+        # Combine documents with scores and sort
+        doc_scores = list(zip(doc_objects, scores))
+        doc_scores.sort(key=lambda x: x[1], reverse=True)
+        
+        # Return top K documents with scores
+        return doc_scores[:Config.RETRIEVER_K * 2]  # Get more for fusion
+    
+    def _tokenize_and_clean(self, text: str) -> List[str]:
+        """Tokenize and clean text for BM25 processing."""
+        try:
+            tokens = word_tokenize(text.lower())
+            stop_words = set(stopwords.words('english'))
+            
+            # Filter tokens: remove stop words, keep alphanumeric with length > 2
+            cleaned_tokens = [
+                token for token in tokens 
+                if token.isalnum() and len(token) > 2 and token not in stop_words
+            ]
+            
+            return cleaned_tokens
+        except Exception:
+            # Fallback to simple split if NLTK fails
+            return [word.lower() for word in text.split() if len(word) > 2]
+    
+    def _calculate_bm25_scores(self, query_tokens: List[str], corpus: List[List[str]]) -> List[float]:
+        """
+        Calculate BM25 scores for query against corpus.
+        
+        Args:
+            query_tokens: Tokenized query
+            corpus: List of tokenized documents
+            
+        Returns:
+            List of BM25 scores
+        """
+        # BM25 parameters (standard values)
+        k1 = 1.5  # Term frequency saturation point
+        b = 0.75  # Length normalization parameter
+        
+        # Calculate document frequencies
+        N = len(corpus)  # Total number of documents
+        doc_freqs = Counter()
+        doc_lengths = []
+        
+        # Count term frequencies and document lengths
+        for doc in corpus:
+            doc_length = len(doc)
+            doc_lengths.append(doc_length)
+            
+            # Count unique terms in this document
+            unique_terms = set(doc)
+            for term in unique_terms:
+                doc_freqs[term] += 1
+        
+        # Calculate average document length
+        avg_doc_length = sum(doc_lengths) / N if N > 0 else 0
+        
+        # Calculate BM25 score for each document
+        scores = []
+        
+        for i, doc in enumerate(corpus):
+            score = 0.0
+            doc_length = doc_lengths[i]
+            
+            # Count term frequencies in this document
+            term_freqs = Counter(doc)
+            
+            for term in query_tokens:
+                if term not in doc_freqs:
+                    continue  # Term not in any document
+                
+                # Term frequency in current document
+                tf = term_freqs.get(term, 0)
+                if tf == 0:
+                    continue
+                
+                # Document frequency (number of documents containing term)
+                df = doc_freqs[term]
+                
+                # Inverse document frequency
+                idf = math.log((N - df + 0.5) / (df + 0.5))
+                
+                # BM25 formula
+                numerator = tf * (k1 + 1)
+                denominator = tf + k1 * (1 - b + b * (doc_length / avg_doc_length))
+                
+                score += idf * (numerator / denominator)
+            
+            scores.append(max(0.0, score))  # Ensure non-negative scores
+        
+        return scores
+    
+    def _reciprocal_rank_fusion(self, semantic_docs: List[Document], 
+                               bm25_docs: List[Tuple[Document, float]], 
+                               query: str) -> List[Document]:
+        """
+        Fuse semantic and BM25 results using Reciprocal Rank Fusion.
+        
+        Args:
+            semantic_docs: Documents from semantic search
+            bm25_docs: Documents with BM25 scores
+            query: Original query
+            
+        Returns:
+            Fused and ranked documents
+        """
+        # Create document ID mapping
+        doc_map = {}
+        fused_scores = defaultdict(float)
+        
+        # RRF constant (typically 60)
+        k = 60
+        
+        # Process semantic results (rank-based scoring)
+        for rank, doc in enumerate(semantic_docs):
             doc_id = f"{doc.metadata.get('source', '')}-{hash(doc.page_content[:100])}"
-            if doc_id not in seen_ids:
-                seen_ids.add(doc_id)
-                # Semantic score to metadata
-                doc.metadata['retrieval_score'] = 1.0 - Config.KEYWORD_RATIO
-                combined_docs.append(doc)
+            doc_map[doc_id] = doc
+            
+            # RRF score: 1 / (k + rank)
+            rrf_score = 1.0 / (k + rank + 1)
+            fused_scores[doc_id] += rrf_score * 0.6  # Weight for semantic
         
-        # Keyword docs
-        for doc in keyword_docs:
+        # Process BM25 results
+        bm25_docs_sorted = sorted(bm25_docs, key=lambda x: x[1], reverse=True)
+        
+        for rank, (doc, bm25_score) in enumerate(bm25_docs_sorted):
             doc_id = f"{doc.metadata.get('source', '')}-{hash(doc.page_content[:100])}"
-            if doc_id not in seen_ids:
-                seen_ids.add(doc_id)
-                # Keyword score to metadata
-                doc.metadata['retrieval_score'] = Config.KEYWORD_RATIO
-                combined_docs.append(doc)
+            doc_map[doc_id] = doc
+            
+            # Normalized BM25 score + RRF
+            max_bm25 = bm25_docs_sorted[0][1] if bm25_docs_sorted else 1.0
+            normalized_bm25 = bm25_score / max_bm25 if max_bm25 > 0 else 0
+            
+            rrf_score = 1.0 / (k + rank + 1)
+            fused_scores[doc_id] += (rrf_score + normalized_bm25) * 0.4  # Weight for BM25
         
-        # Rerank combined results
-        return self._rerank_documents(combined_docs, query)
+        # Sort by fused scores
+        sorted_docs = sorted(
+            fused_scores.items(), 
+            key=lambda x: x[1], 
+            reverse=True
+        )
+        
+        # Return top documents
+        result_docs = []
+        for doc_id, score in sorted_docs[:Config.RETRIEVER_K]:
+            doc = doc_map[doc_id]
+            doc.metadata['fusion_score'] = score
+            result_docs.append(doc)
+        
+        logger.info(f"Fused {len(semantic_docs)} semantic + {len(bm25_docs)} BM25 results into {len(result_docs)} documents")
+        return result_docs
+    
+    def _retrieve_with_decomposition(self, query: str, query_analysis: Dict[str, Any]) -> List[Document]:
+        """
+        Retrieve documents using query decomposition for complex queries.
+        
+        Args:
+            query: Original complex query
+            query_analysis: Query analysis from InputProcessor
+            
+        Returns:
+            List of documents from merged sub-query results
+        """
+        # Decompose the query
+        sub_queries = self.query_decomposer.decompose_query(query, query_analysis)
+        logger.info(f"Query decomposed into {len(sub_queries)} sub-queries")
+        
+        # Retrieve documents for each sub-query
+        sub_query_results = []
+        
+        for sub_query_info in sub_queries:
+            sub_query_text = sub_query_info['query']
+            sub_query_type = query_analysis.get('query_type', QueryType.UNKNOWN)
+            
+            logger.debug(f"Processing sub-query ({sub_query_info['type']}): {sub_query_text}")
+            
+            # Select appropriate strategy for this sub-query
+            retrieval_strategy = self._select_retrieval_strategy(sub_query_type)
+            
+            # Retrieve documents for this sub-query
+            try:
+                sub_docs = self._retrieve_documents([sub_query_text], retrieval_strategy)
+                if sub_docs:
+                    sub_query_results.append((sub_query_info, sub_docs))
+                    logger.debug(f"Retrieved {len(sub_docs)} documents for sub-query")
+            except Exception as e:
+                logger.warning(f"Failed to retrieve documents for sub-query '{sub_query_text}': {e}")
+        
+        # Merge results from all sub-queries
+        if sub_query_results:
+            merged_docs = self.query_decomposer.merge_results(sub_query_results)
+            logger.info(f"Merged decomposition results: {len(merged_docs)} documents")
+            return merged_docs
+        else:
+            logger.warning("No results from query decomposition, falling back to standard retrieval")
+            # Fallback to standard retrieval
+            retrieval_strategy = self._select_retrieval_strategy(query_analysis.get('query_type', QueryType.UNKNOWN))
+            return self._retrieve_documents([query], retrieval_strategy)
     
     def _rerank_documents(self, docs: List[Document], query: str) -> List[Document]:
         """
