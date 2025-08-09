@@ -140,8 +140,8 @@ class RetrievalHandler:
         # First try direct FAQ matching for a quick answer
         faq_match_result = self.faq_matcher.match_faq(query_analysis)
         
-        # Lowered threshold from 0.7 to 0.5 to improve recall
-        if faq_match_result and faq_match_result.get("match_score", 0) > 0.5:
+        # Increased threshold to 0.7 to prevent irrelevant matches
+        if faq_match_result and faq_match_result.get("match_score", 0) > 0.7:
             # High confidence direct FAQ match
             logger.info(f"Found direct FAQ match with score {faq_match_result['match_score']}")
             
@@ -853,7 +853,7 @@ class RetrievalHandler:
     Answer:"""
         
         elif is_faq_match:
-            # Modified FAQ match prompt - more natural and direct
+            # Modified FAQ match prompt - prevents personalization of generic info
             prompt = f"""You are an AI assistant for APU (Asia Pacific University). Answer the student's question directly and naturally.
 
     Question: {question}
@@ -861,12 +861,15 @@ class RetrievalHandler:
     {context}
 
     Instructions:
-    1. Provide a direct, helpful answer to the student's question using the information provided.
+    1. Provide a direct, helpful answer to the student's question using ONLY the information provided.
     2. Write as if you're speaking directly to the student - use "you" and be conversational.
     3. Do not mention "FAQ", "provided information", "based on", or reference sources.
     4. Give clear, actionable advice where applicable.
-    5. If the information doesn't fully address their specific situation, suggest they contact APU directly for personalized guidance.
-    6. Use a helpful and professional tone appropriate for a university assistant.
+    5. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
+    6. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
+    7. Provide general guidance that applies to the situation described in the context.
+    8. If the information doesn't fully address their specific situation, suggest they contact APU directly for personalized guidance.
+    9. Use a helpful and professional tone appropriate for a university assistant.
 
     Answer:"""
 
@@ -906,7 +909,7 @@ class RetrievalHandler:
     Answer:"""
 
         else:
-            # Regular prompt for good relevance (unchanged)
+            # Regular prompt for good relevance with anti-personalization measures
             prompt = f"""You are an AI assistant for APU (Asia Pacific University). Answer the question based ONLY on the provided context.
 
     Question: {question}
@@ -918,9 +921,12 @@ class RetrievalHandler:
     1. Answer the question directly and concisely based on the provided context.
     2. If the context contains the exact answer, use it.
     3. Do not make up information or use knowledge outside the provided context.
-    4. If the context doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
-    5. Use a helpful and professional tone appropriate for a university assistant.
-    6. If the context mentions specific locations, people, or contact information, include these details in your answer.
+    4. NEVER personalize generic information from the context (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
+    5. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
+    6. Provide general guidance based on the context without personalizing it.
+    7. If the context doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
+    8. Use a helpful and professional tone appropriate for a university assistant.
+    9. If the context mentions specific locations, people, or contact information, include these details in your answer.
 
     Answer:"""
 
