@@ -64,7 +64,7 @@ class DocumentProcessor:
 
         try:
             # Check if this is an APU knowledge base file - DIRECT HANDLING
-            if 'apu_kb' in filename.lower():
+            if filename.lower().startswith('apu_') and '_kb' in filename.lower():
                 logger.info(f"Detected APU KB file: {filename} - Using direct KB loader")
                 # Create a custom loader that directly calls the static method
                 class DirectAPUKBLoader(BaseLoader):
@@ -115,8 +115,8 @@ class DocumentProcessor:
                         return CustomEpubLoader(docs)
                     return None
             elif ext in ['.txt', '.md', '.csv']:
-                # Special case for apu_kb.txt (redundant check for safety)
-                if 'apu_kb' in filename.lower():
+                # Special case for APU KB files (apu_kb.txt, apu_ITSM_kb.txt, etc.)
+                if filename.lower().startswith('apu_') and '_kb' in filename.lower():
                     logger.info(f"Detected APU KB file in .txt handler: {filename}")
                     # Create a custom loader that directly calls the static method
                     class DirectAPUKBLoader(BaseLoader):
@@ -320,8 +320,8 @@ class DocumentProcessor:
                     filename = os.path.basename(file_path)
                     logger.info(f"Processing file: {filename}")
                     
-                    # Special direct handling for apu_kb.txt
-                    if 'apu_kb' in filename.lower():
+                    # Special direct handling for APU KB files
+                    if filename.lower().startswith('apu_') and '_kb' in filename.lower():
                         logger.info(f"DIRECT PROCESSING for APU KB file: {filename}")
                         try:
                             with open(file_path, 'r', encoding='utf-8') as f:

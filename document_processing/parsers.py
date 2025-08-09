@@ -48,6 +48,15 @@ class APUKnowledgeBaseParser:
             if not title or not content:
                 continue
             
+            # Extract URLs from content for metadata
+            urls = re.findall(r'https?://[^\s\)]+', content)
+            
+            # Extract the main URL (usually the first one after "URL:")
+            main_url = None
+            url_line_match = re.search(r'URL:\s*(https?://[^\s\n]+)', content)
+            if url_line_match:
+                main_url = url_line_match.group(1)
+            
             # Create metadata
             metadata = {
                 "source": source,
@@ -55,7 +64,9 @@ class APUKnowledgeBaseParser:
                 "page_title": title,
                 "content_type": "apu_kb_page",
                 "is_faq": title.endswith('?'),  # Mark as FAQ if title ends with question mark
-                "page_number": i // 2 + 1
+                "page_number": i // 2 + 1,
+                "urls": urls,  # All URLs found in content
+                "main_url": main_url  # Primary source URL
             }
             
             # Special metadata for medical insurance related pages

@@ -33,7 +33,11 @@ class RAGSystem:
             # Format differently for APU KB pages
             if doc.metadata.get('content_type') == 'apu_kb_page':
                 title = doc.metadata.get('page_title', 'Untitled')
-                formatted_text = f"Document {i+1} (from {filename}, Topic: {title}):\n{doc.page_content}\n\n"
+                main_url = doc.metadata.get('main_url', '')
+                
+                # Include source URL in the formatting if available
+                url_info = f" (Source: {main_url})" if main_url else ""
+                formatted_text = f"Document {i+1} (from {filename}, Topic: {title}{url_info}):\n{doc.page_content}\n\n"
             else:
                 # Include metadata if available
                 page_info = f"page {doc.metadata.get('page', '')}" if doc.metadata.get('page', '') else ""

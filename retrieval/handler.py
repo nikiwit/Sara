@@ -837,37 +837,41 @@ class RetrievalHandler:
         
         if is_medical_insurance:
             # Medical insurance prompt (unchanged)
-            prompt = f"""You are an AI assistant for APU (Asia Pacific University). Answer the question about medical insurance based ONLY on the provided information.
+            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer the question about medical insurance using the information available.
 
     Question: {question}
 
+    Available Information:
     {context}
 
     Instructions:
-    1. Answer the question directly and concisely based on the provided information.
+    1. Answer the question directly and concisely using the available information.
     2. Be specific about where to collect the medical insurance card if that information is present.
-    3. Include any relevant details like location, counter number, or staff names mentioned in the context.
-    4. Do not make up information or use knowledge outside the provided context.
-    5. Use a helpful and professional tone appropriate for a university assistant.
+    3. Include any relevant details like location, counter number, or staff names.
+    4. Preserve all URLs and links exactly as they appear (e.g., https://example.com).
+    5. If you find step-by-step instructions, present them clearly with numbers or bullet points.
+    6. Use a helpful and professional tone appropriate for a university assistant.
+    7. If information is incomplete, suggest contacting APU directly for additional help.
 
     Answer:"""
         
         elif is_faq_match:
             # Modified FAQ match prompt - prevents personalization of generic info
-            prompt = f"""You are an AI assistant for APU (Asia Pacific University). Answer the student's question directly and naturally.
+            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer the student's question directly and naturally.
 
     Question: {question}
 
+    Available Information:
     {context}
 
     Instructions:
-    1. Provide a direct, helpful answer to the student's question using ONLY the information provided.
+    1. Provide a direct, helpful answer to the student's question using the available information.
     2. Write as if you're speaking directly to the student - use "you" and be conversational.
-    3. Do not mention "FAQ", "provided information", "based on", or reference sources.
-    4. Give clear, actionable advice where applicable.
-    5. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
-    6. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
-    7. Provide general guidance that applies to the situation described in the context.
+    3. **CRITICAL**: Preserve all URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
+    4. For step-by-step procedures, use numbered lists or clear formatting.
+    5. Include specific locations, contact information, and email addresses mentioned.
+    6. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
+    7. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
     8. If the information doesn't fully address their specific situation, suggest they contact APU directly for personalized guidance.
     9. Use a helpful and professional tone appropriate for a university assistant.
 
@@ -909,24 +913,25 @@ class RetrievalHandler:
     Answer:"""
 
         else:
-            # Regular prompt for good relevance with anti-personalization measures
-            prompt = f"""You are an AI assistant for APU (Asia Pacific University). Answer the question based ONLY on the provided context.
+            # Regular prompt for good relevance with enhanced URL preservation
+            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer the question using the information available.
 
     Question: {question}
 
-    Context:
+    Available Information:
     {context}
 
     Instructions:
-    1. Answer the question directly and concisely based on the provided context.
-    2. If the context contains the exact answer, use it.
-    3. Do not make up information or use knowledge outside the provided context.
-    4. NEVER personalize generic information from the context (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
-    5. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
-    6. Provide general guidance based on the context without personalizing it.
-    7. If the context doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
-    8. Use a helpful and professional tone appropriate for a university assistant.
-    9. If the context mentions specific locations, people, or contact information, include these details in your answer.
+    1. Answer the question directly and concisely using the available information.
+    2. **CRITICAL**: Preserve ALL URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
+    3. For step-by-step procedures, format them clearly with numbers or bullet points.
+    4. Include specific locations, people, contact information, and office hours mentioned.
+    5. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
+    6. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
+    7. Provide general guidance without personalizing it.
+    8. If the information doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
+    9. Use a helpful and professional tone appropriate for a university assistant.
+    10. At the end, include the source URL if available for reference.
 
     Answer:"""
 
