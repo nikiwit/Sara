@@ -689,7 +689,13 @@ class Sara:
                 query = input("\nYour Question: ").strip()
                 
                 if not query:
-                    print("Please enter a question.")
+                    print("I'd be happy to help! Please ask me a question about APU services, such as:")
+                    print("• Fee payments and financial information")
+                    print("• Reference letters and documentation")
+                    print("• IT support (APKey password, timetable access)")
+                    print("• Library services and resources")
+                    print("• Parking information")
+                    print("• Visa and immigration matters")
                     continue
                 
                 # Handle commands first

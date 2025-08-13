@@ -132,6 +132,9 @@ class Config:
     MAX_CONTEXT_SIZE = int(os.environ.get("SARA_MAX_CONTEXT_SIZE", "4000"))
     USE_CONTEXT_COMPRESSION = os.environ.get("SARA_CONTEXT_COMPRESSION", "True").lower() in ("true", "1", "t")
     
+    # Confidence and boundary detection settings
+    CONFIDENCE_THRESHOLD = float(os.environ.get("SARA_CONFIDENCE_THRESHOLD", "0.6"))
+    
     # Session management
     MAX_SESSIONS = 5
     

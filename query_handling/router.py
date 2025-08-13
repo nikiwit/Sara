@@ -23,7 +23,7 @@ class QueryRouter:
     
     def route_query(self, query_analysis: Dict[str, Any], stream=False) -> Tuple[Any, bool]:
         """
-        Query routing with conversational priority handling.
+        Query routing with conversational priority handling and improved error handling.
         
         Args:
             query_analysis: Analysis output from InputProcessor
@@ -34,6 +34,33 @@ class QueryRouter:
         """
         original_query = query_analysis["original_query"]
         query_type = query_analysis.get("query_type", QueryType.UNKNOWN)
+        
+        # Enhanced input validation and error handling
+        try:
+            # Handle empty or whitespace-only queries
+            if not original_query or not original_query.strip():
+                response = self._handle_empty_query(stream=stream)
+                return response, True
+            
+            # Handle inappropriate content (cheating, academic dishonesty)
+            if self._is_inappropriate_request(original_query):
+                response = self._handle_inappropriate_request(original_query, stream=stream)
+                return response, True
+            
+            # Handle very short queries that might be unclear
+            if len(original_query.strip()) < 3:
+                response = self._handle_unclear_query(original_query, stream=stream)
+                return response, True
+            
+            # Handle very long queries that might be complex or contain multiple questions
+            if len(original_query) > 500:
+                response = self._handle_long_query(original_query, stream=stream)
+                return response, True
+                
+        except Exception as e:
+            logger.error(f"Error in query validation: {e}")
+            response = self._handle_system_error(stream=stream)
+            return response, True
         
         if self._is_identity_query(original_query):
             logger.info(f"Processing system identity query: {original_query}")
@@ -426,6 +453,134 @@ What would you like to know about APU?"""
         
         return "APU topics"
     
+    def _handle_empty_query(self, stream=False) -> Union[str, Iterator[str]]:
+        """Handle empty or whitespace-only queries."""
+        response = (
+            "I'd be happy to help! Please ask me a question about APU services, "
+            "such as fee payments, reference letters, IT support, library services, "
+            "parking, or visa information."
+        )
+        
+        if stream:
+            return self._stream_text_response(response)
+        return response
+    
+    def _handle_unclear_query(self, query: str, stream=False) -> Union[str, Iterator[str]]:
+        """Handle very short or unclear queries."""
+        response = (
+            f"I received your message '{query}' but I'm not sure what you're asking about. "
+            "Could you please provide more details? For example, you can ask about:\n\n"
+            "• How to pay fees\n"
+            "• Requesting reference letters\n"
+            "• IT support (APKey password, timetable access)\n"
+            "• Library services\n"
+            "• Parking information\n"
+            "• Visa and immigration matters"
+        )
+        
+        if stream:
+            return self._stream_text_response(response)
+        return response
+    
+    def _handle_long_query(self, query: str, stream=False) -> Union[str, Iterator[str]]:
+        """Handle very long queries that might contain multiple questions."""
+        # Extract key topics from the long query
+        key_topics = []
+        topic_keywords = {
+            'fees': ['fee', 'payment', 'pay', 'money', 'cost'],
+            'reference letter': ['reference', 'letter', 'document', 'certificate'],
+            'IT support': ['apkey', 'password', 'login', 'timetable', 'moodle'],
+            'library': ['library', 'book', 'borrow', 'opac'],
+            'parking': ['parking', 'park', 'car', 'vehicle'],
+            'visa': ['visa', 'immigration', 'pass', 'permit']
+        }
+        
+        query_lower = query.lower()
+        for topic, keywords in topic_keywords.items():
+            if any(keyword in query_lower for keyword in keywords):
+                key_topics.append(topic)
+        
+        if key_topics:
+            topics_text = ", ".join(key_topics)
+            response = (
+                f"I can see you're asking about several topics including {topics_text}. "
+                "To give you the most accurate help, could you please ask about one topic at a time? "
+                f"Which would you like to start with: {topics_text}?"
+            )
+        else:
+            response = (
+                "Your question is quite detailed. To provide the best help, could you please "
+                "break it down into smaller, specific questions? This will help me give you "
+                "more accurate and focused answers."
+            )
+        
+        if stream:
+            return self._stream_text_response(response)
+        return response
+    
+    def _handle_system_error(self, stream=False) -> Union[str, Iterator[str]]:
+        """Handle system errors gracefully."""
+        response = (
+            "I apologize, but I encountered a technical issue while processing your query. "
+            "Please try asking your question again, or contact APU support directly if the "
+            "problem persists."
+        )
+        
+        if stream:
+            return self._stream_text_response(response)
+        return response
+    
+    def _is_inappropriate_request(self, query: str) -> bool:
+        """Check if query contains inappropriate requests."""
+        query_lower = query.lower()
+        
+        # Academic dishonesty keywords
+        dishonesty_patterns = [
+            'cheat', 'cheating', 'hack', 'hacking', 'bypass', 'skip',
+            'fake', 'forge', 'plagiarize', 'copy answers', 'steal',
+            'illegal', 'unauthorized access', 'break into'
+        ]
+        
+        # Check for explicit academic dishonesty
+        for pattern in dishonesty_patterns:
+            if pattern in query_lower:
+                return True
+        
+        # Check for suspicious phrases
+        suspicious_phrases = [
+            'help me cheat',
+            'how to cheat',
+            'bypass attendance',
+            'fake documents',
+            'get answers',
+            'hack system',
+            'access grades',
+            'change my grade'
+        ]
+        
+        for phrase in suspicious_phrases:
+            if phrase in query_lower:
+                return True
+        
+        return False
+    
+    def _handle_inappropriate_request(self, query: str, stream=False) -> Union[str, Iterator[str]]:
+        """Handle inappropriate requests with clear boundaries."""
+        response = (
+            "I can't help with that request as it goes against academic integrity policies. "
+            "Instead, I'd be happy to help you with legitimate APU services such as:\n\n"
+            "• Academic support and study resources\n"
+            "• Assignment submission procedures\n"
+            "• Academic policies and guidelines\n"
+            "• Student support services\n"
+            "• IT help and technical support\n\n"
+            "Is there something specific about APU services I can help you with?"
+        )
+        
+        if stream:
+            return self._stream_text_response(response)
+        return response
+
     def _stream_text_response(self, text: str) -> Iterator[str]:
         """
         Stream text word by word with consistent delay.

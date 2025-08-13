@@ -50,6 +50,11 @@ class RetrievalHandler:
             logger.warning(f"Failed to initialize AdvancedReranker, falling back to LightweightReranker: {e}")
             self.reranker = LightweightReranker()
         
+        # Initialize response cache
+        from response.cache import ResponseCache
+        self.response_cache = ResponseCache(ttl=Config.CACHE_TTL if hasattr(Config, 'CACHE_TTL') else 3600)
+        logger.info("Initialized response cache")
+        
         # Initialize query decomposer for complex queries
         # self.query_decomposer = QueryDecomposer()
     
@@ -104,6 +109,16 @@ class RetrievalHandler:
         
         logger.info(f"Processing {query_type.value} query: {original_query}")
         
+        # Check cache for non-streaming requests first
+        if not stream:
+            cached_response = self.response_cache.get(original_query)
+            if cached_response:
+                logger.info("Returning cached response")
+                # Update memory with cached response
+                self.memory.chat_memory.add_user_message(original_query)
+                self.memory.chat_memory.add_ai_message(cached_response)
+                return cached_response
+        
         # Check for medical insurance related queries first
         if self._is_medical_insurance_query(original_query):
             logger.info("Detected medical insurance related query")
@@ -130,20 +145,46 @@ class RetrievalHandler:
                     stream_output=stream
                 )
                 
-                # If we're not streaming, update memory
+                # Post-process response to clean formatting and add source URLs
                 if not stream:
+                    response = self._post_process_response(response, medical_docs)
                     self.memory.chat_memory.add_user_message(original_query)
                     self.memory.chat_memory.add_ai_message(response)
-                
-                return response
+                    # Cache medical insurance responses
+                    if self.response_cache.should_cache(original_query, response):
+                        self.response_cache.set(original_query, response, {'type': 'medical_insurance'})
+                    return response
+                else:
+                    # For streaming responses, we need to collect the full response and then post-process
+                    full_response = ""
+                    for token in response:
+                        full_response += token
+                        yield token
+                    
+                    # Post-process the complete response and yield the source URLs
+                    processed_response = self._post_process_response(full_response, medical_docs)
+                    if processed_response != full_response:
+                        # Extract just the added source URLs
+                        source_part = processed_response[len(full_response):].strip()
+                        if source_part:
+                            yield "\n\n" + source_part
+                    
+                    # Update memory with the processed response
+                    self.memory.chat_memory.add_user_message(original_query)
+                    self.memory.chat_memory.add_ai_message(processed_response)
+                    
+                    return  # Generator already yielded everything
         
         # Handle identity questions with SystemInformation
         if query_type == QueryType.IDENTITY:
             response = SystemInformation.get_response_for_identity_query(original_query)
                 
-            # Update memory
+            # Update memory and cache
             self.memory.chat_memory.add_user_message(original_query)
             self.memory.chat_memory.add_ai_message(response)
+            # Cache identity responses
+            if self.response_cache.should_cache(original_query, response):
+                self.response_cache.set(original_query, response, {'type': 'identity'})
             
             # If streaming, return character by character iterator instead of full response
             if stream:
@@ -181,12 +222,38 @@ class RetrievalHandler:
                 stream_output=stream
             )
             
-            # If we're not streaming, update memory
+            # Post-process response to clean formatting and add source URLs
             if not stream:
+                response = self._post_process_response(response, [faq_match_result["document"]])
                 self.memory.chat_memory.add_user_message(original_query)
                 self.memory.chat_memory.add_ai_message(response)
-            
-            return response
+                # Cache FAQ responses (high priority for caching)
+                if self.response_cache.should_cache(original_query, response):
+                    self.response_cache.set(original_query, response, {
+                        'type': 'faq_match',
+                        'match_score': faq_match_result["match_score"]
+                    })
+                return response
+            else:
+                # For streaming responses, collect full response and then post-process
+                full_response = ""
+                for token in response:
+                    full_response += token
+                    yield token
+                
+                # Post-process the complete response and yield the source URLs
+                processed_response = self._post_process_response(full_response, [faq_match_result["document"]])
+                if processed_response != full_response:
+                    # Extract just the added source URLs
+                    source_part = processed_response[len(full_response):].strip()
+                    if source_part:
+                        yield "\n\n" + source_part
+                
+                # Update memory with the processed response
+                self.memory.chat_memory.add_user_message(original_query)
+                self.memory.chat_memory.add_ai_message(processed_response)
+                
+                return  # Generator already yielded everything
         
         # If no good FAQ match, proceed with standard retrieval
         # Standard retrieval (query decomposition temporarily disabled)
@@ -201,11 +268,7 @@ class RetrievalHandler:
         
         # If still no relevant documents, return a "no information" response
         if not context_docs:
-            no_info_response = (
-                "I don't have specific information about that in the APU knowledge base. "
-                "To get accurate information on this topic, I'd recommend contacting the appropriate "
-                "department at APU directly."
-            )
+            no_info_response = self._get_boundary_response(original_query)
             
             # Update memory
             self.memory.chat_memory.add_user_message(original_query)
@@ -217,26 +280,23 @@ class RetrievalHandler:
             else:
                 return no_info_response
         
-        # Assess document relevance - lowered threshold from 0.3 to 0.2
-        relevance_score = self._assess_document_relevance(context_docs, original_query)
+        # Enhanced confidence assessment with multiple factors
+        confidence_score = self._calculate_confidence_score(context_docs, original_query)
+        logger.info(f"Confidence score: {confidence_score:.3f}")
         
-        # If relevance is too low, return low confidence response
-        if relevance_score < 0.2:  # Lowered threshold for better recall
-            low_confidence_response = (
-                "I'm not confident I have the specific information you're looking for in the APU knowledge base. "
-                "The information I found might not be directly relevant to your question. "
-                "For accurate information, you may want to contact the appropriate APU department directly."
-            )
+        # If confidence is too low, return boundary response
+        if confidence_score < Config.CONFIDENCE_THRESHOLD:
+            boundary_response = self._get_boundary_response(original_query)
             
             # Update memory
             self.memory.chat_memory.add_user_message(original_query)
-            self.memory.chat_memory.add_ai_message(low_confidence_response)
+            self.memory.chat_memory.add_ai_message(boundary_response)
             
             # If streaming, return as character stream for consistency
             if stream:
-                return self._stream_text_response(low_confidence_response)
+                return self._stream_text_response(boundary_response)
             else:
-                return low_confidence_response
+                return boundary_response
         
         # Process the retrieved documents
         context = self.context_processor.process_context(context_docs, query_analysis)
@@ -262,7 +322,7 @@ class RetrievalHandler:
             "context": context,
             "chat_history": self.memory.chat_memory.messages,
             "is_faq_match": False,
-            "relevance_score": relevance_score
+            "confidence_score": confidence_score
         }
         
         # Generate response through LLM with streaming if requested
@@ -274,12 +334,38 @@ class RetrievalHandler:
             stream_output=stream
         )
         
-        # If we're not streaming, update memory
+        # Post-process response to clean formatting and add source URLs
         if not stream:
+            response = self._post_process_response(response, context_docs)
             self.memory.chat_memory.add_user_message(original_query)
             self.memory.chat_memory.add_ai_message(response)
-        
-        return response
+            # Cache successful RAG responses
+            if self.response_cache.should_cache(original_query, response):
+                self.response_cache.set(original_query, response, {
+                    'type': 'rag_response',
+                    'confidence_score': confidence_score
+                })
+            return response
+        else:
+            # For streaming responses, collect full response and then post-process
+            full_response = ""
+            for token in response:
+                full_response += token
+                yield token
+            
+            # Post-process the complete response and yield the source URLs
+            processed_response = self._post_process_response(full_response, context_docs)
+            if processed_response != full_response:
+                # Extract just the added source URLs
+                source_part = processed_response[len(full_response):].strip()
+                if source_part:
+                    yield "\n\n" + source_part
+            
+            # Update memory with the processed response
+            self.memory.chat_memory.add_user_message(original_query)
+            self.memory.chat_memory.add_ai_message(processed_response)
+            
+            return  # Generator already yielded everything
     
     def _is_medical_insurance_query(self, query: str) -> bool:
         """
@@ -385,12 +471,76 @@ class RetrievalHandler:
         
         for doc in docs:
             title = doc.metadata.get('page_title', 'Medical Insurance Information')
+            
+            # Clean the document content before adding to context
+            clean_content = doc.page_content
+            # Remove bracketed headers
+            import re
+            clean_content = re.sub(r'\[.*?Knowledge Base[^\]]*\]', '', clean_content)
+            # Remove "Related Pages" sections
+            clean_content = re.sub(r'Related Pages.*', '', clean_content, flags=re.IGNORECASE | re.DOTALL)
+            # Clean up whitespace
+            clean_content = re.sub(r'\n\s*\n\s*\n+', '\n\n', clean_content).strip()
+            
             context += f"Question: {title}\n\n"
-            context += f"Answer:\n{doc.page_content}\n\n"
+            context += f"Answer:\n{clean_content}\n\n"
             
         context += "Instructions: Answer the user's question about medical insurance using ONLY the information provided above. Be direct and specific about where to collect the medical insurance card if that information is present.\n\n"
         
         return context
+    
+    def _post_process_response(self, response: str, docs: List[Document]) -> str:
+        """
+        Post-process LLM response to clean formatting and add source URLs.
+        
+        Args:
+            response: The raw LLM response
+            docs: The source documents used for the response
+            
+        Returns:
+            Cleaned response with proper source URLs
+        """
+        if not response:
+            return response
+        
+        logger.debug(f"Post-processing response of length {len(response)}")
+        original_response = response
+        
+        import re
+        
+        # Clean up the response by removing unwanted elements
+        # Remove bracketed headers like [AA Knowledge Base - ...]
+        response = re.sub(r'\[.*?Knowledge Base[^\]]*\]', '', response)
+        
+        # Remove "Related Pages" and everything after it
+        response = re.sub(r'Related Pages.*', '', response, flags=re.IGNORECASE | re.DOTALL)
+        
+        # Clean up extra whitespace and newlines
+        response = re.sub(r'\n\s*\n\s*\n+', '\n\n', response)
+        response = response.strip()
+        
+        # Find the most relevant source URL from the documents that were actually used
+        source_url = None
+        if docs:
+            # Look for a document that has content matching the response
+            for doc in docs:
+                main_url = doc.metadata.get('main_url', '')
+                if main_url and len(main_url) > 0:
+                    source_url = main_url
+                    break
+            
+            if source_url:
+                response += f"\n\nSource: {source_url}"
+                logger.debug(f"Added source URL: {source_url}")
+            else:
+                logger.debug("No valid source URL found in documents")
+        
+        if response != original_response:
+            logger.debug("Response was modified during post-processing")
+        else:
+            logger.debug("Response unchanged during post-processing")
+        
+        return response
     
     def _format_faq_match(self, match_result: Dict[str, Any]) -> str:
         """Format a direct FAQ match into a context for the LLM."""
@@ -402,13 +552,23 @@ class RetrievalHandler:
         source = doc.metadata.get("source", "Unknown Source")
         filename = doc.metadata.get("filename", os.path.basename(source) if source != "Unknown Source" else "Unknown File")
         
+        # Clean the document content before formatting
+        import re
+        clean_content = doc.page_content
+        # Remove bracketed headers
+        clean_content = re.sub(r'\[.*?Knowledge Base[^\]]*\]', '', clean_content)
+        # Remove "Related Pages" sections
+        clean_content = re.sub(r'Related Pages.*', '', clean_content, flags=re.IGNORECASE | re.DOTALL)
+        # Clean up whitespace
+        clean_content = re.sub(r'\n\s*\n\s*\n+', '\n\n', clean_content).strip()
+        
         # Format the context with clear but not overly intimidating instructions
         context = f"--- DIRECT FAQ MATCH (Confidence: {score:.2f}) ---\n\n"
         context += f"Question: {title}\n\n"
-        context += f"SOURCE TEXT:\n\"\"\"\n{doc.page_content}\n\"\"\"\n\n"
+        context += f"SOURCE TEXT:\n\"\"\"\n{clean_content}\n\"\"\"\n\n"
         
         # Add valid email addresses that exist
-        emails_in_text = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', doc.page_content)
+        emails_in_text = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', clean_content)
         if emails_in_text:
             context += "Email addresses mentioned in the text:\n"
             for email in emails_in_text:
@@ -416,7 +576,7 @@ class RetrievalHandler:
             context += "\nRemember: Only use email addresses that are explicitly provided in the source text.\n"
         
         # Add explicit note about contact options if "or" appears
-        if " or " in doc.page_content.lower():
+        if " or " in clean_content.lower():
             context += "\nNote: When multiple contact options are mentioned with 'or', these are separate alternatives.\n"
         
         # Add related pages if available
@@ -1059,6 +1219,107 @@ class RetrievalHandler:
                 return True, "Specific numbers in query not found in context"
         
         return False, ""
+    
+    def _calculate_confidence_score(self, docs: List[Document], query: str) -> float:
+        """
+        Calculate confidence score for retrieved documents.
+        
+        Args:
+            docs: List of retrieved documents
+            query: Original query string
+            
+        Returns:
+            Confidence score between 0 and 1
+        """
+        if not docs:
+            return 0.0
+        
+        # Factor 1: Document relevance (existing method)
+        relevance_score = self._assess_document_relevance(docs, query)
+        
+        # Factor 2: Average document length (longer docs often more informative)
+        avg_doc_length = sum(len(doc.page_content) for doc in docs) / len(docs)
+        length_score = min(1.0, avg_doc_length / 500)  # Normalize to 500 chars
+        
+        # Factor 3: Metadata quality (APU KB pages are more reliable)
+        metadata_score = 0
+        for doc in docs:
+            if doc.metadata.get('content_type') == 'apu_kb_page':
+                metadata_score += 0.3
+            if doc.metadata.get('is_faq', False):
+                metadata_score += 0.2
+            if doc.metadata.get('page_title'):
+                metadata_score += 0.1
+        metadata_score = min(1.0, metadata_score / len(docs))
+        
+        # Factor 4: Query specificity (specific queries need higher confidence)
+        query_tokens = query.lower().split()
+        specificity_penalty = 0
+        if len(query_tokens) > 8:  # Long, specific queries
+            specificity_penalty = 0.1
+        
+        # Weighted combination
+        confidence = (
+            relevance_score * 0.5 +      # Primary factor
+            length_score * 0.2 +         # Document quality
+            metadata_score * 0.3         # Source reliability
+        ) - specificity_penalty
+        
+        return max(0.0, min(1.0, confidence))
+    
+    def _get_boundary_response(self, query: str) -> str:
+        """
+        Generate appropriate boundary response based on query type.
+        
+        Args:
+            query: Original query string
+            
+        Returns:
+            Appropriate boundary response
+        """
+        query_lower = query.lower()
+        
+        # Categorize out-of-scope queries
+        if any(word in query_lower for word in ['program', 'course', 'degree', 'admission', 'requirement']):
+            return (
+                "I don't have detailed information about academic programs and admission requirements. "
+                "For the most current information about programs, courses, and admission criteria, "
+                "please contact the Admissions Office at admissions@apu.edu.my or visit the APU website."
+            )
+        
+        elif any(word in query_lower for word in ['gpa', 'grade', 'result', 'transcript', 'record']):
+            return (
+                "I cannot access personal academic records. To check your grades, GPA, or academic records, "
+                "please log in to APSpace or contact the Registrar's Office at registrar@apu.edu.my."
+            )
+        
+        elif any(word in query_lower for word in ['weather', 'time', 'current', 'now', 'today']):
+            return (
+                "I don't have access to real-time information. For current updates about campus operations, "
+                "weather, or events, please check the APU website or contact the main office."
+            )
+        
+        elif any(word in query_lower for word in ['staff', 'faculty', 'professor', 'teacher', 'dean']):
+            return (
+                "I don't have detailed information about specific staff members or faculty. "
+                "For faculty contact information and office hours, please check the APU website "
+                "or contact the relevant department directly."
+            )
+        
+        elif any(word in query_lower for word in ['accommodation', 'hostel', 'housing', 'dormitory']):
+            return (
+                "I don't have detailed information about accommodation options. "
+                "For information about student housing and accommodation, please contact "
+                "Student Services at student.services@apu.edu.my."
+            )
+        
+        else:
+            return (
+                "I don't have specific information about that topic in my knowledge base. "
+                "For accurate and detailed information, I recommend contacting the appropriate "
+                "APU department directly. You can also visit the APU website or call the main office "
+                "for general inquiries."
+            )
 
     def _create_prompt(self, input_dict: Dict[str, Any]) -> str:
         """
@@ -1074,7 +1335,7 @@ class RetrievalHandler:
         context = input_dict["context"]
         is_faq_match = input_dict.get("is_faq_match", False)
         is_medical_insurance = input_dict.get("is_medical_insurance", False)
-        relevance_score = input_dict.get("relevance_score", 0.5)
+        confidence_score = input_dict.get("confidence_score", 0.5)
         
         if is_medical_insurance:
             # Medical insurance prompt (unchanged)
@@ -1117,12 +1378,13 @@ class RetrievalHandler:
     9. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
     10. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
     11. Provide general guidance that covers different scenarios without assuming which applies to the user.
-    12. If the information doesn't fully address their specific situation, suggest they contact APU directly for personalized guidance.
-    13. Use a helpful and professional tone appropriate for a university assistant.
+    12. **UX CRITICAL**: If the information doesn't fully address their specific situation, NEVER say "The provided information does not contain..." Instead, say "I don't have information about that specific aspect yet."
+    13. **UX CRITICAL**: NEVER mention internal system details like "provided information", "documents", "sections", or "context". Speak naturally as if you're a knowledgeable assistant.
+    14. Use a helpful and professional tone appropriate for a university assistant.
 
     Answer:"""
 
-        elif relevance_score < 0.25:  # Low relevance - likely partial match
+        elif confidence_score < 0.25:  # Low confidence - likely partial match
             # Enhanced prompt for partial matches
             prompt = f"""You are an AI assistant for APU (Asia Pacific University). The user asked a question, but the available information may only be partially related.
 
@@ -1177,9 +1439,10 @@ class RetrievalHandler:
     8. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
     9. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
     10. Provide general guidance that covers different scenarios without assuming which applies to the user.
-    11. If the information doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
-    12. Use a helpful and professional tone appropriate for a university assistant.
-    13. At the end, include the source URL if available for reference.
+    11. **UX CRITICAL**: If the information doesn't fully answer the question, NEVER say "The provided information does not contain..." or "The provided sections are..." Instead, say "I don't have detailed information about [specific topic]" or "I don't have information about that particular aspect yet."
+    12. **UX CRITICAL**: NEVER mention internal system details like "provided information", "documents", "sections", or "context". Speak naturally as if you're a knowledgeable assistant.
+    13. Use a helpful and professional tone appropriate for a university assistant.
+    14. At the end, include the source URL if available for reference.
 
     Answer:"""
 
