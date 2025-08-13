@@ -183,6 +183,11 @@ class FAQMatcher:
             ("login problem", ["unable to sign in", "sign in", "login", "apkey troubleshooting"]),
             ("apspace", ["unable to sign in", "sign in", "login", "apkey troubleshooting"]),
             ("apkey", ["unable to sign in", "apkey troubleshooting", "apkey"]),
+            # Enhanced exam result phrases
+            ("check result", ["check my result online", "result online", "exam result", "semester result"]),
+            ("exam result", ["check my result online", "result online", "exam result", "semester result"]),
+            ("my result", ["check my result online", "result online", "exam result"]),
+            ("know result", ["check my result online", "result online", "exam result"]),
         ]
         
         phrase_boost = 0
@@ -203,6 +208,9 @@ class FAQMatcher:
                 # Login/authentication terms - high priority
                 ("login", ["login", "sign in", "apkey", "password", "authenticate", "access",
                           "troubleshooting", "unable", "cannot", "apspace", "cas"]),
+                # Academic/results terms - high priority
+                ("academic", ["result", "exam", "grade", "check", "online", "semester", "transcript",
+                             "docket", "schedule", "appraisal", "module"]),
                 # Financial terms - only boost if both query and title are financial
                 ("financial", ["fee", "payment", "pay", "cash", "credit", "debit", "invoice", 
                               "receipt", "outstanding", "due", "overdue", "installment",

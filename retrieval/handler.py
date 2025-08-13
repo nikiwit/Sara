@@ -1111,10 +1111,14 @@ class RetrievalHandler:
     3. **CRITICAL**: Preserve all URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
     4. For step-by-step procedures, use numbered lists or clear formatting.
     5. Include specific locations, contact information, and email addresses mentioned.
-    6. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
-    7. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
-    8. If the information doesn't fully address their specific situation, suggest they contact APU directly for personalized guidance.
-    9. Use a helpful and professional tone appropriate for a university assistant.
+    6. **ABSOLUTELY FORBIDDEN**: Do NOT assume the user's personal circumstances from the source material. If the source mentions "you are currently doing your internship" - this is an EXAMPLE scenario, NOT about this specific user.
+    7. **ABSOLUTELY FORBIDDEN**: Do NOT start responses with phrases like "I understand you are..." or "I see that you..." about situations not mentioned by the user.
+    8. **REQUIRED**: When the source describes specific situations (internships, attendance issues, etc.), present them as conditional options: "If you are doing an internship...", "For students who...", "In cases where..."
+    9. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
+    10. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
+    11. Provide general guidance that covers different scenarios without assuming which applies to the user.
+    12. If the information doesn't fully address their specific situation, suggest they contact APU directly for personalized guidance.
+    13. Use a helpful and professional tone appropriate for a university assistant.
 
     Answer:"""
 
@@ -1167,12 +1171,15 @@ class RetrievalHandler:
     2. **CRITICAL**: Preserve ALL URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
     3. For step-by-step procedures, format them clearly with numbers or bullet points.
     4. Include specific locations, people, contact information, and office hours mentioned.
-    5. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
-    6. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
-    7. Provide general guidance without personalizing it.
-    8. If the information doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
-    9. Use a helpful and professional tone appropriate for a university assistant.
-    10. At the end, include the source URL if available for reference.
+    5. **ABSOLUTELY FORBIDDEN**: Do NOT assume the user's personal circumstances from the source material. If the source mentions "you are currently doing your internship" - this is an EXAMPLE scenario, NOT about this specific user.
+    6. **ABSOLUTELY FORBIDDEN**: Do NOT start responses with phrases like "I understand you are..." or "I see that you..." about situations not mentioned by the user.
+    7. **REQUIRED**: When the source describes specific situations (internships, attendance issues, etc.), present them as conditional options: "If you are doing an internship...", "For students who...", "In cases where..."
+    8. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
+    9. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
+    10. Provide general guidance that covers different scenarios without assuming which applies to the user.
+    11. If the information doesn't fully answer the question, acknowledge this and suggest contacting APU directly.
+    12. Use a helpful and professional tone appropriate for a university assistant.
+    13. At the end, include the source URL if available for reference.
 
     Answer:"""
 
