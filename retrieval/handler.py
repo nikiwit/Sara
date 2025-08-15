@@ -82,6 +82,65 @@ class RetrievalHandler:
         
         return retrievers
     
+    def _validate_response(self, response: str, query: str) -> str:
+        """
+        Validate response quality and provide fallback if needed.
+        Based on 2025 best practices for conversational AI response validation.
+        
+        Args:
+            response: Generated response
+            query: Original query
+            
+        Returns:
+            Validated response or fallback response
+        """
+        if not response or response.strip() == "":
+            logger.warning(f"Empty response generated for query: {query}")
+            return self._get_empty_response_fallback(query)
+        
+        # Check for very short responses that might indicate generation failure
+        if len(response.strip()) < 10:
+            logger.warning(f"Suspiciously short response for query: {query}")
+            return self._get_short_response_fallback(query, response)
+        
+        # Check for error responses from LLM
+        error_indicators = [
+            "error:", "failed to", "could not", "unable to generate",
+            "connection error", "timeout", "invalid response"
+        ]
+        
+        response_lower = response.lower()
+        if any(indicator in response_lower for indicator in error_indicators):
+            logger.warning(f"Error response detected for query: {query}")
+            return self._get_error_response_fallback(query)
+        
+        # Response passes validation
+        return response
+    
+    def _get_empty_response_fallback(self, query: str) -> str:
+        """Fallback for empty responses."""
+        return (
+            "I apologize, but I couldn't generate a proper response to your question. "
+            "Could you please try rephrasing your question? I'm here to help with APU-related information "
+            "such as academic procedures, administrative services, fees, and student support."
+        )
+    
+    def _get_short_response_fallback(self, query: str, original_response: str) -> str:
+        """Fallback for suspiciously short responses."""
+        return (
+            f"I started to respond with '{original_response}' but I think I can provide more helpful information. "
+            "Could you please provide more details about what you're looking for? I'm here to help with "
+            "APU services, procedures, and policies."
+        )
+    
+    def _get_error_response_fallback(self, query: str) -> str:
+        """Fallback for error responses."""
+        return (
+            "I encountered an issue while processing your question. Please try asking again, "
+            "or feel free to rephrase your question. I'm here to help with APU information including "
+            "academic programs, administrative procedures, student services, and campus facilities."
+        )
+
     def _stream_text_response(self, text: str):
         """Helper method to stream text word by word with consistent delay."""
         words = text.split(' ')
@@ -107,7 +166,26 @@ class RetrievalHandler:
         original_query = query_analysis["original_query"]
         expanded_queries = query_analysis.get("expanded_queries", [original_query])
         
-        logger.info(f"Processing {query_type.value} query: {original_query}")
+        # Handle query_type safely whether it's enum or string
+        query_type_str = query_type.value if hasattr(query_type, 'value') else str(query_type)
+        logger.info(f"Processing {query_type_str} query: {original_query}")
+        
+        # Validate input sanity first
+        if not self._validate_input_sanity(original_query):
+            logger.info(f"Detected nonsensical query: {original_query}")
+            nonsense_response = (
+                "I didn't quite understand your question. Could you please rephrase it? "
+                "I'm here to help with APU-related information like academic procedures, "
+                "student services, fees, and campus facilities."
+            )
+            
+            # Update memory 
+            self.memory.chat_memory.add_user_message(original_query)
+            self.memory.chat_memory.add_ai_message(nonsense_response)
+            
+            # For nonsense queries, always return non-streaming response for better UX
+            # Streaming a "please rephrase" message is not critical
+            return nonsense_response
         
         # Check cache for non-streaming requests first
         if not stream:
@@ -148,6 +226,8 @@ class RetrievalHandler:
                 # Post-process response to clean formatting and add source URLs
                 if not stream:
                     response = self._post_process_response(response, medical_docs)
+                    # Validate response quality
+                    response = self._validate_response(response, original_query)
                     self.memory.chat_memory.add_user_message(original_query)
                     self.memory.chat_memory.add_ai_message(response)
                     # Cache medical insurance responses
@@ -155,25 +235,8 @@ class RetrievalHandler:
                         self.response_cache.set(original_query, response, {'type': 'medical_insurance'})
                     return response
                 else:
-                    # For streaming responses, we need to collect the full response and then post-process
-                    full_response = ""
-                    for token in response:
-                        full_response += token
-                        yield token
-                    
-                    # Post-process the complete response and yield the source URLs
-                    processed_response = self._post_process_response(full_response, medical_docs)
-                    if processed_response != full_response:
-                        # Extract just the added source URLs
-                        source_part = processed_response[len(full_response):].strip()
-                        if source_part:
-                            yield "\n\n" + source_part
-                    
-                    # Update memory with the processed response
-                    self.memory.chat_memory.add_user_message(original_query)
-                    self.memory.chat_memory.add_ai_message(processed_response)
-                    
-                    return  # Generator already yielded everything
+                    # For streaming responses, return a streaming generator
+                    return self._stream_with_postprocess(response, medical_docs, original_query)
         
         # Handle identity questions with SystemInformation
         if query_type == QueryType.IDENTITY:
@@ -196,64 +259,51 @@ class RetrievalHandler:
         # First try direct FAQ matching for a quick answer
         faq_match_result = self.faq_matcher.match_faq(query_analysis)
         
-        # Reduced threshold back to 0.5 for better login query matching
-        if faq_match_result and faq_match_result.get("match_score", 0) > 0.5:
-            # High confidence direct FAQ match
-            logger.info(f"Found direct FAQ match with score {faq_match_result['match_score']}")
-            
-            # Create a simplified context with just the matched FAQ
-            context = self._format_faq_match(faq_match_result)
-            
-            # Generate response using the matched FAQ
-            input_dict = {
-                "question": original_query,
-                "context": context,
-                "chat_history": self.memory.chat_memory.messages,
-                "is_faq_match": True,
-                "match_score": faq_match_result["match_score"]
-            }
-            
-            # Generate response through LLM with streaming if requested
-            # Import here to avoid circular imports
-            from response.generator import RAGSystem
-            response = RAGSystem.stream_ollama_response(
-                self._create_prompt(input_dict), 
-                Config.LLM_MODEL_NAME,
-                stream_output=stream
-            )
-            
-            # Post-process response to clean formatting and add source URLs
-            if not stream:
-                response = self._post_process_response(response, [faq_match_result["document"]])
-                self.memory.chat_memory.add_user_message(original_query)
-                self.memory.chat_memory.add_ai_message(response)
-                # Cache FAQ responses (high priority for caching)
-                if self.response_cache.should_cache(original_query, response):
-                    self.response_cache.set(original_query, response, {
-                        'type': 'faq_match',
-                        'match_score': faq_match_result["match_score"]
-                    })
-                return response
-            else:
-                # For streaming responses, collect full response and then post-process
-                full_response = ""
-                for token in response:
-                    full_response += token
-                    yield token
+        # Increased threshold to 0.75 to prevent hallucination from loose FAQ matches
+        if faq_match_result and faq_match_result.get("match_score", 0) > 0.75:
+            # Additional validation: check topical relevance
+            if self._validate_faq_relevance(original_query, faq_match_result):
+                # High confidence direct FAQ match
+                logger.info(f"Found direct FAQ match with score {faq_match_result['match_score']}")
                 
-                # Post-process the complete response and yield the source URLs
-                processed_response = self._post_process_response(full_response, [faq_match_result["document"]])
-                if processed_response != full_response:
-                    # Extract just the added source URLs
-                    source_part = processed_response[len(full_response):].strip()
-                    if source_part:
-                        yield "\n\n" + source_part
+                # Create a simplified context with just the matched FAQ
+                context = self._format_faq_match(faq_match_result)
                 
-                # Update memory with the processed response
-                self.memory.chat_memory.add_user_message(original_query)
-                self.memory.chat_memory.add_ai_message(processed_response)
+                # Generate response using the matched FAQ
+                input_dict = {
+                    "question": original_query,
+                    "context": context,
+                    "chat_history": self.memory.chat_memory.messages,
+                    "is_faq_match": True,
+                    "match_score": faq_match_result["match_score"]
+                }
                 
-                return  # Generator already yielded everything
+                # Generate response through LLM with streaming if requested
+                # Import here to avoid circular imports
+                from response.generator import RAGSystem
+                response = RAGSystem.stream_ollama_response(
+                    self._create_prompt(input_dict), 
+                    Config.LLM_MODEL_NAME,
+                    stream_output=stream
+                )
+                
+                # Post-process response to clean formatting and add source URLs
+                if not stream:
+                    response = self._post_process_response(response, [faq_match_result["document"]])
+                    # Validate response quality
+                    response = self._validate_response(response, original_query)
+                    self.memory.chat_memory.add_user_message(original_query)
+                    self.memory.chat_memory.add_ai_message(response)
+                    # Cache FAQ responses (high priority for caching)
+                    if self.response_cache.should_cache(original_query, response):
+                        self.response_cache.set(original_query, response, {
+                            'type': 'faq_match',
+                            'match_score': faq_match_result["match_score"]
+                        })
+                    return response
+                else:
+                    # For streaming responses, return a streaming generator
+                    return self._stream_with_postprocess(response, [faq_match_result["document"]], original_query)
         
         # If no good FAQ match, proceed with standard retrieval
         # Standard retrieval (query decomposition temporarily disabled)
@@ -337,6 +387,8 @@ class RetrievalHandler:
         # Post-process response to clean formatting and add source URLs
         if not stream:
             response = self._post_process_response(response, context_docs)
+            # Validate response quality
+            response = self._validate_response(response, original_query)
             self.memory.chat_memory.add_user_message(original_query)
             self.memory.chat_memory.add_ai_message(response)
             # Cache successful RAG responses
@@ -347,25 +399,8 @@ class RetrievalHandler:
                 })
             return response
         else:
-            # For streaming responses, collect full response and then post-process
-            full_response = ""
-            for token in response:
-                full_response += token
-                yield token
-            
-            # Post-process the complete response and yield the source URLs
-            processed_response = self._post_process_response(full_response, context_docs)
-            if processed_response != full_response:
-                # Extract just the added source URLs
-                source_part = processed_response[len(full_response):].strip()
-                if source_part:
-                    yield "\n\n" + source_part
-            
-            # Update memory with the processed response
-            self.memory.chat_memory.add_user_message(original_query)
-            self.memory.chat_memory.add_ai_message(processed_response)
-            
-            return  # Generator already yielded everything
+            # For streaming responses, return a streaming generator
+            return self._stream_with_postprocess(response, context_docs, original_query)
     
     def _is_medical_insurance_query(self, query: str) -> bool:
         """
@@ -1293,10 +1328,25 @@ class RetrievalHandler:
                 "please log in to APSpace or contact the Registrar's Office at registrar@apu.edu.my."
             )
         
-        elif any(word in query_lower for word in ['weather', 'time', 'current', 'now', 'today']):
+        elif any(word in query_lower for word in ['weather', 'temperature', 'climate', 'rain', 'sunny']):
             return (
-                "I don't have access to real-time information. For current updates about campus operations, "
-                "weather, or events, please check the APU website or contact the main office."
+                "I'm designed to help with APU-specific information rather than weather updates. "
+                "For weather information, please check your local weather app or website. "
+                "Is there anything about APU services or procedures I can help you with instead?"
+            )
+        
+        elif any(word in query_lower for word in ['time', 'current time', 'what time', 'clock']):
+            return (
+                "I don't have access to current time information. Please check your device's clock. "
+                "However, I can help you with APU schedules, timetables, and office hours. "
+                "What APU-related timing information do you need?"
+            )
+        
+        elif any(word in query_lower for word in ['news', 'current events', 'politics', 'sports']):
+            return (
+                "I focus on APU-related information rather than general news. "
+                "For current events, please check news websites or apps. "
+                "I'd be happy to help with APU announcements, procedures, or services instead!"
             )
         
         elif any(word in query_lower for word in ['staff', 'faculty', 'professor', 'teacher', 'dean']):
@@ -1305,6 +1355,8 @@ class RetrievalHandler:
                 "For faculty contact information and office hours, please check the APU website "
                 "or contact the relevant department directly."
             )
+        
+        # Note: Removed library hours boundary response as this info exists in knowledge base
         
         elif any(word in query_lower for word in ['accommodation', 'hostel', 'housing', 'dormitory']):
             return (
@@ -1447,3 +1499,145 @@ class RetrievalHandler:
     Answer:"""
 
         return prompt
+    
+    def _validate_faq_relevance(self, query: str, faq_match_result: Dict[str, Any]) -> bool:
+        """
+        Validate that the FAQ match is actually relevant to the user's query.
+        Prevents hallucinations from loose semantic matching.
+        
+        Args:
+            query: Original user query
+            faq_match_result: FAQ match result with document and score
+            
+        Returns:
+            True if FAQ is relevant, False otherwise
+        """
+        query_lower = query.lower()
+        faq_doc = faq_match_result.get("document")
+        
+        if not faq_doc:
+            return False
+            
+        faq_content = faq_doc.page_content.lower()
+        faq_metadata = faq_doc.metadata
+        faq_url = faq_metadata.get('source', '').lower()
+        
+        # Extract key terms from query (remove stop words)
+        from nltk.corpus import stopwords
+        from nltk.tokenize import word_tokenize
+        import string
+        
+        try:
+            stop_words = set(stopwords.words('english'))
+        except:
+            stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'}
+        
+        # Extract meaningful terms from query
+        query_tokens = word_tokenize(query_lower)
+        query_keywords = [word for word in query_tokens 
+                         if word not in stop_words and word not in string.punctuation and len(word) > 2]
+        
+        # For very short queries or nonsensical queries, be extra strict
+        if len(query_keywords) == 0 or query.strip() in ['', '?', '??', '???', '????', '?????', '??????']:
+            logger.info(f"FAQ validation failed: nonsensical query '{query}'")
+            return False
+        
+        # Check for keyword overlap between query and FAQ
+        keyword_overlap = 0
+        for keyword in query_keywords:
+            if keyword in faq_content or keyword in faq_url:
+                keyword_overlap += 1
+        
+        overlap_ratio = keyword_overlap / len(query_keywords) if query_keywords else 0
+        
+        # Specific validations for common mismatch patterns
+        
+        # 1. PhD/Academic program queries shouldn't match library employment
+        if any(word in query_lower for word in ['phd', 'doctorate', 'degree', 'program', 'admission', 'apply']):
+            if any(word in faq_content for word in ['library', 'work', 'vacancy', 'employment', 'job']):
+                logger.info(f"FAQ validation failed: academic query matched library employment FAQ")
+                return False
+        
+        # 2. Library employment queries shouldn't match academic programs
+        if any(word in query_lower for word in ['work', 'job', 'employment', 'vacancy', 'hire']):
+            if 'library' not in faq_content and any(word in faq_content for word in ['degree', 'program', 'course']):
+                logger.info(f"FAQ validation failed: employment query matched academic FAQ")
+                return False
+        
+        # 3. Generic or nonsensical queries shouldn't match specific FAQs
+        if query.strip() in ['?', '??', '???', '????', '?????', '??????'] or len(query.strip()) < 3:
+            logger.info(f"FAQ validation failed: nonsensical query '{query}' shouldn't match specific FAQ")
+            return False
+        
+        # 4. Time-related queries need to actually be about time/schedules
+        if any(word in query_lower for word in ['time', 'when', 'hour', 'schedule']):
+            if not any(word in faq_content for word in ['time', 'hour', 'schedule', 'open', 'close', 'operation']):
+                logger.info(f"FAQ validation failed: time query matched non-time FAQ")
+                return False
+        
+        # 5. Require minimum keyword overlap (at least 30% for FAQ matches)
+        if overlap_ratio < 0.3:
+            logger.info(f"FAQ validation failed: insufficient keyword overlap {overlap_ratio:.2f} for query '{query}'")
+            return False
+        
+        logger.info(f"FAQ validation passed: {overlap_ratio:.2f} keyword overlap for query '{query}'")
+        return True
+    
+    def _validate_input_sanity(self, query: str) -> bool:
+        """
+        Validate that the input query is meaningful and not nonsensical.
+        
+        Args:
+            query: User's query
+            
+        Returns:
+            True if query is meaningful, False if nonsensical
+        """
+        query_stripped = query.strip()
+        
+        # Empty or whitespace only
+        if not query_stripped:
+            return False
+        
+        # Only punctuation
+        import string
+        if all(c in string.punctuation + string.whitespace for c in query_stripped):
+            return False
+        
+        # Single character (except valid ones like 'a')
+        if len(query_stripped) == 1 and query_stripped.lower() not in ['a', 'i']:
+            return False
+        
+        # All question marks
+        if query_stripped.strip('?').strip() == '':
+            return False
+        
+        # Repeated nonsense
+        words = query_stripped.split()
+        if len(words) > 1 and len(set(words)) == 1:  # All words are the same
+            return False
+        
+        return True
+    
+    def _stream_with_postprocess(self, response, docs, original_query):
+        """
+        Separate method to handle streaming with post-processing.
+        This keeps yield statements out of the main process_query method.
+        """
+        # For streaming responses, collect full response and then post-process
+        full_response = ""
+        for token in response:
+            full_response += token
+            yield token
+        
+        # Post-process the complete response and yield the source URLs
+        processed_response = self._post_process_response(full_response, docs)
+        if processed_response != full_response:
+            # Extract just the added source URLs
+            source_part = processed_response[len(full_response):].strip()
+            if source_part:
+                yield "\n\n" + source_part
+        
+        # Update memory with the processed response
+        self.memory.chat_memory.add_user_message(original_query)
+        self.memory.chat_memory.add_ai_message(processed_response)

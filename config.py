@@ -133,7 +133,7 @@ class Config:
     USE_CONTEXT_COMPRESSION = os.environ.get("SARA_CONTEXT_COMPRESSION", "True").lower() in ("true", "1", "t")
     
     # Confidence and boundary detection settings
-    CONFIDENCE_THRESHOLD = float(os.environ.get("SARA_CONFIDENCE_THRESHOLD", "0.6"))
+    CONFIDENCE_THRESHOLD = float(os.environ.get("SARA_CONFIDENCE_THRESHOLD", "0.4"))
     
     # Session management
     MAX_SESSIONS = 5

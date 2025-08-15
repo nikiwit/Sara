@@ -730,7 +730,7 @@ class Sara:
                     
                     if response:
                         # Handle streamed responses
-                        if isinstance(response, types.GeneratorType) or hasattr(response, '__iter__'):
+                        if isinstance(response, types.GeneratorType) or (hasattr(response, '__iter__') and not isinstance(response, str)):
                             full_response = ""
                             for token in response:
                                 print(token, end="", flush=True)

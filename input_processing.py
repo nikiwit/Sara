@@ -324,18 +324,20 @@ class InputProcessor:
         if any(term in query.lower() for term in model_terms) and len(tokens) < 8:
             return QueryType.IDENTITY
         
-        # Check for conversational queries
+        # Check for conversational queries - Enhanced with fuzzy matching support
         conversational_patterns = [
-            r'\b(?:hi|hello|hey|greetings|howdy|good\s*(?:morning|afternoon|evening)|what\'s\s*up)\b',
-            r'\bhow\s+are\s+you\b',
-            r'\b(?:thanks|thank\s*you)\b',
-            r'\bappreciate\s*(?:it|that)\b',
+            # Improved greeting patterns with common typos and variations
+            r'\b(?:hi+|h[ie]llo*|hey+|hiya?|greetings?|howdy|good\s*(?:morning|afternoon|evening|day)|what\'?s\s*up|sup|hai|helo+)\b',
+            r'\bhow\s+(?:are|r|is)\s+(?:you|u|ya?)\b',
+            r'\bhow\s+(?:are|r)\s+(?:you|u)\s+(?:doing|going)\b',
+            r'\b(?:thanks?|thank\s*(?:you|u)|ty|thx|thanx)\b',
+            r'\bappreciate\s*(?:it|that|this)\b',
             # Addressing/naming queries
-            r'\bhow\s+(?:can|do|should)\s+i\s+(?:call|address|refer\s+to)\s+you\b',
-            r'\bwhat\s+(?:can|do|should)\s+i\s+call\s+you\b',
-            r'\bwhat\s+should\s+i\s+call\s+you\b',
-            r'\bhow\s+should\s+i\s+address\s+you\b',
-            r'\bwhat\s+do\s+i\s+call\s+you\b',
+            r'\bhow\s+(?:can|do|should)\s+i\s+(?:call|address|refer\s+to)\s+(?:you|u)\b',
+            r'\bwhat\s+(?:can|do|should)\s+i\s+call\s+(?:you|u)\b',
+            r'\bwhat\s+should\s+i\s+call\s+(?:you|u)\b',
+            r'\bhow\s+should\s+i\s+address\s+(?:you|u)\b',
+            r'\bwhat\s+do\s+i\s+call\s+(?:you|u)\b',
         ]
         
         for pattern in conversational_patterns:

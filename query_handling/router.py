@@ -47,8 +47,8 @@ class QueryRouter:
                 response = self._handle_inappropriate_request(original_query, stream=stream)
                 return response, True
             
-            # Handle very short queries that might be unclear
-            if len(original_query.strip()) < 3:
+            # Handle very short queries that might be unclear (but exempt simple conversational ones)
+            if len(original_query.strip()) < 3 and not self._is_simple_conversational_query(original_query):
                 response = self._handle_unclear_query(original_query, stream=stream)
                 return response, True
             
@@ -62,20 +62,35 @@ class QueryRouter:
             response = self._handle_system_error(stream=stream)
             return response, True
         
+        # Simplified routing logic with clear precedence (based on 2025 best practices)
+        # 1. Priority routing for system queries
         if self._is_identity_query(original_query):
             logger.info(f"Processing system identity query: {original_query}")
             response = self._handle_identity_query(original_query, stream=stream)
             return response, True
         
+        # 2. Simple conversational queries (greetings, thanks, etc.) get priority
+        if self._is_simple_conversational_query(original_query):
+            logger.info(f"Processing simple conversational query: {original_query}")
+            response = self.conversation_handler.handle_conversation(original_query, stream=stream)
+            return response, True
+        
+        # 3. Help requests
         if self._is_help_request(original_query):
             logger.info(f"Processing help request: {original_query}")
             response = self._handle_help_request(original_query, stream=stream)
             return response, True
         
-        # Check for conversational queries AFTER identity queries
+        # 4. Complex conversational queries (after simple ones)
         if self._is_conversational_query(original_query):
             logger.info(f"Processing conversational query: {original_query}")
             response = self.conversation_handler.handle_conversation(original_query, stream=stream)
+            return response, True
+        
+        # 5. Early boundary detection for out-of-scope queries
+        if self._is_boundary_query(original_query):
+            logger.info(f"Processing boundary query: {original_query}")
+            response = self._handle_boundary_query(original_query, stream=stream)
             return response, True
         
         # Check for session commands explicitly before query_type check
@@ -96,10 +111,246 @@ class QueryRouter:
             return response, True
         
         else:
-            logger.info(f"Processing {query_type.value} query through RAG pipeline: {original_query}")
+            # Handle query_type safely whether it's enum or string
+            if hasattr(query_type, 'value'):
+                query_type_str = query_type.value
+            else:
+                query_type_str = str(query_type)
+            logger.info(f"Processing {query_type_str} query through RAG pipeline: {original_query}")
             # Handle all other query types with retrieval system
             response = self.retrieval_handler.process_query(query_analysis, stream=stream)
             return response, True
+    
+    def _is_simple_conversational_query(self, query: str) -> bool:
+        """
+        Check if query is a simple conversational query (greetings, thanks, farewells).
+        These get priority routing to ensure consistent handling.
+        
+        Args:
+            query: Original query string
+            
+        Returns:
+            True if it's a simple conversational query
+        """
+        simple_patterns = [
+            # Simple greetings - highest priority
+            r'^(?:hi+|h[ie]llo*|hey+|hiya?|sup|hai|helo+)$',
+            r'^\s*(?:hi+|h[ie]llo*|hey+|hiya?|sup|hai|helo+)\s*$',
+            # Simple thanks
+            r'^(?:thanks?|thank\s*(?:you|u)|ty|thx|thanx)$',
+            r'^\s*(?:thanks?|thank\s*(?:you|u)|ty|thx|thanx)\s*$',
+            # Simple farewells
+            r'^(?:bye|goodbye|farewell|see\s+(?:you|u))$',
+            r'^\s*(?:bye|goodbye|farewell|see\s+(?:you|u))\s*$',
+        ]
+        
+        query_clean = query.lower().strip()
+        for pattern in simple_patterns:
+            if re.match(pattern, query_clean):
+                logger.debug(f"Matched simple conversational pattern: {pattern}")
+                return True
+        
+        return False
+    
+    def _is_boundary_query(self, query: str) -> bool:
+        """
+        Check if query is an out-of-scope query that should get boundary response.
+        This prevents these queries from going to retrieval and potentially failing.
+        
+        Args:
+            query: Original query string
+            
+        Returns:
+            True if it's a boundary query that should be handled directly
+        """
+        query_lower = query.lower()
+        
+        # Boundary query keywords - queries that should NOT go to retrieval
+        boundary_patterns = [
+            # Weather and time
+            ['weather', 'temperature', 'climate', 'rain', 'sunny', 'hot', 'cold'],
+            ['time', 'current time', 'what time', 'clock'],
+            ['date', 'today', 'tomorrow', 'yesterday', 'calendar', 'day of the week', 'what day'],
+            
+            # News and current events  
+            ['news', 'current events', 'politics', 'sports', 'breaking news'],
+            ['political', 'government', 'election', 'vote', 'politician'],
+            ['trending', 'social media', 'twitter', 'facebook', 'instagram'],
+            
+            # Personal questions about the AI
+            ['favorite', 'feelings', 'married', 'personal life', 'emotions'],
+            ['fun', 'hobby', 'family', 'friends', 'relationship'],
+            
+            # Note: Removed library hours from boundary detection as this info exists in KB
+            
+            # Other common out-of-scope
+            ['accommodation', 'hostel', 'housing', 'dormitory'],
+            ['movies', 'entertainment', 'cinema', 'theater'],
+            ['restaurant', 'food', 'dining', 'menu'],
+        ]
+        
+        # Check for boundary patterns with context awareness
+        for pattern_group in boundary_patterns:
+            if any(pattern in query_lower for pattern in pattern_group):
+                
+                # Special handling for time-related queries
+                if any(time_word in pattern_group for time_word in ['time', 'current time', 'what time', 'clock']):
+                    # Check if this is a generic time query vs APU-specific time query
+                    if self._is_generic_time_query(query_lower):
+                        logger.debug(f"Matched generic time boundary pattern: {pattern_group}")
+                        return True
+                    else:
+                        logger.debug(f"Time query appears APU-specific, allowing through: {query}")
+                        continue
+                
+                # For other boundary patterns, apply normally
+                logger.debug(f"Matched boundary pattern group: {pattern_group}")
+                return True
+        
+        # Note: Removed library special case as this info exists in knowledge base
+            
+        return False
+    
+    def _is_generic_time_query(self, query_lower: str) -> bool:
+        """
+        Determine if a time-related query is generic (current time) vs APU-specific (schedules).
+        
+        Args:
+            query_lower: Lowercase query string
+            
+        Returns:
+            True if generic time query, False if APU-specific time query
+        """
+        # APU-specific time keywords
+        apu_time_keywords = [
+            'library', 'office', 'hours', 'open', 'close', 'closes', 'opening', 'closing',
+            'schedule', 'timetable', 'class', 'lecture', 'exam', 'appointment',
+            'deadline', 'submission', 'registration', 'application',
+            'visit', 'counter', 'desk', 'service', 'operation', 'operating'
+        ]
+        
+        # If the query contains APU-specific context, it's NOT a generic time query
+        if any(keyword in query_lower for keyword in apu_time_keywords):
+            return False
+        
+        # Generic time query patterns
+        generic_time_patterns = [
+            'what time is it',
+            'current time',
+            'what is the time',
+            'tell me the time',
+            'time now',
+            'what time',
+            'the time'
+        ]
+        
+        # If it matches generic patterns without APU context, it's generic
+        if any(pattern in query_lower for pattern in generic_time_patterns):
+            return True
+        
+        # If query is just "time" without context, treat as generic
+        if query_lower.strip() in ['time', 'what time', 'the time']:
+            return True
+        
+        # Default: if it contains time but has other context, probably APU-specific
+        return False
+    
+    def _handle_boundary_query(self, query: str, stream=False) -> Union[str, Iterator[str]]:
+        """
+        Handle boundary queries with appropriate out-of-scope responses.
+        
+        Args:
+            query: Original query string
+            stream: Whether to stream the response
+            
+        Returns:
+            Response string or iterator for streaming
+        """
+        query_lower = query.lower()
+        
+        # Generate appropriate boundary response
+        if any(word in query_lower for word in ['weather', 'temperature', 'climate', 'rain', 'sunny', 'hot', 'cold']):
+            response = (
+                "I'm designed to help with APU-specific information rather than weather updates. "
+                "For weather information, please check your local weather app or website. "
+                "Is there anything about APU services or procedures I can help you with instead?"
+            )
+        elif any(word in query_lower for word in ['time', 'current time', 'what time', 'clock']):
+            response = (
+                "I don't have access to current time information. Please check your device's clock. "
+                "However, I can help you with APU schedules, timetables, and office hours. "
+                "What APU-related timing information do you need?"
+            )
+        elif any(word in query_lower for word in ['date', 'today', 'tomorrow', 'yesterday', 'calendar', 'day of the week', 'what day']):
+            response = (
+                "I don't have access to current date information. Please check your device's calendar. "
+                "However, I can help you with APU academic calendars, exam schedules, and important dates. "
+                "What APU-related date information do you need?"
+            )
+        elif any(word in query_lower for word in ['news', 'current events', 'politics', 'sports', 'breaking news']):
+            response = (
+                "I focus on APU-related information rather than general news. "
+                "For current events, please check news websites or apps. "
+                "I'd be happy to help with APU announcements, procedures, or services instead!"
+            )
+        elif any(word in query_lower for word in ['political', 'government', 'election', 'vote', 'politician']):
+            response = (
+                "I don't provide political opinions or information. I'm designed to help with APU matters. "
+                "For political information, please check reputable news sources. "
+                "How can I help you with APU services or academic information instead?"
+            )
+        elif any(word in query_lower for word in ['trending', 'social media', 'twitter', 'facebook', 'instagram']):
+            response = (
+                "I don't have access to social media or trending information. "
+                "For current trends, please check your social media apps directly. "
+                "I can help you with APU's official communication channels and announcements though!"
+            )
+        elif any(word in query_lower for word in ['favorite', 'feelings', 'married', 'personal life', 'emotions']):
+            response = (
+                "I don't have personal experiences or feelings as I'm an AI assistant. "
+                "I'm here to help with APU-related information and services. "
+                "What can I help you with regarding your APU experience?"
+            )
+        elif any(word in query_lower for word in ['fun', 'hobby', 'family', 'friends', 'relationship']):
+            response = (
+                "I don't have personal experiences, but I can help you with APU student life information! "
+                "I can provide details about student activities, clubs, facilities, and services. "
+                "What aspect of APU student life would you like to know about?"
+            )
+        # Note: Removed library hours handling as this info exists in knowledge base
+        elif any(word in query_lower for word in ['accommodation', 'hostel', 'housing', 'dormitory']):
+            response = (
+                "I don't have detailed information about accommodation options. "
+                "For information about student housing and accommodation, please contact "
+                "Student Services at student.services@apu.edu.my."
+            )
+        elif any(word in query_lower for word in ['movies', 'entertainment', 'cinema', 'theater']):
+            response = (
+                "I don't have information about entertainment venues or movie schedules. "
+                "For entertainment options, please check local cinema websites or apps. "
+                "I can help you with APU events, facilities, and student activities instead!"
+            )
+        elif any(word in query_lower for word in ['restaurant', 'food', 'dining', 'menu']):
+            response = (
+                "I don't have information about restaurant menus or dining options. "
+                "For dining information, please check restaurant websites or food apps. "
+                "I can help you with APU cafeteria information and campus dining facilities though!"
+            )
+        else:
+            response = (
+                "I don't have specific information about that topic in my knowledge base. "
+                "For accurate and detailed information, I recommend contacting the appropriate "
+                "APU department or checking the official APU website."
+            )
+        
+        # Update memory and handle streaming
+        if self.memory:
+            self.memory.chat_memory.add_user_message(query)
+            self.memory.chat_memory.add_ai_message(response)
+        
+        if stream:
+            return self._stream_text_response(response)
+        return response
     
     def _is_conversational_query(self, query: str) -> bool:
         """
@@ -117,13 +368,13 @@ class QueryRouter:
             return self.conversation_handler.is_conversational_query(query)
         
         conversational_patterns = [
-            # Greetings and social
-            r'\b(?:hi|hello|hey|greetings|howdy|good\s*(?:morning|afternoon|evening))\b',
-            r'\bhow\s+are\s+you\b',
-            r'\bhow\s+are\s+you\s+doing\b',
-            r'\bhow\s+is\s+your\s+day\b',
-            r'\bnice\s+to\s+meet\s+you\b',
-            r'\bgood\s+to\s+see\s+you\b',
+            # Enhanced greetings and social patterns
+            r'\b(?:hi+|h[ie]llo*|hey+|hiya?|greetings?|howdy|good\s*(?:morning|afternoon|evening|day)|what\'?s\s*up|sup|hai|helo+)\b',
+            r'\bhow\s+(?:are|r|is)\s+(?:you|u|ya?)\b',
+            r'\bhow\s+(?:are|r)\s+(?:you|u)\s+(?:doing|going)\b',
+            r'\bhow\s+is\s+(?:your|ur)\s+day\b',
+            r'\bnice\s+to\s+meet\s+(?:you|u)\b',
+            r'\bgood\s+to\s+see\s+(?:you|u)\b',
             r'\bhave\s+a\s+good\s+day\b',
             
             r'\bbye\b',

@@ -20,12 +20,13 @@ class ConversationHandler:
         self.memory = memory
         self.stream_delay = stream_delay if stream_delay is not None else Config.STREAM_DELAY
         
-        # Core conversational patterns with fuzzy matching support
+        # Core conversational patterns with enhanced fuzzy matching support
         self.greeting_patterns = [
-            r'\b(?:hi|hello|hey|greetings|howdy|good\s*(?:morning|afternoon|evening)|what\'s\s*up)\b',
-            r'\bhow\s+are\s+you\b',
-            r'\bhow\s+are\s+you\s+doing\b',
-            r'\bhow\s+do\s+you\s+do\b',
+            # Enhanced greeting patterns with common typos and variations
+            r'\b(?:hi+|h[ie]llo*|hey+|hiya?|greetings?|howdy|good\s*(?:morning|afternoon|evening|day)|what\'?s\s*up|sup|hai|helo+)\b',
+            r'\bhow\s+(?:are|r|is)\s+(?:you|u|ya?)\b',
+            r'\bhow\s+(?:are|r)\s+(?:you|u)\s+(?:doing|going)\b',
+            r'\bhow\s+do\s+(?:you|u)\s+do\b',
         ]
 
         # Natural, personable greeting responses
@@ -53,46 +54,11 @@ class ConversationHandler:
 
         # More natural knowledge responses
         self.knowledge_responses = [
-            """Oh, I know quite a bit about APU! 😊 I'm Sara, your friendly APU assistant. Here's what I can help you with:
-
-🎓 **Academic Stuff:**
-- Course details, requirements, schedules (the nitty-gritty details!)
-- Program info and admission requirements
-- Academic policies (the fine print, but explained simply!)
-
-🏢 **Administrative Things:**
-- Student services and campus support
-- Where to find offices and facilities
-- Registration and enrollment (I'll walk you through it!)
-
-💰 **Money Matters:**
-- Fee structures and payment options
-- Scholarships and financial aid info
-- Medical insurance details
-
-📋 **Procedures & Policies:**
-- How to apply for things (step by step!)
-- Academic rules (translated from bureaucratic speak!)
-- Campus guidelines
-
-❓ **Common Questions:**
-- All those frequently asked questions
-- Step-by-step guides for tricky procedures
-
-Just ask me anything about APU - I'm Sara, here to make your life easier! 🚀""",
-
-            """Hey! I'm Sara, your go-to APU assistant! 😄 Think of me as that helpful friend who somehow knows everything about the university. Here's my expertise:
-
-• **Student Life** - Medical insurance, campus facilities, where to get help when you're stuck
-• **Academics** - Course info, requirements, schedules (I love talking about courses!)
-• **Admin Stuff** - Applications, registrations, procedures (I'll make it less confusing!)
-• **Campus Navigation** - Facilities, locations, services (virtual tour guide!)
-• **Financial Info** - Fees, payments, scholarships (money talk made simple!)
-
-I use APU's official info, so you can trust what I tell you. Plus, I try to explain things in plain English instead of university jargon! 
-
-What would you like to explore? 🎯""",
-
+            "I'm Sara, your APU assistant! 😊 I can help with academics, admin procedures, fees, student services, and campus info. What would you like to know about APU?",
+            
+            "Hey! I'm Sara, here to help with APU questions! 😄 I know about courses, applications, medical insurance, campus facilities, and more. What can I help you with?",
+            
+            "I'm Sara! 🌟 I can assist with APU academics, student services, financial info, and campus procedures. What APU topic interests you?",
         ]
 
         # FIXED: Separate farewell patterns from general small talk
