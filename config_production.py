@@ -31,6 +31,14 @@ class ProductionConfig(Config):
     USE_QUERY_EXPANSION = os.environ.get("SARA_QUERY_EXPANSION", "True").lower() in ("true", "1", "t")
     EXPANSION_FACTOR = int(os.environ.get("SARA_EXPANSION_FACTOR", "3"))  # Full expansion for production
     
+    # Semantic enhancement settings - Production spaCy configuration
+    USE_ENHANCED_SEMANTICS = os.environ.get("SARA_USE_ENHANCED_SEMANTICS", "true").lower() == "true"
+    SEMANTIC_MODEL = os.environ.get("SARA_SEMANTIC_MODEL", "en_core_web_sm")
+    # SEMANTIC_MODEL = os.environ.get("SARA_SEMANTIC_MODEL", "en_core_web_md")  # Medium model (~43MB) - better accuracy
+    # SEMANTIC_MODEL = os.environ.get("SARA_SEMANTIC_MODEL", "en_core_web_lg")  # Large model (~588MB) - recommended for production
+    
+    SEMANTIC_EXPANSION_LIMIT = int(os.environ.get("SARA_SEMANTIC_EXPANSION_LIMIT", "8"))  # Higher for production
+    
     # Context processing settings
     MAX_CONTEXT_SIZE = int(os.environ.get("SARA_MAX_CONTEXT_SIZE", "5000"))  # Larger for production
     USE_CONTEXT_COMPRESSION = os.environ.get("SARA_CONTEXT_COMPRESSION", "True").lower() in ("true", "1", "t")

@@ -11,8 +11,23 @@ requests==2.32.3
 
 # NLP libraries
 nltk==3.9.1
-spacy==3.7.2  # Modern NLP library for production systems
-# Run: python -m spacy download en_core_web_sm
+spacy==3.7.2  # Modern NLP library for enhanced semantic processing
+
+# spaCy Installation Instructions:
+# ===============================
+# After installing requirements, run these commands to install spaCy language models:
+# 
+# 1. Install English model (required for semantic processing):
+#    python -m spacy download en_core_web_sm
+#
+# 2. Verify installation:
+#    python -c "import spacy; nlp = spacy.load('en_core_web_sm'); print('spaCy model loaded successfully')"
+#
+# 3. If you encounter permission issues, try:
+#    python -m pip install --user https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
+#
+# Note: The spaCy model (~50MB) will be downloaded to your Python environment and
+# should be added to .gitignore to avoid committing large binary files.
 
 # Vector store - production stable
 chromadb==0.4.24
@@ -61,3 +76,42 @@ unstructured[epub]==0.17.2
 # Development dependencies (remove in production)
 pytest>=7.4.0  # Only for testing environments
 pytest-cov>=4.1.0  # Only for testing environments
+
+# Installation Instructions:
+# =========================
+# 
+# 1. Create and activate virtual environment (recommended):
+#    python -m venv venv
+#    source venv/bin/activate  # Linux/Mac
+#    # or: venv\Scripts\activate  # Windows
+#
+# 2. Install all requirements:
+#    pip install -r requirements.txt
+#
+# 3. Install spaCy language model (REQUIRED):
+#    python -m spacy download en_core_web_sm
+#
+# 4. Verify installation:
+#    python -c "import spacy; nlp = spacy.load('en_core_web_sm'); print('✓ spaCy setup complete')"
+#
+# 5. Optional: Install Ollama for LLM functionality:
+#    # Visit https://ollama.ai for installation instructions
+#    ollama pull qwen2.5:3b-instruct  # Local development
+#    ollama pull qwen2.5:7b-instruct  # Production
+#
+# Troubleshooting:
+# ===============
+# 
+# If spaCy model download fails:
+# - Check internet connection
+# - Try direct download: pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
+# - Ensure sufficient disk space (~50MB for model)
+#
+# If you get dependency conflicts:
+# - Use a fresh virtual environment
+# - Update pip: python -m pip install --upgrade pip
+# - Install in order: pip install torch transformers sentence-transformers
+#
+# For Python 3.13 compatibility issues:
+# - Downgrade to Python 3.11 or 3.12 if encountering build errors
+# - Use conda for better dependency management: conda create -n sara python=3.12
