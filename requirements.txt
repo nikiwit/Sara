@@ -11,6 +11,8 @@ requests==2.32.3
 
 # NLP libraries
 nltk==3.9.1
+spacy==3.7.2  # Modern NLP library for production systems
+# Run: python -m spacy download en_core_web_sm
 
 # Vector store - production stable
 chromadb==0.4.24

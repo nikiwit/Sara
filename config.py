@@ -128,6 +128,13 @@ class Config:
     USE_QUERY_EXPANSION = os.environ.get("SARA_QUERY_EXPANSION", "True").lower() in ("true", "1", "t")
     EXPANSION_FACTOR = int(os.environ.get("SARA_EXPANSION_FACTOR", "3"))
     
+    # Semantic enhancement settings (Phase 4)
+    USE_ENHANCED_SEMANTICS = os.environ.get("SARA_USE_ENHANCED_SEMANTICS", "true").lower() == "true"
+    SEMANTIC_MODEL = os.environ.get("SARA_SEMANTIC_MODEL", "en_core_web_sm")
+    SEMANTIC_CACHE_SIZE = int(os.environ.get("SARA_SEMANTIC_CACHE_SIZE", "1000"))
+    SEMANTIC_EXPANSION_LIMIT = int(os.environ.get("SARA_SEMANTIC_EXPANSION_LIMIT", "5"))
+    SEMANTIC_ERROR_THRESHOLD = int(os.environ.get("SARA_SEMANTIC_ERROR_THRESHOLD", "5"))
+    
     # Context processing settings
     MAX_CONTEXT_SIZE = int(os.environ.get("SARA_MAX_CONTEXT_SIZE", "4000"))
     USE_CONTEXT_COMPRESSION = os.environ.get("SARA_CONTEXT_COMPRESSION", "True").lower() in ("true", "1", "t")

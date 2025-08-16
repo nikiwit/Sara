@@ -55,6 +55,26 @@ class RetrievalHandler:
         self.response_cache = ResponseCache(ttl=Config.CACHE_TTL if hasattr(Config, 'CACHE_TTL') else 3600)
         logger.info("Initialized response cache")
         
+        # Add spaCy processor for semantic ranking (Phase 4: Configuration-driven)
+        self.use_semantic_ranking = Config.USE_ENHANCED_SEMANTICS
+        
+        if self.use_semantic_ranking:
+            try:
+                from spacy_semantic_processor import SpacySemanticProcessor
+                self.spacy_processor = SpacySemanticProcessor()
+                if self.spacy_processor.initialized:
+                    logger.info("spaCy semantic ranking enabled")
+                else:
+                    self.use_semantic_ranking = False
+                    logger.warning("spaCy semantic ranking failed to initialize")
+            except Exception as e:
+                logger.warning(f"spaCy semantic ranking not available: {e}")
+                self.spacy_processor = None
+                self.use_semantic_ranking = False
+        else:
+            logger.info("Semantic ranking disabled by configuration")
+            self.spacy_processor = None
+        
         # Initialize query decomposer for complex queries
         # self.query_decomposer = QueryDecomposer()
     
@@ -237,6 +257,8 @@ class RetrievalHandler:
                 else:
                     # For streaming responses, return a streaming generator
                     return self._stream_with_postprocess(response, medical_docs, original_query)
+        
+        # Note: Relying on general semantic understanding instead of specific query detection
         
         # Handle identity questions with SystemInformation
         if query_type == QueryType.IDENTITY:
@@ -440,6 +462,48 @@ class RetrievalHandler:
                 
         return False
     
+    def _intelligent_document_filtering(self, query: str, retrieved_docs: List[Document]) -> List[Document]:
+        """
+        Apply semantic document filtering using spaCy for general excellent performance.
+        
+        Args:
+            query: Original query
+            retrieved_docs: Documents retrieved from vector search
+            
+        Returns:
+            Semantically ranked documents
+        """
+        if not retrieved_docs:
+            return retrieved_docs
+        
+        # Use spaCy semantic re-ranking for general excellent performance
+        if self.use_semantic_ranking and self.spacy_processor:
+            try:
+                # Extract document texts (limit for performance)
+                doc_texts = [doc.page_content[:500] for doc in retrieved_docs]
+                
+                # Rank by semantic similarity using spaCy
+                ranked_results = self.spacy_processor.rank_documents_by_similarity(
+                    query, doc_texts
+                )
+                
+                # Reorder documents based on semantic similarity
+                semantic_scores = {text: score for text, score in ranked_results}
+                filtered_docs = sorted(
+                    retrieved_docs,
+                    key=lambda doc: semantic_scores.get(doc.page_content[:500], 0), 
+                    reverse=True
+                )
+                
+                logger.info("Applied spaCy semantic ranking for general document relevance")
+                return filtered_docs
+                
+            except Exception as e:
+                logger.warning(f"spaCy semantic ranking failed: {e}")
+        
+        # Fallback: return documents as-is if semantic ranking unavailable
+        return retrieved_docs
+    
     def _retrieve_medical_insurance_docs(self, query: str) -> List[Document]:
         """
         Retrieve documents specifically related to medical insurance.
@@ -491,6 +555,8 @@ class RetrievalHandler:
                     )
         
         return medical_docs
+    
+    # Removed specific APSpace query detection methods - using general semantic understanding
     
     def _format_medical_insurance_context(self, docs: List[Document]) -> str:
         """
@@ -557,18 +623,30 @@ class RetrievalHandler:
         # Find the most relevant source URL from the documents that were actually used
         source_url = None
         if docs:
-            # Look for a document that has content matching the response
+            # Find the document whose content is most represented in the response
+            best_match_score = 0
             for doc in docs:
                 main_url = doc.metadata.get('main_url', '')
                 if main_url and len(main_url) > 0:
-                    source_url = main_url
-                    break
+                    # Calculate how much of this document's content appears in the response
+                    doc_words = set(doc.page_content.lower().split())
+                    response_words = set(response.lower().split())
+                    
+                    # Calculate overlap
+                    overlap = len(doc_words.intersection(response_words))
+                    if overlap > best_match_score:
+                        best_match_score = overlap
+                        source_url = main_url
             
-            if source_url:
+            # Only add source if the response contains useful information
+            if source_url and self._response_contains_useful_info(response):
                 response += f"\n\nSource: {source_url}"
                 logger.debug(f"Added source URL: {source_url}")
             else:
-                logger.debug("No valid source URL found in documents")
+                if not source_url:
+                    logger.debug("No valid source URL found in documents")
+                else:
+                    logger.debug("Response doesn't contain useful info - not adding source")
         
         if response != original_response:
             logger.debug("Response was modified during post-processing")
@@ -576,6 +654,48 @@ class RetrievalHandler:
             logger.debug("Response unchanged during post-processing")
         
         return response
+    
+    def _response_contains_useful_info(self, response: str) -> bool:
+        """
+        Check if the response contains useful information that warrants a source citation.
+        
+        Args:
+            response: The generated response
+            
+        Returns:
+            True if response contains useful info, False for "I don't know" type responses
+        """
+        response_lower = response.lower()
+        
+        # Check for "no information" indicators
+        no_info_phrases = [
+            "i don't have information",
+            "i don't have detailed information", 
+            "i don't have specific information",
+            "i cannot find",
+            "i'm unable to find",
+            "i don't have access to",
+            "i'm not able to",
+            "the information is not available",
+            "i don't currently have",
+            "i don't know",
+            "sorry, i don't have",
+            "i cannot provide",
+            "i'm unable to provide",
+            "no information available",
+            "information not found"
+        ]
+        
+        # If response contains any "no info" phrases, don't add source
+        for phrase in no_info_phrases:
+            if phrase in response_lower:
+                return False
+        
+        # Check if response is too short to be useful (likely an error or "no info")
+        if len(response.strip()) < 20:
+            return False
+            
+        return True
     
     def _format_faq_match(self, match_result: Dict[str, Any]) -> str:
         """Format a direct FAQ match into a context for the LLM."""
@@ -678,6 +798,9 @@ class RetrievalHandler:
                 elif strategy == RetrievalStrategy.HYBRID:
                     # Use hybrid retrieval (combination of semantic and keyword)
                     docs = self._hybrid_retrieval(query)
+                
+                # Apply intelligent filtering to the retrieved documents
+                docs = self._intelligent_document_filtering(query, docs)
                 
                 for doc in docs:
                     # Create a unique ID based on content and source
@@ -1472,8 +1595,8 @@ class RetrievalHandler:
     Answer:"""
 
         else:
-            # Regular prompt for good relevance with enhanced URL preservation
-            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer the question using the information available.
+            # Enhanced prompt with 2025 RAG best practices: contextual reasoning and query understanding
+            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Use contextual reasoning to provide accurate answers.
 
     Question: {question}
 
@@ -1481,20 +1604,30 @@ class RetrievalHandler:
     {context}
 
     Instructions:
-    1. Answer the question directly and concisely using the available information.
-    2. **CRITICAL**: Preserve ALL URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
-    3. For step-by-step procedures, format them clearly with numbers or bullet points.
-    4. Include specific locations, people, contact information, and office hours mentioned.
-    5. **ABSOLUTELY FORBIDDEN**: Do NOT assume the user's personal circumstances from the source material. If the source mentions "you are currently doing your internship" - this is an EXAMPLE scenario, NOT about this specific user.
-    6. **ABSOLUTELY FORBIDDEN**: Do NOT start responses with phrases like "I understand you are..." or "I see that you..." about situations not mentioned by the user.
-    7. **REQUIRED**: When the source describes specific situations (internships, attendance issues, etc.), present them as conditional options: "If you are doing an internship...", "For students who...", "In cases where..."
-    8. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
-    9. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
-    10. Provide general guidance that covers different scenarios without assuming which applies to the user.
-    11. **UX CRITICAL**: If the information doesn't fully answer the question, NEVER say "The provided information does not contain..." or "The provided sections are..." Instead, say "I don't have detailed information about [specific topic]" or "I don't have information about that particular aspect yet."
-    12. **UX CRITICAL**: NEVER mention internal system details like "provided information", "documents", "sections", or "context". Speak naturally as if you're a knowledgeable assistant.
-    13. Use a helpful and professional tone appropriate for a university assistant.
-    14. At the end, include the source URL if available for reference.
+    1. **CONTEXTUAL REASONING**: First, understand what the user is really asking. If they ask "when does the library close?" and the information shows "Monday-Friday: 8:30 AM - 7:00 PM", then 7:00 PM IS the closing time. Apply logical reasoning to connect information to the question.
+
+    2. **QUERY UNDERSTANDING**: Consider question variations that ask for the same information:
+       - "When does X open?" and "When does X close?" both relate to operating hours
+       - "What time does X close?" and "When is X closed?" ask about the same schedule information
+       - Use the available information to answer ALL variations of the same underlying question
+
+    3. **SUFFICIENT CONTEXT CHECK**: Before answering, verify if the available information contains enough details to provide a complete answer. If it mentions operating hours, you can derive both opening AND closing times from that information.
+
+    4. **REASONING EXAMPLES**:
+       - If info says "Library: 8:30 AM - 7:00 PM" → This answers both "when does it open?" (8:30 AM) and "when does it close?" (7:00 PM)
+       - If info says "Office hours: Monday-Friday 9-5" → Opening time is 9 AM, closing time is 5 PM
+       - If info says "Closed on Sundays" → This answers "when is it closed?" (Sundays)
+
+    5. Answer the question directly and concisely using logical reasoning from the available information.
+    6. **CRITICAL**: Preserve ALL URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
+    7. For step-by-step procedures, format them clearly with numbers or bullet points.
+    8. Include specific locations, people, contact information, and office hours mentioned.
+    9. **ABSOLUTELY FORBIDDEN**: Do NOT assume the user's personal circumstances from the source material.
+    10. **REQUIRED**: When the source describes specific situations, present them as conditional options: "If you are doing an internship...", "For students who...", "In cases where..."
+    11. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
+    12. **UX CRITICAL**: If the information doesn't fully answer the question, say "I don't have detailed information about [specific topic]" - never mention "provided information" or "documents".
+    13. **UX CRITICAL**: NEVER mention internal system details like "provided information", "documents", "sections", or "context". Speak naturally as if you're a knowledgeable assistant.
+    14. Use a helpful and professional tone appropriate for a university assistant.
 
     Answer:"""
 

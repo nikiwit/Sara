@@ -37,6 +37,7 @@ class CommandHandler:
             - clear: Reset the conversation memory
             - reindex: Reindex all documents
             - stats: See document statistics
+            - semantic stats: Show semantic processor statistics
             - new session: Create a new chat session
             - list sessions: Show all available sessions
             - switch session: Change to a different session
@@ -109,6 +110,9 @@ class CommandHandler:
             self.rag_system.session_manager.clear_current_session_memory()
             return "✅ Session memory cleared!", True
         
+        elif command_lower in ["semantic stats", "semantic statistics"]:
+            return self._handle_semantic_stats(), True
+        
         # Unknown command
         else:
             return f"Unknown command: {command}. Type 'help' to see available commands.", True
@@ -135,3 +139,42 @@ class CommandHandler:
         except Exception as e:
             logger.error(f"Error in interactive session switch: {e}")
             return False
+    
+    def _handle_semantic_stats(self) -> str:
+        """Handle semantic processor statistics command."""
+        try:
+            # Get stats from input processor
+            input_processor = getattr(self.rag_system, 'input_processor', None)
+            if not input_processor:
+                return "❌ Input processor not available"
+            
+            spacy_processor = getattr(input_processor, 'spacy_processor', None)
+            if not spacy_processor:
+                return "ℹ️ Semantic processor not enabled or not available"
+            
+            stats = spacy_processor.get_statistics()
+            
+            report = "\n📊 Semantic Processor Statistics:\n"
+            report += "=" * 50 + "\n"
+            report += f"🔧 Status: {'✅ Healthy' if spacy_processor.is_healthy() else '❌ Unhealthy'}\n"
+            report += f"🔄 Initialized: {'✅ Yes' if stats['initialized'] else '❌ No'}\n"
+            report += f"🧠 Model loaded: {'✅ Yes' if stats['model_loaded'] else '❌ No'}\n"
+            report += f"📂 Domain clusters: {stats['domain_clusters']}\n"
+            report += f"🔨 Grammar patterns: {stats['grammar_patterns']}\n"
+            report += f"⚠️ Error count: {stats['error_count']}/{stats['max_errors']}\n"
+            
+            # Processing stats
+            processing_stats = stats['stats']
+            report += f"\n📈 Processing Statistics:\n"
+            report += f"   • Queries processed: {processing_stats['queries_processed']}\n"
+            report += f"   • Errors encountered: {processing_stats['errors_encountered']}\n"
+            report += f"   • Avg processing time: {processing_stats['average_processing_time']:.3f}s\n"
+            
+            if processing_stats['last_error']:
+                report += f"   • Last error: {processing_stats['last_error']}\n"
+            
+            return report
+            
+        except Exception as e:
+            logger.error(f"Error getting semantic stats: {e}")
+            return f"❌ Error retrieving semantic statistics: {e}"

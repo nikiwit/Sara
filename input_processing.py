@@ -46,7 +46,27 @@ class InputProcessor:
         self.lemmatizer = WordNetLemmatizer()
         self.stop_words = set(stopwords.words('english'))
         
-        # Enhanced synonym dictionary with APU-specific terms
+        # Add spaCy semantic processor (Phase 4: Full migration with monitoring)
+        self.use_spacy_semantics = Config.USE_ENHANCED_SEMANTICS
+        
+        if self.use_spacy_semantics:
+            try:
+                from spacy_semantic_processor import SpacySemanticProcessor
+                self.spacy_processor = SpacySemanticProcessor()
+                if self.spacy_processor.initialized:
+                    logger.info("spaCy semantic processor loaded successfully")
+                else:
+                    self.use_spacy_semantics = False
+                    logger.warning("spaCy processor failed to initialize")
+            except Exception as e:
+                logger.warning(f"spaCy semantic processor not available: {e}")
+                self.spacy_processor = None
+                self.use_spacy_semantics = False
+        else:
+            logger.info("Enhanced semantics disabled by configuration")
+            self.spacy_processor = None
+        
+        # Enhanced synonym dictionary with APU-specific terms and time-related improvements
         self.synonyms = {
             "document": ["file", "text", "paper", "doc", "content"],
             "find": ["locate", "search", "discover", "retrieve", "get"],
@@ -59,6 +79,17 @@ class InputProcessor:
             "important": ["significant", "essential", "critical", "key", "vital"],
             "problem": ["issue", "challenge", "difficulty", "trouble", "obstacle"],
             "solution": ["answer", "resolution", "fix", "remedy", "workaround"],
+            # Essential time-related synonyms for library hours queries
+            "close": ["closes", "closing", "hours", "schedule", "timing", "operating hours"],
+            "closes": ["close", "hours", "schedule", "timing", "operating hours"], 
+            "opens": ["open", "hours", "schedule", "timing", "operating hours"],
+            "hours": ["time", "schedule", "timing", "operating hours", "operation hours"],
+            "when": ["what time", "at what time", "timing", "schedule"],
+            "library": ["lib", "learning center", "study center", "resource center"],
+            # Password and login related expansions
+            "password": ["passcode", "pin", "credentials", "login details", "authentication"],
+            "forgot": ["forgotten", "lost", "misplaced", "can't remember", "don't remember"],
+            "reset": ["recover", "restore", "retrieve", "get back", "change"],
             # APU specific synonyms
             "exam": ["examination", "test", "assessment", "final", "docket"],
             "course": ["module", "class", "subject", "unit"],
@@ -80,13 +111,16 @@ class InputProcessor:
             "APU": ["Asia Pacific University", "university", "school", "campus"],
             "timetable": ["schedule", "class schedule", "calendar"],
             "intake": ["batch", "cohort", "entry", "enrollment period"],
-            # Login/Authentication synonyms
+            # Enhanced Login/Authentication synonyms
             "login": ["sign in", "log in", "signin", "access", "authenticate", "log into"],
             "cannot": ["unable", "can't", "could not", "couldn't", "trouble", "problem", "issue"],
-            "apspace": ["APSpace", "ap space", "student portal", "student system"],
-            "apkey": ["APKey", "student ID", "authentication", "credentials", "password"],
+            "apspace": ["APSpace", "ap space", "student portal", "student system", "student platform"],
+            "apkey": ["APKey", "student ID", "authentication", "credentials", "password", "user ID"],
             "troubleshoot": ["fix", "resolve", "solve", "help", "debug"],
         }
+        
+        # Note: Grammar correction now handled by spaCy processor
+        # Keeping minimal patterns for fallback only
         
         # APU-specific abbreviations
         self.apu_abbreviations = {
@@ -111,25 +145,22 @@ class InputProcessor:
     
     def normalize_query(self, query: str) -> str:
         """
-        Normalize query by converting to lowercase, removing punctuation,
-        and standardizing whitespace with intelligent pattern matching.
+        Normalize query by converting to lowercase, fixing grammar issues,
+        removing punctuation, and standardizing whitespace.
         """
         # Convert to lowercase
         normalized = query.lower()
         
-        # Handle common APU/login related patterns BEFORE removing punctuation
-        login_patterns = {
-            r'\b(?:cannot|can not|unable to|trouble|problem|issue).*?(?:login|log in|sign in|access|signin)\b': 'unable sign in',
-            r'\blogin.*?(?:apspace|ap space)\b': 'sign in APSpace',
-            r'\b(?:apspace|ap space).*?(?:login|access|sign in)\b': 'APSpace sign in',
-            r'\bapkey.*?(?:problem|issue|trouble)\b': 'APKey trouble',
-            r'\bsign.*?in.*?(?:problem|issue|trouble)\b': 'sign in trouble'
-        }
+        # Apply spaCy grammar correction first if available
+        if self.use_spacy_semantics and self.spacy_processor:
+            try:
+                normalized = self.spacy_processor.correct_grammar(normalized)
+            except Exception as e:
+                logger.warning(f"spaCy grammar correction failed: {e}")
         
-        for pattern, replacement in login_patterns.items():
-            if re.search(pattern, normalized):
-                normalized = re.sub(pattern, replacement, normalized)
-                break  # Only apply first matching pattern
+        # General login issue normalization (removed specific APSpace patterns)
+        if re.search(r'\b(?:cannot|can not|unable to|trouble|problem|issue).*?(?:login|log in|sign in|access|signin)\b', normalized):
+            normalized = re.sub(r'\b(?:cannot|can not|unable to|trouble|problem|issue).*?(?:login|log in|sign in|access|signin)\b', 'unable sign in', normalized)
         
         # Remove punctuation except apostrophes in contractions
         normalized = re.sub(r'[^\w\s\']', ' ', normalized)
@@ -463,16 +494,39 @@ class InputProcessor:
     
     def expand_query(self, query: str, keywords: List[str]) -> List[str]:
         """
-        Expand the query with synonyms and variations, including APU-specific terms.
+        Expand the query with synonyms, semantic variations, and APU-specific terms.
+        Enhanced for better matching of time-related and domain-specific queries.
         
         Returns:
             List of expanded query strings
         """
+        # Try spaCy semantic processor first (following migration guide)
+        if self.use_spacy_semantics and self.spacy_processor:
+            try:
+                spacy_expansions = self.spacy_processor.semantic_query_expansion(query)
+                if spacy_expansions and len(spacy_expansions) > 1:
+                    logger.info("Using spaCy semantic expansion")
+                    return spacy_expansions
+            except Exception as e:
+                logger.warning(f"spaCy processor failed, falling back to traditional method: {e}")
+        
+        # Fallback to traditional method
+        logger.info("Using traditional expansion method")
+        return self._traditional_expand_query(query, keywords)
+    
+    def _traditional_expand_query(self, query: str, keywords: List[str]) -> List[str]:
+        """Traditional query expansion method as fallback."""
         expanded_queries = [query]  # Start with the original query
         
         # Skip expansion for very short queries or conversational queries
         if len(keywords) < 2:
             return expanded_queries
+        
+        # Add semantic variations for common query patterns
+        semantic_variations = self._generate_semantic_variations(query, keywords)
+        for variation in semantic_variations:
+            if variation not in expanded_queries:
+                expanded_queries.append(variation)
         
         # Expand using synonyms
         for i, keyword in enumerate(keywords):
@@ -496,6 +550,12 @@ class InputProcessor:
                     if expanded_query not in expanded_queries:
                         expanded_queries.append(expanded_query)
         
+        # Generate contextual variations for specific domains
+        domain_variations = self._generate_domain_variations(query, keywords)
+        for variation in domain_variations:
+            if variation not in expanded_queries:
+                expanded_queries.append(variation)
+        
         # If we haven't generated enough variations, try some combinations
         if len(expanded_queries) < Config.EXPANSION_FACTOR and len(keywords) >= 3:
             # Generate variations by removing one non-essential keyword at a time
@@ -509,3 +569,94 @@ class InputProcessor:
                     break
         
         return expanded_queries[:Config.EXPANSION_FACTOR]  # Limit to avoid too many variations
+    
+    def _generate_semantic_variations(self, query: str, keywords: List[str]) -> List[str]:
+        """
+        Generate semantic variations for common query patterns.
+        
+        Args:
+            query: Original query
+            keywords: Extracted keywords
+            
+        Returns:
+            List of semantic variations
+        """
+        variations = []
+        
+        # Time-related query variations (for library hours, etc.)
+        if any(word in keywords for word in ['when', 'time', 'hours', 'schedule']):
+            if 'library' in keywords:
+                variations.extend([
+                    'library operating hours',
+                    'library opening hours', 
+                    'library schedule',
+                    'when is library open',
+                    'library operation time',
+                    'what time library open'
+                ])
+            if 'close' in keywords or 'closes' in keywords:
+                variations.append('operating hours')
+                variations.append('opening time')
+            if 'open' in keywords or 'opens' in keywords:
+                variations.append('operating hours')
+                variations.append('opening time')
+        
+        # General password/login related variations (removed APSpace-specific fixes)
+        if any(word in keywords for word in ['password', 'login', 'forgot']):
+            if 'forgot' in keywords and 'password' in keywords:
+                variations.extend([
+                    'password recovery',
+                    'password reset',
+                    'login credentials',
+                    'authentication help'
+                ])
+        
+        # Fee/payment related variations
+        if any(word in keywords for word in ['fee', 'pay', 'payment']):
+            variations.extend([
+                'tuition payment',
+                'fee payment process',
+                'university fees',
+                'payment procedure'
+            ])
+        
+        return variations
+    
+    def _generate_domain_variations(self, query: str, keywords: List[str]) -> List[str]:
+        """
+        Generate domain-specific variations for APU queries.
+        
+        Args:
+            query: Original query (currently unused but kept for future enhancements)
+            keywords: Extracted keywords
+            
+        Returns:
+            List of domain variations
+        """
+        variations = []
+        
+        # Library-specific variations
+        if 'library' in keywords:
+            variations.extend([
+                'APU library',
+                'university library',
+                'learning resources center'
+            ])
+        
+        # Academic-related variations
+        if any(word in keywords for word in ['course', 'class', 'module']):
+            variations.extend([
+                'academic program',
+                'study program',
+                'university course'
+            ])
+        
+        # Administrative variations
+        if any(word in keywords for word in ['visa', 'immigration', 'pass']):
+            variations.extend([
+                'student pass',
+                'immigration matters',
+                'visa renewal'
+            ])
+        
+        return variations
