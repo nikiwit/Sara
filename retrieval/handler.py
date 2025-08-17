@@ -17,7 +17,7 @@ from nltk.corpus import stopwords
 from nltk.util import ngrams
 import numpy as np
 
-from config import Config
+from config import Config, config
 from sara_types import QueryType, RetrievalStrategy
 from .system_info import SystemInformation
 from .faq_matcher import FAQMatcher
@@ -52,11 +52,11 @@ class RetrievalHandler:
         
         # Initialize response cache
         from response.cache import ResponseCache
-        self.response_cache = ResponseCache(ttl=Config.CACHE_TTL if hasattr(Config, 'CACHE_TTL') else 3600)
+        self.response_cache = ResponseCache(ttl=config.CACHE_TTL if hasattr(config, 'CACHE_TTL') else 3600)
         logger.info("Initialized response cache")
         
         # Add spaCy processor for semantic ranking (Phase 4: Configuration-driven)
-        self.use_semantic_ranking = Config.USE_ENHANCED_SEMANTICS
+        self.use_semantic_ranking = config.USE_ENHANCED_SEMANTICS
         
         if self.use_semantic_ranking:
             try:
@@ -85,15 +85,15 @@ class RetrievalHandler:
         # Semantic search retriever with higher retrieval count for better matching
         retrievers[RetrievalStrategy.SEMANTIC] = self.vector_store.as_retriever(
             search_type="similarity",
-            search_kwargs={"k": Config.RETRIEVER_K * 2}  # Double the search space
+            search_kwargs={"k": config.RETRIEVER_K * 2}  # Double the search space
         )
         
         # MMR retriever for diversity
         retrievers[RetrievalStrategy.MMR] = self.vector_store.as_retriever(
             search_type="mmr",
             search_kwargs={
-                "k": Config.RETRIEVER_K,
-                "fetch_k": Config.RETRIEVER_K * 4,  # Increased fetch for better diversity
+                "k": config.RETRIEVER_K,
+                "fetch_k": config.RETRIEVER_K * 4,  # Increased fetch for better diversity
                 "lambda_mult": 0.3  # Lower lambda for more diversity
             }
         )
@@ -169,7 +169,7 @@ class RetrievalHandler:
                 yield word
             else:
                 yield ' ' + word
-            time.sleep(Config.STREAM_DELAY)
+            time.sleep(config.STREAM_DELAY)
     
     def process_query(self, query_analysis: Dict[str, Any], stream=False) -> Union[str, Iterator[str]]:
         """
@@ -239,7 +239,7 @@ class RetrievalHandler:
                 from response.generator import RAGSystem
                 response = RAGSystem.stream_ollama_response(
                     self._create_prompt(input_dict), 
-                    Config.LLM_MODEL_NAME,
+                    config.LLM_MODEL_NAME,
                     stream_output=stream
                 )
                 
@@ -305,7 +305,7 @@ class RetrievalHandler:
                 from response.generator import RAGSystem
                 response = RAGSystem.stream_ollama_response(
                     self._create_prompt(input_dict), 
-                    Config.LLM_MODEL_NAME,
+                    config.LLM_MODEL_NAME,
                     stream_output=stream
                 )
                 
@@ -357,7 +357,7 @@ class RetrievalHandler:
         logger.info(f"Confidence score: {confidence_score:.3f}")
         
         # If confidence is too low, return boundary response
-        if confidence_score < Config.CONFIDENCE_THRESHOLD:
+        if confidence_score < config.CONFIDENCE_THRESHOLD:
             boundary_response = self._get_boundary_response(original_query)
             
             # Update memory
@@ -402,7 +402,7 @@ class RetrievalHandler:
         from response.generator import RAGSystem
         response = RAGSystem.stream_ollama_response(
             self._create_prompt(input_dict), 
-            Config.LLM_MODEL_NAME,
+            config.LLM_MODEL_NAME,
             stream_output=stream
         )
         
@@ -747,9 +747,9 @@ class RetrievalHandler:
         """
         Select the appropriate retrieval strategy based on query type.
         """
-        if Config.RETRIEVER_SEARCH_TYPE != "auto":
+        if config.RETRIEVER_SEARCH_TYPE != "auto":
             # Use the configured strategy if not set to auto
-            return RetrievalStrategy(Config.RETRIEVER_SEARCH_TYPE)
+            return RetrievalStrategy(config.RETRIEVER_SEARCH_TYPE)
         
         # Select strategy based on query type
         if query_type in [QueryType.FACTUAL, QueryType.ACADEMIC]:
@@ -813,7 +813,7 @@ class RetrievalHandler:
                 logger.error(f"Error retrieving documents for query '{query}': {e}")
         
         # Apply advanced reranking using cross-encoder model
-        all_docs = self.reranker.rerank_documents(queries[0], all_docs, top_k=Config.RETRIEVER_K)
+        all_docs = self.reranker.rerank_documents(queries[0], all_docs, top_k=config.RETRIEVER_K)
         
         logger.info(f"Retrieved and reranked {len(all_docs)} documents")
         return all_docs
@@ -893,7 +893,7 @@ class RetrievalHandler:
         
         # Convert to Document objects
         result_docs = []
-        for score, i in scored_docs[:Config.RETRIEVER_K]:
+        for score, i in scored_docs[:config.RETRIEVER_K]:
             if i < len(documents) and i < len(metadatas):
                 result_docs.append(
                     Document(
@@ -978,7 +978,7 @@ class RetrievalHandler:
         doc_scores.sort(key=lambda x: x[1], reverse=True)
         
         # Return top K documents with scores
-        return doc_scores[:Config.RETRIEVER_K * 2]  # Get more for fusion
+        return doc_scores[:config.RETRIEVER_K * 2]  # Get more for fusion
     
     def _tokenize_and_clean(self, text: str) -> List[str]:
         """Tokenize and clean text for BM25 processing."""
@@ -1118,7 +1118,7 @@ class RetrievalHandler:
         
         # Return top documents
         result_docs = []
-        for doc_id, score in sorted_docs[:Config.RETRIEVER_K]:
+        for doc_id, score in sorted_docs[:config.RETRIEVER_K]:
             doc = doc_map[doc_id]
             doc.metadata['fusion_score'] = score
             result_docs.append(doc)
@@ -1595,8 +1595,8 @@ class RetrievalHandler:
     Answer:"""
 
         else:
-            # Enhanced prompt with 2025 RAG best practices: contextual reasoning and query understanding
-            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Use contextual reasoning to provide accurate answers.
+            # Direct answer prompt - no reasoning explanations
+            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer questions directly and concisely.
 
     Question: {question}
 
@@ -1604,30 +1604,19 @@ class RetrievalHandler:
     {context}
 
     Instructions:
-    1. **CONTEXTUAL REASONING**: First, understand what the user is really asking. If they ask "when does the library close?" and the information shows "Monday-Friday: 8:30 AM - 7:00 PM", then 7:00 PM IS the closing time. Apply logical reasoning to connect information to the question.
-
-    2. **QUERY UNDERSTANDING**: Consider question variations that ask for the same information:
-       - "When does X open?" and "When does X close?" both relate to operating hours
-       - "What time does X close?" and "When is X closed?" ask about the same schedule information
-       - Use the available information to answer ALL variations of the same underlying question
-
-    3. **SUFFICIENT CONTEXT CHECK**: Before answering, verify if the available information contains enough details to provide a complete answer. If it mentions operating hours, you can derive both opening AND closing times from that information.
-
-    4. **REASONING EXAMPLES**:
-       - If info says "Library: 8:30 AM - 7:00 PM" → This answers both "when does it open?" (8:30 AM) and "when does it close?" (7:00 PM)
-       - If info says "Office hours: Monday-Friday 9-5" → Opening time is 9 AM, closing time is 5 PM
-       - If info says "Closed on Sundays" → This answers "when is it closed?" (Sundays)
-
-    5. Answer the question directly and concisely using logical reasoning from the available information.
-    6. **CRITICAL**: Preserve ALL URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
-    7. For step-by-step procedures, format them clearly with numbers or bullet points.
-    8. Include specific locations, people, contact information, and office hours mentioned.
-    9. **ABSOLUTELY FORBIDDEN**: Do NOT assume the user's personal circumstances from the source material.
-    10. **REQUIRED**: When the source describes specific situations, present them as conditional options: "If you are doing an internship...", "For students who...", "In cases where..."
-    11. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
-    12. **UX CRITICAL**: If the information doesn't fully answer the question, say "I don't have detailed information about [specific topic]" - never mention "provided information" or "documents".
-    13. **UX CRITICAL**: NEVER mention internal system details like "provided information", "documents", "sections", or "context". Speak naturally as if you're a knowledgeable assistant.
-    14. Use a helpful and professional tone appropriate for a university assistant.
+    1. Answer the question directly using the available information.
+    2. Be concise - give the answer without explaining your reasoning process.
+    3. Do NOT include phrases like "To determine...", "Based on this information...", "This can be derived from...", or "Let's look at...".
+    4. Do NOT show your thinking process or analysis steps.
+    5. **CRITICAL**: Preserve ALL URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
+    6. For step-by-step procedures, format them clearly with numbers or bullet points.
+    7. Include specific locations, people, contact information, and office hours mentioned.
+    8. **ABSOLUTELY FORBIDDEN**: Do NOT assume the user's personal circumstances from the source material.
+    9. **REQUIRED**: When the source describes specific situations, present them as conditional options: "If you are doing an internship...", "For students who...", "In cases where..."
+    10. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
+    11. **UX CRITICAL**: If the information doesn't fully answer the question, say "I don't have detailed information about [specific topic]" - never mention "provided information" or "documents".
+    12. **UX CRITICAL**: NEVER mention internal system details like "provided information", "documents", "sections", or "context". Speak naturally as if you're a knowledgeable assistant.
+    13. Use a helpful and professional tone appropriate for a university assistant.
 
     Answer:"""
 

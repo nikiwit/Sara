@@ -14,7 +14,7 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer, PorterStemmer
 from nltk.util import ngrams
 
-from config import Config
+from config import Config, config
 from sara_types import QueryType
 
 logger = logging.getLogger("Sara")
@@ -47,7 +47,7 @@ class InputProcessor:
         self.stop_words = set(stopwords.words('english'))
         
         # Add spaCy semantic processor (Phase 4: Full migration with monitoring)
-        self.use_spacy_semantics = Config.USE_ENHANCED_SEMANTICS
+        self.use_spacy_semantics = config.USE_ENHANCED_SEMANTICS
         
         if self.use_spacy_semantics:
             try:
@@ -237,7 +237,7 @@ class InputProcessor:
         
         # Generate expanded queries if enabled
         expanded_queries = []
-        if Config.USE_QUERY_EXPANSION:
+        if config.USE_QUERY_EXPANSION:
             expanded_queries = self.expand_query(expanded_query, keywords)
         
         return {
@@ -531,7 +531,7 @@ class InputProcessor:
         # Expand using synonyms
         for i, keyword in enumerate(keywords):
             if keyword in self.synonyms:
-                for synonym in self.synonyms[keyword][:Config.EXPANSION_FACTOR]:
+                for synonym in self.synonyms[keyword][:config.EXPANSION_FACTOR]:
                     # Replace the keyword with its synonym
                     new_keywords = keywords.copy()
                     new_keywords[i] = synonym
@@ -557,7 +557,7 @@ class InputProcessor:
                 expanded_queries.append(variation)
         
         # If we haven't generated enough variations, try some combinations
-        if len(expanded_queries) < Config.EXPANSION_FACTOR and len(keywords) >= 3:
+        if len(expanded_queries) < config.EXPANSION_FACTOR and len(keywords) >= 3:
             # Generate variations by removing one non-essential keyword at a time
             for i in range(len(keywords)):
                 variation = ' '.join(keywords[:i] + keywords[i+1:])
@@ -565,10 +565,10 @@ class InputProcessor:
                     expanded_queries.append(variation)
                 
                 # Stop if we have enough variations
-                if len(expanded_queries) >= Config.EXPANSION_FACTOR:
+                if len(expanded_queries) >= config.EXPANSION_FACTOR:
                     break
         
-        return expanded_queries[:Config.EXPANSION_FACTOR]  # Limit to avoid too many variations
+        return expanded_queries[:config.EXPANSION_FACTOR]  # Limit to avoid too many variations
     
     def _generate_semantic_variations(self, query: str, keywords: List[str]) -> List[str]:
         """

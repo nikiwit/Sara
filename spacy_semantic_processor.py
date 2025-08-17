@@ -10,7 +10,7 @@ import spacy
 from spacy.tokens import Doc, Token
 import re
 import time
-from config import Config
+from config import Config, config
 
 logger = logging.getLogger("Sara")
 
@@ -24,7 +24,7 @@ class SpacySemanticProcessor:
         """Initialize spaCy model and semantic resources."""
         try:
             # Load spaCy model
-            model_name = getattr(Config, 'SEMANTIC_MODEL', 'en_core_web_sm')
+            model_name = getattr(config, 'SEMANTIC_MODEL', 'en_core_web_sm')
             self.nlp = spacy.load(model_name)
             logger.info(f"Loaded spaCy model: {model_name}")
             
