@@ -1513,8 +1513,8 @@ class RetrievalHandler:
         confidence_score = input_dict.get("confidence_score", 0.5)
         
         if is_medical_insurance:
-            # Medical insurance prompt (unchanged)
-            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer the question about medical insurance using the information available.
+            # Medical insurance prompt - direct answers
+            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer the question about medical insurance directly and concisely.
 
     Question: {question}
 
@@ -1523,12 +1523,13 @@ class RetrievalHandler:
 
     Instructions:
     1. Answer the question directly and concisely using the available information.
-    2. Be specific about where to collect the medical insurance card if that information is present.
-    3. Include any relevant details like location, counter number, or staff names.
-    4. Preserve all URLs and links exactly as they appear (e.g., https://example.com).
-    5. If you find step-by-step instructions, present them clearly with numbers or bullet points.
-    6. Use a helpful and professional tone appropriate for a university assistant.
-    7. If information is incomplete, suggest contacting APU directly for additional help.
+    2. Do NOT use formatting like "Where to collect your medical insurance card:" - just give the direct answer.
+    3. Be specific about where to collect the medical insurance card if that information is present.
+    4. Include any relevant details like location, counter number, or staff names.
+    5. Preserve all URLs and links exactly as they appear (e.g., https://example.com).
+    6. If you find step-by-step instructions, present them clearly with numbers or bullet points.
+    7. Use a helpful and professional tone appropriate for a university assistant.
+    8. If information is incomplete, suggest contacting APU directly for additional help.
 
     Answer:"""
         
@@ -1543,19 +1544,21 @@ class RetrievalHandler:
 
     Instructions:
     1. Provide a direct, helpful answer to the student's question using the available information.
-    2. Write as if you're speaking directly to the student - use "you" and be conversational.
-    3. **CRITICAL**: Preserve all URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
-    4. For step-by-step procedures, use numbered lists or clear formatting.
-    5. Include specific locations, contact information, and email addresses mentioned.
-    6. **ABSOLUTELY FORBIDDEN**: Do NOT assume the user's personal circumstances from the source material. If the source mentions "you are currently doing your internship" - this is an EXAMPLE scenario, NOT about this specific user.
-    7. **ABSOLUTELY FORBIDDEN**: Do NOT start responses with phrases like "I understand you are..." or "I see that you..." about situations not mentioned by the user.
-    8. **REQUIRED**: When the source describes specific situations (internships, attendance issues, etc.), present them as conditional options: "If you are doing an internship...", "For students who...", "In cases where..."
-    9. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
-    10. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
-    11. Provide general guidance that covers different scenarios without assuming which applies to the user.
-    12. **UX CRITICAL**: If the information doesn't fully address their specific situation, NEVER say "The provided information does not contain..." Instead, say "I don't have information about that specific aspect yet."
-    13. **UX CRITICAL**: NEVER mention internal system details like "provided information", "documents", "sections", or "context". Speak naturally as if you're a knowledgeable assistant.
-    14. Use a helpful and professional tone appropriate for a university assistant.
+    2. Be concise - give the answer without explaining your reasoning process.
+    3. Do NOT include phrases like "To determine...", "Based on this information...", "This can be derived from...", or "Let's look at...".
+    4. Write as if you're speaking directly to the student - use "you" and be conversational.
+    5. **CRITICAL**: Preserve all URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
+    6. For step-by-step procedures, use numbered lists or clear formatting.
+    7. Include specific locations, contact information, and email addresses mentioned.
+    8. **ABSOLUTELY FORBIDDEN**: Do NOT assume the user's personal circumstances from the source material. If the source mentions "you are currently doing your internship" - this is an EXAMPLE scenario, NOT about this specific user.
+    9. **ABSOLUTELY FORBIDDEN**: Do NOT start responses with phrases like "I understand you are..." or "I see that you..." about situations not mentioned by the user.
+    10. **REQUIRED**: When the source describes specific situations (internships, attendance issues, etc.), present them as conditional options: "If you are doing an internship...", "For students who...", "In cases where..."
+    11. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
+    12. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
+    13. Provide general guidance that covers different scenarios without assuming which applies to the user.
+    14. **UX CRITICAL**: If the information doesn't fully address their specific situation, NEVER say "The provided information does not contain..." Instead, say "I don't have information about that specific aspect yet."
+    15. **UX CRITICAL**: NEVER mention internal system details like "provided information", "documents", "sections", or "context". Speak naturally as if you're a knowledgeable assistant.
+    16. Use a helpful and professional tone appropriate for a university assistant.
 
     Answer:"""
 
