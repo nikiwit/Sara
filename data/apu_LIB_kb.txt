@@ -1,0 +1,966 @@
+--- PAGE: Library ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/overview
+
+Search this Space
+APU Library provides the knowledge space for exceptional learning experiences. It is a popular spot for interactive discussions and creative brainstorming sessions which in line with APU teaching strategy that encourages open and multidisciplinary approaches. Located in level 4, library provides a comfortable space and other facilities for users to utilize it.
+APU Library currently holds approximately 40,000 volumes of text and reference books, printed journals, reports, magazines and audiovisual materials. The collection also includes an expanding range of electronic resources such as e-books, e-journals, and online databases.
+This space provides information regarding the library services, facilities and general information that helps users with their study and research.
+simple
+
+--- PAGE: How to search for printed book? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/225345578/How+to+search+for+printed+book
+
+Step 1-
+Access the OPAC portal using this link:
+https://opac.apiit.edu.my/ (https://opac.apiit.edu.my/)
+Step 2-
+Enter the book name in the search bar and click “Go“.
+You can adjust the search details by clicking the drop-down menu next to the search bar and selecting any element such as
+keyword, ISSN
+and
+Subject.
+Step 3-
+Choose the book that you want and click the title.
+Step 4-
+Write down the call number and search the book on the shelf. Take note of the location of the library as well.
+Ensure that the status of the book is “Available”. If the status showed “Checkout”, you may procced to place hold (reserve).
+Related articles
+false
+5
+false
+label = "membership"
+
+--- PAGE: What is the library operation hours? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/539197469/What+is+the+library+operation+hours
+
+:timer:
+23f2
+⏲
+#FFEBE6
+Monday – Friday:
+8:30 a.m. – 7:00 p.m.
+Saturday :
+9:00 a.m. - 1:00 p.m.
+Sunday / Public Holidays:
+Closed
+note
+During scheduled Open Day (Saturday & Sunday) organized by the university, the
+APU library
+is open from
+10:00 am – 5:00 pm
+. You may visit the official
+university website (https://apu.edu.my/)
+to know the latest Open Day schedule.
+During scheduled Open Day (Saturday & Sunday) organized by the university, the
+APU library
+is open from
+10:00 am – 5:00 pm
+. You may visit the official
+university website (https://apu.edu.my/)
+to know the latest Open Day schedule.
+The current operating hours are implemented during the Covid-19 pandemic and will be subject to revision without any notice. Therefore, you are encouraged to check the
+library website (https://library.apiit.edu.my/)
+for the latest operating hours from time to time.
+Related articles
+false
+5
+false
+label = "general"
+
+--- PAGE: How long can I borrow an item? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968767024/How+long+can+I+borrow+an+item
+
+The loan duration is determined by the types of library collection. Refer to the table below to learn the loan duration associated with the collections :
+Collection Type (see the round colored spine label on books)
+Duration
+General circulation (no colored labels attached)
+7 days
+3 days loan (yellow-colored label)
+3 days
+Overnight loan (red-colored label)
+1 day
+Staff circulation (green colored label) – for academic staff only
+(*other users are allowed to borrow only under the exceptional loan, which will be subject to approval by the library management. Loan duration will vary under such circumstances).
+120 days (4 months)
+References, Current Periodicals, Bound Journals
+Only to be used in the library as a reference
+Final year projects and Theses
+Only to be used in the library as a reference
+CD ROMs / DVDs
+CD ROMs / DVDs accompanying book can be borrowed with the same privileges as the book.
+APU Wacom Tablet
+1 day
+APU Lightpad
+1 day
+Related articles
+false
+5
+false
+label = "membership"
+
+--- PAGE: Referencing Style in Academic Writing ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968767034/Referencing+Style+in+Academic+Writing
+
+1
+
+--- PAGE: Which referencing style is used in APU? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968767041/Which+referencing+style+is+used+in+APU
+
+At APU, we use APA referencing style in our academic writing. Refer to APA’s
+Style and Grammar Guidelines (References) (https://apastyle.apa.org/style-grammar-guidelines/references)
+and the library’s
+Quick APA Referencing Guide (https://dif7uuh3zqcps.cloudfront.net/wp-content/uploads/sites/91/2021/07/12102004/Quick-APA-Referencing-Guide-2021.pdf)
+for a more comprehensive guide and mechanics of style used to create an accurate reference list.  APA Referencing workshops are conducted upon request.
+You may also request a referencing class in groups or individual consultation by sending a request through our
+Library Helpdesk (https://apiit.atlassian.net/servicedesk/customer/portal/14)
+.
+Related articles
+false
+20
+false
+label in ( "l-referencing" , "referencing" )
+
+--- PAGE: How to write an end-text referencing using APA Style? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968767097/How+to+write+an+end-text+referencing+using+APA+Style
+
+APA referencing style required four basic information.
+WHO: Author's name
+WHEN: Date of publication
+WHAT: Title of work
+WHERE: Source data
+The arrangement of information is as below :
+Primary title should be written in italic.
+For the journal article, the journal title should be written in Italic while the article title will be written in a normal text.
+Resources that are available online, please use the DOI or URL as their source of data.
+Related articles
+false
+20
+false
+label in ( "l-referencing" , "referencing" )
+
+--- PAGE: How to reserve a book? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968767119/How+to+reserve+a+book
+
+You can only reserve a book that is currently out on loan to another user or the book you wish to borrow is not available on the shelf. You can reserve up to two books at any one time. The following steps will guide you to make a reservation:
+Step 1-
+Log in to "
+My Library Account (https://opac.apiit.edu.my/cgi-bin/koha/opac-user.pl?ticket=ST-836996-Hf3m-RAH5tSXRMMWfkLHgRGkfLoip-172-32-49-26)
+" to access the library catalog.
+Step 2-
+Search and locate the book that you wish to reserve.
+Step 3-
+Click on the "Place hold" button to reserve the book(s).
+Step 4-
+Choose your "Pickup location" as APU  Library to collect the book(s).
+8727ed00-9493-4e57-bb94-8f45ff3ff83a
+DECIDED
+00cc8d27-0a2c-4d90-ab1d-51de7986ddfe
+You may choose to set your own expiration date for the booking i.e a date you will no longer need the book by.
+You may choose to set your own expiration date for the booking i.e a date you will no longer need the book by.
+Step 5-
+You will be notified by an email (either automated email or by one of the librarians) that the book(s) are ready for collection. Collect the reserved book(s) within three working days from the date you have been notified. The details and status of your reservation are reflected in your library account.
+note
+Confirmed reservations expire after three days, and the book(s) will either be passed on to the following user in the queue or re-shelved in its original location.
+Confirmed reservations expire after three days, and the book(s) will either be passed on to the following user in the queue or re-shelved in its original location.
+Related articles
+false
+5
+false
+label = "membership"
+
+--- PAGE: How do I access the e-databases library resources off-campus? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968767135/How+do+I+access+the+e-databases+library+resources+off-campus
+
+Visit the
+APU E-databases (https://library.apu.edu.my/apu-e-databases/)
+from our library website. Click on the title of the e-database of your choice and  key in your APKey to access the e-databases.
+Related articles
+false
+5
+false
+label = "e-resources"
+
+--- PAGE: How do I view or search for e-journals and e-books? What about downloading or printing? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968767145/How+do+I+view+or+search+for+e-journals+and+e-books+What+about+downloading+or+printing
+
+E-journals/e-books (https://library.apu.edu.my/apu-e-databases/)
+are commonly available in three formats namely, HTML, PDF and ePUB. Resources that come in PDF format will need a PDF reader, while the ePUB format will need the Adobe Digital Edition software to view the e-resources. The availability of the formats are determined by the publishers.
+Our e-databases are purchased through subscriptions with specific licensure and copyright restrictions.
+note
+While most of the electronic resources that we subscribed are downloadable and printable, there may be limitations set by the respective publishers in terms of the number of pages / content that one can download / print. The limitations vary from publisher to publisher.
+While most of the electronic resources that we subscribed are downloadable and printable, there may be limitations set by the respective publishers in terms of the number of pages / content that one can download / print. The limitations vary from publisher to publisher.
+You will come across such limitations on the individual page of e-resources that you are accessing. One such example is shown below:
+Related articles
+false
+5
+false
+label = "e-resources"
+
+--- PAGE: Does the library have any magazine collections ? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968767211/Does+the+library+have+any+magazine+collections
+
+We do have selected print magazine collections displayed on shelves in the library near the staircase area.
+Related articles
+label = "resources"
+false
+5
+false
+
+--- PAGE: Damaged a borrowed book . Do I have to pay? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968767237/Damaged+a+borrowed+book+.+Do+I+have+to+pay
+
+Damaged items should be reported to the
+library (https://apiit.atlassian.net/servicedesk/customer/portal/14)
+immediately to prevent fines from continuing to accrue. The cost of a damaged book depends on the severity of the damage If a loaned item is severely damaged, the student will have to replace it or pay for it at its current market price.
+note
+For minor damages, the cost of repairing the book would be RM 12 for soft-cover books and RM 15 for hardcover titles.
+For minor damages, the cost of repairing the book would be RM 12 for soft-cover books and RM 15 for hardcover titles.
+Related articles
+false
+5
+false
+label = "resources"
+
+--- PAGE: Membership and Privileges ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968930826/Membership+and+Privileges
+
+1
+
+--- PAGE: How many items can students and staff borrow? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968930845/How+many+items+can+students+and+staff+borrow
+
+The table below lists the maximum number of items that can be borrowed by category of patrons:
+You may refer to our
+Library Membership and Privileges (https://library.apu.edu.my/library-membership-and-privileges/)
+page for further details.
+Membership Categories
+No. of Loans (at any one time)
+Certificate, Foundation, Diploma and Degree Students
+4 items
+Postgraduate Students (Full-time)
+10 items
+Postgraduate Students (Part- time)
+6 items
+Academic Staff (Full-time)
+20 items
+Academic Staff (Part-time)
+10 items
+Administrative Staff
+2 items
+English Language Course Students
+2 Items
+EFREI Students
+2 Items
+Related articles
+false
+5
+false
+label = "membership"
+
+--- PAGE: How to extend the borrowing book due date? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968930873/How+to+extend+the+borrowing+book+due+date
+
+By default, you are allowed to renew your borrowed items (this is limited to items that are eligible for renewal) twice.
+ac5c2403-5221-4bef-b1d7-2cd9ab924b2f
+DECIDED
+6dbdecd4-9a30-47fd-95dc-9749bd310aa7
+You can either renew the items over the counter or you can do an online renewal if you have not reached your renewal limits.
+DECIDED
+bf9822f1-2c9b-4578-ab3b-ef66597bb99d
+If you have reached the renewal limit, you will have to bring the item to the library to see if it can be further extended.
+You can either renew the items over the counter or you can do an online renewal if you have not reached your renewal limits.
+If you have reached the renewal limit, you will have to bring the item to the library to see if it can be further extended.
+Online renewal can be done by logging in to your “
+My Library Account (https://cas.apiit.edu.my/cas/login?service=http://opac.apiit.edu.my/cgi-bin/koha/opac-user.pl)
+”  as shown below:
+Related articles
+label = "membership"
+false
+false
+
+--- PAGE: Can I borrow FYP/theses/dissertation? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968930912/Can+I+borrow+FYP+theses+dissertation
+
+The hard bound FYP / Theses / Dissertation belongs to the library’s “Reference Collection”.
+note
+Any materials belong to this category can only be used within the library and not available for borrowing.
+Any materials belong to this category can only be used within the library and not available for borrowing.
+However, you may visit the
+APU’s Institutional Repository (APres) (https://library.apiit.edu.my/apres/)
+to access hundreds of selected copies of FYPs / Theses/ Dissertation.
+Related articles
+false
+5
+false
+label = "membership"
+
+--- PAGE: What is referencing, and what are included in referencing? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968930941/What+is+referencing+and+what+are+included+in+referencing
+
+A method used to demonstrate a thorough and appropriate literature search and reading. An acknowledgement of used ideas and written material belonging to other authors in their own work.
+:note:
+atlassian-note
+#C0B6F2
+Two parts are included in referencing: Citation (in-text referencing) and Reference List (end-text referencing).
+Related articles
+false
+20
+false
+label in ( "l-referencing" , "referencing" )
+
+--- PAGE: How to write the APA reference list? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968930978/How+to+write+the+APA+reference+list
+
+Below are the steps to write the APA reference list :
+Begin the reference list on a new page after the text.
+Place the section label "References" in bold at the top of the page, centered.
+Double-space the reference list, both within and between references. Do not add extra lines between references.
+Order references alphabetically, usually by the first letter of the first author's last name.
+Include the authors' first and middle initials (if they have them). Do not write out first or middle names.
+Write author names in the inverted format so that the last name comes first, followed by a comma and the initials. Place a period and a space after each initial.
+Apply a hanging indent for all references using the paragraph-formatting function of your word processing program: The first line is flush left, and all subsequent lines are indented 0.5 inches.
+Example of Reference list:
+Related articles
+false
+20
+false
+label in ( "l-referencing" , "referencing" )
+
+--- PAGE: How do I pay my library fines? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968930996/How+do+I+pay+my+library+fines
+
+You need to come to the library counter and pay your fines by cash. Please ensure to login to your “
+My Library Account (https://opac.apiit.edu.my/cgi-bin/koha/opac-user.pl?ticket=ST-836919-Y3Z7P0v5UJ6n8hwRmSiR2w9JLZQip-172-32-49-26)
+” to check your total outstanding fines and prepare the exact cash to make payment at the library counter.
+Related articles
+label = "membership"
+false
+20
+false
+
+--- PAGE: How to search for the previous final year project (FYP) that is available in the library? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968931023/How+to+search+for+the+previous+final+year+project+FYP+that+is+available+in+the+library
+
+You can use the
+OPAC (Online Public Access Catalogue) (https://opac.apiit.edu.my/)
+to browse our collection of final year projects (FYP) and theses.
+Follow the steps below on how to search.
+Step 1
+- Click on “Advanced Search”
+.
+Step 2
+- Key in any keyword and choose either Diploma Project, Undergraduate Theses, Master Theses or PhD Theses. Click the “Search” button.
+Step 3
+- Click on the titles of the collection.
+Step 4
+- Check the library location and take note of the call number to locate the FYP/Dissertation on the shelf.
+Related articles
+false
+5
+false
+label = "resources"
+
+--- PAGE: How do I check the print collection availability in the Library? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968931030/How+do+I+check+the+print+collection+availability+in+the+Library
+
+You can either use the
+OPAC (Online Public Access Catalogue) (https://opac.apiit.edu.my/)
+or  the Worldcat Discovery to enter your search terms in the search field available on the
+library homepage (https://library.apu.edu.my/)
+.
+990f6105-79c1-4840-946f-b5a25b2daaa0
+DECIDED
+b5de0fcb-486e-4d60-904e-d7269a138687
+Search Catalog OPAC
+Search Catalog OPAC
+25a85b2c-de35-43c7-bb13-0a93e8705bb3
+DECIDED
+70b7a5ff-7005-4282-94da-1459e368d7d5
+Search Catalogue Worldcat Discovery
+Search Catalogue Worldcat Discovery
+Related articles
+false
+5
+false
+label = "resources"
+
+--- PAGE: Lost a borrowed book ? What should I do? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968931071/Lost+a+borrowed+book+What+should+I+do
+
+Please
+report to us (https://apiit.atlassian.net/servicedesk/customer/portal/14)
+immediately once you realize the borrowed item(s)/book(s) is lost by providing the details of the lost item(s) / book(s) (e.g., name of the item, book title, barcode, date that you borrow, etc.).
+If you fail to report to us, the fines will continue to accrue. Hence, please do not delay in informing us.
+Once reported, your library account will be suspended temporarily. The library will allow a grace period of two weeks for you to search for the book(s)/item(s). You will not be charged with fines for two weeks.
+If the item is not found after the grace period, we will contact you to discuss one of the following possible options (but not limited to) to resolve the issue.
+ad296934-c4c1-4e49-b275-e558fa0b7127
+DECIDED
+9ca749cb-0562-4e78-a3d2-deb128f72f14
+Replace the lost book with a new copy of the same edition or the latest edition.
+DECIDED
+18ce8b25-f84a-4376-b3f1-30e817b1c897
+Pay the replacement costs, including the book price and overdue fines owing on the item.
+Replace the lost book with a new copy of the same edition or the latest edition.
+Pay the replacement costs, including the book price and overdue fines owing on the item.
+The details of the lost item will be recorded in the "Missing / Lost Book" form by the librarian. The final decision resulting from the discussion will be emailed to you to facilitate the next course of action.
+Once you have made the necessary arrangements to clear your account based on the final decision, we will reinstate your library account.
+Related articles
+false
+5
+false
+label = "resources"
+
+--- PAGE: Facilities ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968931088/Facilities
+
+1
+
+--- PAGE: I have a problem with library facilities/services. Where should I report to? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968931095/I+have+a+problem+with+library+facilities+services.+Where+should+I+report+to
+
+You may raise a helpdesk request from our
+Library Helpdesk (https://apiit.atlassian.net/servicedesk/customer/portal/14)
+, and we will assist you as soon as possible.
+Related articles
+false
+5
+false
+label = "feedback"
+
+--- PAGE: How can I reserve a discussion room in the Library? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968931105/How+can+I+reserve+a+discussion+room+in+the+Library
+
+Library discussion rooms can be booked manually at the library counter on a first-come-first-served basis. Reservations can be made by following the steps below. Please refer to the
+booking conditions (https://library.apu.edu.my/quiet-discussion-rooms/)
+prior to making your reservation.
+Step 1-
+Proceed to the library counter on the day that you want to use.
+Step 2-
+Check the availability of room from the staff on duty.
+Step 3-
+Confirm the booking.
+Step 4-
+Pass the student/staff ID to the staff on duty before entering the room.
+Step 5-
+Collect the ID after leaving the room.
+IMPORTANT NOTE:
+If you need a
+room in the library for your FYP presentation
+, an email to your
+undergraduate school (https://apiit.atlassian.net/wiki/wiki/mailto:megala.arunasalam@apu.edu.my)
+or
+postgraduate school (https://apiit.atlassian.net/wiki/wiki/mailto:fatinhazwani@apu.edu.my)
+FYP Administrators respectively must be sent by the Supervisor or the Second marker.
+This procedure has been put into practice since September 2023 and has been communicated to all the schools by the FYP Administrators via email accordingly.
+Any room reservation request sent directly to the library team for FYP Presentation will be redirected to the FYP Administrators respectively
+.
+Related articles
+false
+5
+false
+label = "facilities"
+
+--- PAGE: How do I collect my library deposit? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968963597/How+do+I+collect+my+library+deposit
+
+You will need  to complete and submit the
+Exit Application (http://forms.sites.apiit.edu.my/apu-exit-form/)
+form by following the steps below:
+Login to
+APSpace (http://pace.apu.edu.my/)
+.
+Under the "Collaboration & Information Resources” tab: choose "e-Forms." A new tab will open in your browser where you can find the "
+Exit Application (http://forms.sites.apiit.edu.my/apu-exit-form/)
+" form listed at the bottom of the page.
+Complete the form by providing the required details and wait for confirmation. You can check the status in the
+E-forms (http://forms.sites.apiit.edu.my/home/)
+.
+Collect the library deposit from the cashier.
+f2680971-1544-4f05-9c8a-98c69f7f6856
+2fc40971-4724-41bd-8478-a4880429acf9
+DECIDED
+Choose either "Completion" or "Withdrawal" depending on the reason for your membership termination (you will be required to attach a scanned copy of your flight ticket for security deposit) and click "Submit."
+Choose either "Completion" or "Withdrawal" depending on the reason for your membership termination (you will be required to attach a scanned copy of your flight ticket for security deposit) and click "Submit."
+You may also refer to a visual guide
+here
+to understand the above steps better.
+Related articles
+false
+5
+false
+label = "membership"
+
+--- PAGE: Does the library have a fiction book collection? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968963765/Does+the+library+have+a+fiction+book+collection
+
+We do have access to some selected fiction books in print and also as e-books. You can check the availability through
+OPAC (https://opac.apiit.edu.my/)
+(print copy) and
+EBSCOHost (e-books ) (https://cas.apiit.edu.my/cas/login?service=https%3a%2f%2flogin.ezproxy.apu.edu.my%2flogin%3fqurl%3dezp.2aHR0cHM6Ly9zZWFyY2guZWJzY29ob3N0LmNvbS9sb2dpbi5hc3B4Lw--)
+as shown below:
+Step 1-
+Click “Advance Search” in OPAC and choose the “content” to “Fiction” (Print copy).
+Step 2-
+Choose any of the titles from the result. Write down the call number and search the book on the shelf.
+EBSCOhost (E-books)
+Step 1-
+Click “eBooks” from the top menu and choose “eBook Collection (EBSCOhost).”
+Step 2-
+Key in any keyword in the search box. You may also browse by category at the side.
+Step 3-
+Once you find the title you wish to read/ view. Click on the title to view the details of the e-books. You may also directly click “PDF Full Text”, “EPUB Full Text”, or “Full Download”.
+When downloading the e-books from EBSCO, please ensure you have the “My EBSCOhost folder account”. You can create it using your email or official APU email.
+Related articles
+false
+5
+false
+label = "resources"
+
+--- PAGE: I want to remove/delete a paper from Turnitin. What should I do? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968963797/I+want+to+remove+delete+a+paper+from+Turnitin.+What+should+I+do
+
+Submit a paper deletion request via
+Library Helpdesk (https://apiit.atlassian.net/servicedesk/customer/portal/14/group/20/create/10123)
+by providing the Turnitin submission ID of the paper you wish to be removed.
+We will then escalate the deletion request to the Turnitin support team and will revert to you once the deletion is confirmed by the team.
+The deletion is permanent and papers cannot be retrieved for any reason once it's deleted.
+Related articles
+false
+5
+false
+label = "turnitin"
+
+--- PAGE: How do I access Turnitin? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968963822/How+do+I+access+Turnitin
+
+Turnitin is integrated with Moodle, and therefore it must be ONLY accessed via Moodle.
+As all APU instructors and students can access their courses and Turnitin assignments directly through Moodle,  no separate Turnitin account creation is required.
+Related articles
+false
+5
+false
+label = "turnitin"
+
+--- PAGE: How do I borrow items from the library? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968996354/How+do+I+borrow+items+from+the+library
+
+You will need your student / staff ID card to borrow any library items.
+13133008-d1f9-4e7a-a7d3-80522367f107
+DECIDED
+bd1cc9df-ab82-48f3-9e81-663f50bfd7b5
+You can either bring the items that you wish to borrow along with your ID to the counter or proceed to our Self-checkout kiosk for a quicker check-out process.
+You can either bring the items that you wish to borrow along with your ID to the counter or proceed to our Self-checkout kiosk for a quicker check-out process.
+Refer to the
+Self-checkout kiosk guide (https://dif7uuh3zqcps.cloudfront.net/wp-content/uploads/sites/91/2022/06/15033546/APU_Self-Checkout-Kiosk_User-Guide.pdf)
+if you are borrowing a book using the kiosk. Alternatively, you can follow the on-screen instructions displayed on the kiosk screen.
+note
+You must receive a receipt upon checking out any library item using the kiosk. If you did not receive one, please approach the staff on duty for assistance.
+You must receive a receipt upon checking out any library item using the kiosk. If you did not receive one, please approach the staff on duty for assistance.
+Related articles
+false
+5
+false
+label = "membership"
+
+--- PAGE: Where do I return the borrowed items/book? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968996365/Where+do+I+return+the+borrowed+items+book
+
+You can either return the borrowed items through the book return kiosk or at the library counter.  Refer to the
+Book Return Kiosk Guide (https://dif7uuh3zqcps.cloudfront.net/wp-content/uploads/sites/91/2022/06/15033543/APU_Book-Return-Kiosk_User-Guide.pdf)
+if you are returning the items using the kiosk. Alternatively, you can follow the on-screen instructions displayed in the kiosk screen.
+note
+You must receive a receipt upon checking out any library item using the kiosk. If you did not receive one, please approach the librarian on duty for assistance.
+You must receive a receipt upon checking out any library item using the kiosk. If you did not receive one, please approach the librarian on duty for assistance.
+Related articles
+false
+5
+false
+label = "membership"
+
+--- PAGE: What is APA referencing style? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968996443/What+is+APA+referencing+style
+
+APA referencing style is a set of guidelines that helps the writers properly present their works precisely and properly. It contains comprehensive guidelines and specific formatting for all kinds of resources, described in the 7th Edition Publication Manual of the American Psychological Association.
+Related articles
+false
+20
+false
+label in ( "l-referencing" , "referencing" )
+
+--- PAGE: How do I get help if I need to know more about APA referencing style? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968996450/How+do+I+get+help+if+I+need+to+know+more+about+APA+referencing+style
+
+There are various ways you can get assistance from and it depends on your referencing needs. Try one of the following:
+You may refer to the print copy of
+“Publication manual of the American Psychological Association : the official guide to APA style - 7th ed” (https://opac.apiit.edu.my/cgi-bin/koha/opac-detail.pl?biblionumber=383542)
+which is available in the library.
+Access the e-book of “
+The Concise APA Handbook: APA 7th ed (https://login.ezproxy.apu.edu.my/login?url=https://search.ebscohost.com/login.aspx?direct=true&db=e000xww&AN=2527724&site=ehost-live)
+.” via EBSCOHOST Academic Collection database.
+Refer to APA’s
+Style and Grammar Guidelines (References) (https://apastyle.apa.org/style-grammar-guidelines/references)
+Visit
+Quick APA Referencing Guide (https://dif7uuh3zqcps.cloudfront.net/wp-content/uploads/sites/91/2021/07/12102004/Quick-APA-Referencing-Guide-2021.pdf)
+for a quick glance at the mechanics of style used to create an accurate Reference list.
+:telephone_receiver:
+1f4de
+📞
+#F4F5F7
+You may also request an in person consultation session or for a group workshop by sending a request through our
+Library Helpdesk (https://apiit.atlassian.net/servicedesk/customer/portal/14)
+.
+Related articles
+false
+20
+false
+label in ( "l-referencing" , "referencing" )
+
+--- PAGE: What is the format of APA in-text citation? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968996460/What+is+the+format+of+APA+in-text+citation
+
+There are two different formats of in-text citation, parenthetical and narrative. Both formats require two elements:
+Author's name
+Year of publication
+Parenthetical citations are the more commonly seen form of in-text citations for academic work. Both required reference elements are presented at the end of the sentence in parentheses.
+E.g. (Belafonte, 2008).
+In narrative citations, the author's name will be separated from the date. The date must appear immediately after the author's name but in parenthesis.
+E.g. Belafonte (2008).
+Related articles
+false
+20
+false
+label in ( "l-referencing" , "referencing" )
+
+--- PAGE: Resources ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968996534/Resources
+
+1
+
+--- PAGE: Turnitin ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1968996593/Turnitin
+
+1
+
+--- PAGE: Am I allowed to bring food / drinks to the library? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1974960142/Am+I+allowed+to+bring+food+drinks+to+the+library
+
+:cross_mark:
+atlassian-cross_mark
+:cross_mark:
+#FFEBE6
+Food and canned drinks are strictly not allowed in the library.
+:check_mark:
+atlassian-check_mark
+:check_mark:
+#E3FCEF
+Drinking water in bottles and spill-proof containers are permitted.
+The food and drink policy is implemented to help to maintain the good condition of the library resources and its environment. Library staff reserve the right to determine which food and drink items are accepted.
+Related articles
+false
+5
+false
+label = "general"
+
+--- PAGE: Can I sleep in the library? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1975156740/Can+I+sleep+in+the+library
+
+Sleeping is strictly not allowed in the library as we want to maintain a professional ambience and a pleasant environment of the library.
+However, you are certainly allowed to sit and chill by listening to music, interact with your friends, engage in leisure activites that do not interrupt the ambience and the library environment.
+Related articles
+false
+5
+false
+label = "general"
+
+--- PAGE: How do I contact the library ? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1986265119/How+do+I+contact+the+library
+
+You may use the following details to contact the library for any enquiries :
+:telephone_receiver:
+1f4de
+📞
+#F4F5F7
+Library Counter:
++603 8992 5207
+Reference Desk:
++603 8992 5209
+Help Centre:
+You may also reach us via the
+Library Helpdesk (https://apiit.atlassian.net/servicedesk/customer/portal/14)
+for assistance.
+Related articles
+false
+20
+false
+label = "feedback"
+
+--- PAGE: How can I access online final year projects (FYP) or theses (APres)? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1986985998/How+can+I+access+online+final+year+projects+FYP+or+theses+APres
+
+Staff and students can access it through
+APres (https://library.apu.edu.my/apres/)
+. They are required to login to access the full text content. The public view is currently limited up to the abstract of the content.
+Related articles
+false
+5
+label = "e-resources"
+
+--- PAGE: E-resources ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1987084303/E-resources
+
+label = "e-resources"
+false
+20
+false
+
+--- PAGE: General Information ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1987149841/General+Information
+
+1
+
+--- PAGE: I’d like to work in the library. How do I apply for a vacancy? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1987182609/I+d+like+to+work+in+the+library.+How+do+I+apply+for+a+vacancy
+
+You will have to submit the online job application form, which will be available once the recruitment advertisement is published on the APSpace and library website.
+The application form must be submitted along with:
+Cover Letter
+Curriculum Vitae (CV)
+Passport-sized photograph
+You will be contacted for an interview session if you are shortlisted. You would also be notified by email if your application was unsuccessful. You may find more information about working for us
+here. (https://library.apu.edu.my/work-with-us/)
+Related articles
+false
+false
+label = "general"
+
+--- PAGE: Feedback and Help ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1987477522/Feedback+and+Help
+
+1
+
+--- PAGE: Print and Media ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/1987575811/Print+and+Media
+
+label = "printmedia"
+false
+20
+false
+
+--- PAGE: How to download Turnitin assignment with feedback comments ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/2002386965/How+to+download+Turnitin+assignment+with+feedback+comments
+
+[No content available]
+
+--- PAGE: How to check Turnitin similarity report before the official module submission ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/2002419720/How+to+check+Turnitin+similarity+report+before+the+official+module+submission
+
+[No content available]
+
+--- PAGE: How can I find my Turntin Submission ID? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/2308374742/How+can+I+find+my+Turntin+Submission+ID
+
+To ensure your paper deletion request is fulfilled successfully, Turnitin ID or Submission ID must be provided along with your request. Turnitin Support Team
+will not process any deletion request without IDs.
+Each and every work you submit to Turnitin will generate an automated
+Digital Receipt
+(refer to the image below)
+which contains all the necessary information about the submission you made including the ID. This will be sent to your official APU email and you can check for the ID by retrieving your Digital Receipt from your email.
+
+--- PAGE: How long does the paper deletion request takes? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/2308407486/How+long+does+the+paper+deletion+request+takes
+
+By default, all Turnitin deletion requests are treated as urgent. Generally, it takes from 24 hours to 2 weeks for the Turnitin Support Team to fulfill your deletion request depending on the request queue.
+As the support team are based in the UK, US, India & Australia, the time difference between them and Malaysia is also a contributing factor in determining the speed of response.
+Therefore, it is highly recommended for you to send your deletion request at least 3 weeks prior to your submission deadline.
+
+--- PAGE: How do I receive and use my DMU login credentials? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/2902589478/How+do+I+receive+and+use+my+DMU+login+credentials
+
+Access to DMU Library resources requires a
+Single Sign-On Username and Password
+.
+These details will be emailed to your official APU student or staff email account by either:
+DMU’s Registration Team (for students), or
+DMU’s IT Service Desk (for staff).
+Tip
+:
+If you do not see the email, please check your
+Junk/Spam folder
+.
+Your login credentials
+allow you to access selected
+DMU databases, e-journals, and digital repositories. (Some databases may not require login, such as free access repositories.)
+:warning:
+atlassian-warning
+#FFBDAD
+Important:
+Before accessing DMU Library’s e-resources, please ensure you are
+logged out
+from your APU's Office 365 email account (e.g.,
+TP012345@mail.apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:TP012345@mail.apu.edu.my)
+).
+If you are still logged in to your APU email, the browser may automatically use your APU credentials when accessing DMU resources, leading to login errors.
+Always log out from APU accounts first to avoid access issues.
+For more details, please visit
+APU Library - De Montfort University E-Resources (https://library.apu.edu.my/de-montfort-university-e-resources/)
+.
+
+--- PAGE: What login credentials are given to students and staff? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/2902589510/What+login+credentials+are+given+to+students+and+staff
+
+For Students
+You will be assigned a “
+P Number”
+after registering for the Dual Award programme. This P Number acts
+as your DMU username
+.
+If you have forgotten your P Number, please submit a helpdesk request to
+Academic Administration. (https://apiit.atlassian.net/servicedesk/customer/portal/6/group/10/create/10042)
+You will be assigned a
+default password
+(provided by DMU via your APU email).
+You are strongly advised to
+change your password
+immediately upon first login to keep your account secure.
+For Staff
+You will be assigned a DMU username after
+successful registration with DMU
+(upon submitting the
+CP1 Form (https://library.sites.apiit.edu.my/wp-content/uploads/sites/118/2025/04/DMU_CP1-Form.pdf)
+[
+New Collaborative Staff Account Request Form
+] via
+APU Library (https://apiit.atlassian.net/wiki/wiki/mailto:library@apu.edu.my)
+).
+Your
+default password
+will be emailed directly by DMU to your APU email account.
+You must
+change your password
+immediately after your first login to maintain security compliance.
+For more details, please visit
+APU Library - De Montfort University E-Resources (https://library.apu.edu.my/de-montfort-university-e-resources/)
+.
+
+--- PAGE: De Montfort University Library E-Resources ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/2902622256/De+Montfort+University+Library+E-Resources
+
+Students enrolled in APU-DMU dual award programs and registered academic staff members can access DMU Library’s e-resources through a special login.
+Through this access, you can explore a wider range of databases, e-journals, and digital resources available via the
+Partner Students International portal (https://library.dmu.ac.uk/partnerstudents_international/online)
+, complementing APU’s own subscribed e-resources.
+For more details, please visit
+APU Library - De Montfort University E-Resources (https://library.apu.edu.my/de-montfort-university-e-resources/)
+.
+
+--- PAGE: What should I do after receiving my DMU login details? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/2904195107/What+should+I+do+after+receiving+my+DMU+login+details
+
+Once you have received your DMU username and default password, you can begin by accessing the DMU Password Self-Service portal to create your preferred password.
+Go to the
+DMU Password Self-Service portal (https://sspr.dmu.ac.uk/sspr/public/)
+.
+Click
+“Sign In”
+and log in using your
+DMU-assigned username
+(e.g.,
+P Number for students or a staff-assigned ID
+)
+and
+default password
+provided by DMU.
+Select
+“Change Password”
+to set a new password of your choice.
+Once completed, return to the
+Partner Students International (https://library.dmu.ac.uk/partnerstudents_international/online)
+portal to begin browsing the available e-books and databases.
+For more details, please visit
+APU Library - De Montfort University E-Resources (https://library.apu.edu.my/de-montfort-university-e-resources/)
+.
+
+--- PAGE: What if I forgot my DMU password? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/2904457285/What+if+I+forgot+my+DMU+password
+
+If you forget your DMU password, you can reset it via the same portal:
+Go to the
+DMU Password Self-Service (https://sspr.dmu.ac.uk/sspr/public/)
+portal.
+Click
+“
+Forgotten Password (https://sspr.dmu.ac.uk/sspr/public/forgottenpassword)
+”
+and follow the on-screen prompts to verify your identity and reset your password.
+You will need to answer the security questions you had previously set (e.g., your last name and date of birth).
+For more details, please visit
+APU Library - De Montfort University E-Resources (https://library.apu.edu.my/de-montfort-university-e-resources/)
+.
+
+--- PAGE: What DMU e-resources can I access? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/2904915982/What+DMU+e-resources+can+I+access
+
+As a DMU-registered student or staff member, you have access to a selected list of licensed e-resources provided by DMU Library including e-books and subject-based e-databases.
+:warning:
+atlassian-warning
+#FFBDAD
+Note:
+These resources are for
+educational use only
+, and access is restricted to partner students and staff. Please ensure you comply with DMU’s
+acceptable use policy (https://community.jisc.ac.uk/library/acceptable-use-policy)
+.
+E-books
+You can access a wide range of academic e-books across various subject areas using your DMU login credentials. Refer to the
+e-books guide (https://library.dmu.ac.uk/partner-books)
+if you need help navigating these platforms.
+Some of the key collections include:
+ProQuest E-book Central (Academic Complete) (https://ebookcentral.proquest.com/lib/dmu)
+eBook Academic Collection (EBSCOhost) (https://search.ebscohost.com/login.aspx?authtype=athens&custid=s6043660&profile=ehost&defaultdb=e000xww&groupid=main)
+VLeBooks / Askews and Holt Collection of e-books (https://www.vlebooks.com/vleweb/home?id=DeMontfort)
+E-databases
+DMU Library also offers access to selected databases, including multidisciplinary e-journals, organised by broad subject categories. You may browse by subject or view the full
+A–Z list of databases (http://library.dmu.ac.uk/a-z)
+.
+Subject categories:
+Arts, Design and Humanities (https://library.dmu.ac.uk/Internationaldatabases/ADH)
+Business (https://library.dmu.ac.uk/Internationaldatabases/Business)
+Computing and Engineering (https://library.dmu.ac.uk/Internationaldatabases/CEM)
+Health and Life Sciences (https://library.dmu.ac.uk/Internationaldatabases/HLS)
+Each database includes a short description to help you identify the most relevant platform for your information needs.
+For more details, please visit
+APU Library - De Montfort University E-Resources (https://library.apu.edu.my/de-montfort-university-e-resources/)
+.
+
+--- PAGE: Who should I contact for help with my DMU account? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LIB/pages/2904948767/Who+should+I+contact+for+help+with+my+DMU+account
+
+If you encounter any issues with your DMU account, such as problems activating it, login errors, or password-related difficulties, please email the
+ITMS Service Desk (https://apiit.atlassian.net/wiki/wiki/mailto:itmsservicedesk@dmu.ac.uk)
+.
+Make sure to mention that you are a student or staff member at APU, Malaysia, and that your issue is related to your DMU account.
+When sending your email, kindly include the following information:
+Your
+P Number
+(for students) or
+username
+(for staff).
+Your
+full name.
+A
+contact telephone number.
+The name of your
+faculty, department
+, or
+overseas campus.
+A
+clear description of the issue
+, including any
+error messages
+and
+screenshots
+, if available.
+For more details, please visit
+APU Library - De Montfort University E-Resources (https://library.apu.edu.my/de-montfort-university-e-resources/)
+.
+

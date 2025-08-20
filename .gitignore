@@ -13,9 +13,6 @@ venv/
 env/
 ENV/
 
-# Environment variables
-.env
-
 # Vector store and embeddings
 vector_store
 vector_store/*
@@ -29,7 +26,7 @@ logs/
 # Data files
 data/*
 !data/.gitkeep
-!data/apu_kb.txt
+!data/apu_*.txt
 
 # OS specific files
 .DS_Store
@@ -48,13 +45,6 @@ Thumbs.db
 
 # Jupyter Notebook
 .ipynb_checkpoints
-
-# Local development files
-.env.local
-.env.development
-
-# Production files
-.env.production
 
 # Temporary files
 tmp/

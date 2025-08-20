@@ -1,0 +1,258 @@
+--- PAGE: Bursary - Knowledge Base ---
+URL: https://apiit.atlassian.net/wiki/spaces/BUR/overview
+
+Search this space
+
+--- PAGE: How to transfer / pay fees online ? ---
+URL: https://apiit.atlassian.net/wiki/spaces/BUR/pages/1035468992/How+to+transfer+pay+fees+online
+
+FPX / APU Online Portal
+You can make payment via APU Online Payment Portal
+(for students with Malaysian Bank Account)
+.
+Online Payment Guideline
+APU Online Payment Portal (https://onlinepayment.apu.edu.my/)
+Bank Transfer
+You can find bank account details for both
+APU (https://apiit.atlassian.net/wiki/wiki/#APU)
+&
+APIIT (https://apiit.atlassian.net/wiki/wiki/#APIIT)
+below;
+APU
+APU Bank Account Details
+Maybank
+A/C Name
+:
+ASIA PACIFIC UNIVERSITY SDN BHD
+Bank
+:
+MALAYAN BANKING BERHAD
+Recipient Reference
+:
+Student ID/NRIC/Passport No.
+Address
+:
+Maybank Pavilion Bukit Jalil,
+C-1-1 Pusat Perdagangan,
+Bandar Bukit Jalil 7,
+57000 Kuala Lumpur
+Account No in USD
+:
+714413000532 (If paying in USD)
+Account No in RM
+:
+514413500658 (If paying in RM)
+Swift Code
+:
+MBBEMYKL
+JomPAY Local Online Payment
+(For Malaysian Students)
+:
+JomPAY
+online at Internet and Mobile Banking with your Current or Savings account
+CIMB
+A/C Name
+:
+ASIA PACIFIC UNIVERSITY SDN BHD
+Bank
+:
+CIMB BANK BERHAD
+Transaction Instruction
+:
+Student ID/NRIC/Passport No.
+Address
+:
+28, Jalan Radin Tengah
+Bandar Baru Seri Petaling
+57000 Kuala Lumpur
+Account No in RM
+:
+8602647663
+Overseas Payments made via Flywire
+​​
+Payments can be made at
+apu-my.flywire.com (http://apu-my.flywire.com/)
+.
+Asia Pacific University (APU) has partnered with Flywire, to provide you with an easy and secure method of paying from overseas. Flywire offers multiple payment options and currencies. Students and payers will be able to track their payments from start to finish, save on bank fees and exchange rates and contact Flywire’s 24x7 multilingual customer support by live chat, phone, and email. To learn more, go to
+www.flywire.com/support (http://www.flywire.com/support)
+.
+Click here to find out more
+About Flywire (http://www.apu.edu.my/life-apu/student-services/flywire-apu)
+.
+APIIT
+APIIT Bank Account Details
+Maybank
+A/C Name
+:
+APIIT SDN BHD
+Bank
+:
+MALAYAN BANKING BERHAD
+Recipient Reference
+:
+Student ID/NRIC/Passport No.
+Address
+:
+Maybank Pavilion Bukit Jalil,
+C-1-1 Pusat Perdagangan,
+Bandar Bukit Jalil 7,
+57000 Kuala Lumpur
+Account No in USD
+:
+714413000518 (If paying in USD)
+Account No in RM
+:
+514413500575 (If paying in RM)
+Swift Code
+:
+MBBEMYKL
+JomPAY Local Online Payment
+(For Malaysian Students)
+:
+​JomPAY
+online at Internet and Mobile Banking with your Current or Savings account​​
+CIMB
+A/C Name
+:
+APIIT SDN BHD
+Bank
+:
+CIMB BANK BERHAD
+Transaction Instruction
+:
+Student ID/NRIC/Passport No.
+​Address
+:
+28, Jalan Radin Tengah
+Bandar Baru Seri Petaling
+57000 Kuala Lumpur
+Account No in RM
+:
+8603504063
+Please send us the scanned copy of your transfer details stating with your Student ID and Student Name for verification and email to
+bursary@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:bursary@apu.edu.my)
+APU/APIIT International Student Fees & Refund Policy
+International Students are required to pay all fees due prior to arrival by the respective due dates.
+The International Student Application Fee and International Student Registration Fee will not be refunded.
+Course fee payments made are NON-REFUNDABLE except if the student visa is refused by EMGS/ Immigration. All Fees paid are NON-REFUNDABLE under any circumstances once the visa is approved or after the student has commenced studies at any level, including Intensive English, Diploma, Certificate, Foundation Programme, and Bachelor’s Degree Programmes. This includes students who do not qualify for enrolment into the course approved in the Visa Approval Letter (VAL) due to not achieving the required English competency.
+Students will not be permitted to check-in into our University-managed accommodation without the payment of all required fees and associated deposits as indicated above.
+A late payment charge is imposed on all overdue fees.
+Semester Payment is due at the commencement of each semester.
+For any information or clarification, please contact
+info@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:info@apu.edu.my)
+or visit Student Services.
+APU/APIIT Malaysian Student Fees & Refund Policy
+APU/APIIT will provide a refund to cancellations notified and received more than 14 days before the commencement of a course.
+A charge of 50% of the initial payment will apply for cancellation made 14 days or less before course commencement.
+An Administrative Fee of RM 200.00 will be charged for any transfer of registration prior and after course commencement, including changes in course specialization.
+NO REFUND will be entertained after a course has commenced.
+Applicants who intend to apply for withdrawals from EPF or other approved study loans (including PTPTN, MARA) are required to pay the fee on the monthly installment basis until the loan is disbursed.
+A late payment charge is imposed on all overdue fees.
+Semester Payment is due at the commencement of each semester.
+For any information or clarification, please contact
+info@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:info@apu.edu.my)
+or visit Student Services
+
+--- PAGE: How to make payment via Flywire? ---
+URL: https://apiit.atlassian.net/wiki/spaces/BUR/pages/1035501787/How+to+make+payment+via+Flywire
+
+Please check your outstanding payments, from APSpace; Go to APSpace (
+https://apspace.apu.edu.my (https://apspace.apu.edu.my)
+)  > More >
+Fees (https://apspace.apu.edu.my/fees)
+, and then proceed to make payment via Flywire as instructed below.
+To begin the payment process , please go to
+apu-my.flywire.com (http://apu-my.flywire.com)
+Once on the Flywire site, enter your payment amount and country of origin.
+Select your payment method.
+Provide personal basic information to create your payment booking.
+Follow the instructions provided to send funds to Flywire.
+Receive text and email status updates each step of the way, including a confirmation when your payment has been delivered to your institution. You can also create a Flywire account to track your payment online 24x7.
+View a video of how to make your international payment
+HERE (https://vimeo.com/189693395?from=outro-embed)
+.
+
+--- PAGE: APU/APIIT International Student  Fees & Refund Policy ---
+URL: https://apiit.atlassian.net/wiki/spaces/BUR/pages/1041956921/APU+APIIT+International+Student+Fees+Refund+Policy
+
+International Students are required to pay all fees due prior to arrival by the respective due dates.
+The International Student Application Fee and International Student Registration Fee will not be refunded.
+Course fee payments made are NON-REFUNDABLE except if the student visa is refused by EMGS/ Immigration. All Fees paid are NON-REFUNDABLE under any circumstances once the visa is approved or after the student has commenced studies at any level, including Intensive English, Diploma, Certificate, Foundation Programme, and Bachelor’s Degree Programmes. This includes students who do not qualify for enrolment into the course approved in the Visa Approval Letter (VAL) due to not achieving the required English competency.
+Students will not be permitted to check-in into our University-managed accommodation without the payment of all required fees and associated deposits as indicated above.
+A late payment charge is imposed on all overdue fees.
+Semester Payment is due at the commencement of each semester.
+For any information or clarification, please contact
+info@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:info@apu.edu.my)
+or visit Student Services.
+
+--- PAGE: APU/APIIT Malaysian Student Fees & Refund Policy ---
+URL: https://apiit.atlassian.net/wiki/spaces/BUR/pages/1043038209/APU+APIIT+Malaysian+Student+Fees+Refund+Policy
+
+APU/APIIT will provide a refund to cancellations notified and received more than 14 days before the commencement of a course.
+A charge of 50% of the initial payment will apply for cancellation made 14 days or less before course commencement.
+An Administrative Fee of RM 200.00 will be charged for any transfer of registration prior and after course commencement, including changes in course specialization.
+NO REFUND will be entertained after a course has commenced.
+Applicants who intend to apply for withdrawals from EPF or other approved study loans (including PTPTN, MARA) are required to pay the fee on the monthly installment basis until the loan is disbursed.
+A late payment charge is imposed on all overdue fees.
+Semester Payment is due at the commencement of each semester.
+For any information or clarification, please contact
+info@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:info@apu.edu.my)
+or visit Student Services
+
+--- PAGE: Protecting Personal Banking Information ---
+URL: https://apiit.atlassian.net/wiki/spaces/BUR/pages/1199439898/Protecting+Personal+Banking+Information
+
+Helping a friend is a respectable deed. However, you need to be very careful when you are requested to share details; common reasons for such request is your friend does not own any banking account or his account is not accessible due to certain reasons.
+
+--- PAGE: How to check my fee payment details on APSpace? ---
+URL: https://apiit.atlassian.net/wiki/spaces/BUR/pages/1605730340/How+to+check+my+fee+payment+details+on+APSpace
+
+You can check fee payment details such us;
+Paid
+,
+Outstanding
+, and
+Overdue
+on your APSpace account. You can also see complete payment history transaction. Below are the steps shown on checking payment details and history of payments;
+Step 1
+- Open your APSpace app or web browser (
+https://apspace.apu.edu.my/ (https://apspace.apu.edu.my/)
+).
+Step 2
+- Scroll down to the Financial widget and you can get quick overview of your fee payment.
+In the Financial widget, you can filter and hide by tapping on the color-code, like in the screenshot below, we want to see
+Outstanding
+payment so, we have filter and hide
+Paid
+and
+Overdue
+.
+Step 3
+- To have a detail information / history of fee payment transaction;
+Search
+for Fees or
+Click
+More
+and scroll down to Finance section
+Step 4
+- In Finance page, you can see
+Summary
+and
+Details
+of your fee payment
+
+--- PAGE: How-to articles ---
+URL: https://apiit.atlassian.net/wiki/spaces/BUR/pages/1812430862/How-to+articles
+
+c6d2b9a8-c9a4-413b-b2c5-66dd95cdbf64
+com.atlassian.confluence.plugins.confluence-knowledge-base:kb-how-to-article-blueprint
+Add how-to article
+c6d2b9a8-c9a4-413b-b2c5-66dd95cdbf64
+com.atlassian.confluence.plugins.confluence-knowledge-base:kb-how-to-article-blueprint
+kb-how-to-article
+Provide step-by-step guidance for completing a task.
+How-to article
+BUR
+Add how-to article
+kb-how-to-article
+

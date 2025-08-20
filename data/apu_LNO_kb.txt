@@ -1,0 +1,389 @@
+--- PAGE: How do I avoid getting “Invalid Status” upon exit or entry to the parking? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/218792038/How+do+I+avoid+getting+Invalid+Status+upon+exit+or+entry+to+the+parking
+
+In order to avoid “Invalid Status”, it is very important to not tailgate the vehicle that is trying to enter or exit the premise. Do ensure that the barricade is fully lowered before attempting to enter/exit and ensure that the card reader shows a valid message before proceeding.
+Related articles
+false
+5
+com.atlassian.confluence.content.render.xhtml.model.resource.identifiers.SpaceResourceIdentifier@957
+false
+modified
+page
+true
+apkey authentication login
+label = "parking"
+true
+Related issues
+
+--- PAGE: I am not able to exit the parking. The reader shows “Please Top Up” although I have sufficient balance for one-day entry. Why does this happen? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/218857618/I+am+not+able+to+exit+the+parking.+The+reader+shows+Please+Top+Up+although+I+have+sufficient+balance+for+one-day+entry.+Why+does+this+happen
+
+The charges incurred are for the number of days the vehicle has been parked in the parking area. Thus, the balance you have will not cover for the extra days involved due to insufficient balance.
+Related articles
+false
+5
+com.atlassian.confluence.content.render.xhtml.model.resource.identifiers.SpaceResourceIdentifier@957
+false
+modified
+page
+true
+apkey authentication login
+label = "parking"
+true
+Related issues
+
+--- PAGE: I am not able to enter/exit the parking. The reader shows “Invalid Status”. What does it mean and what should I do? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/218988657/I+am+not+able+to+enter+exit+the+parking.+The+reader+shows+Invalid+Status+.+What+does+it+mean+and+what+should+I+do
+
+It means either the APCard is not active or there was an improper exit done by the driver before. An improper exit refers to exiting by tailgating too closely to the car in front, and as a result, failing to register the entry/exit on the reader.
+What should I do?
+Please visit APU cashier counter and report your issue.
+Related articles
+false
+5
+com.atlassian.confluence.content.render.xhtml.model.resource.identifiers.SpaceResourceIdentifier@957
+false
+modified
+page
+true
+apkey authentication login
+label = "parking"
+true
+Related issues
+
+--- PAGE: Parking FAQ ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/219054189/Parking+FAQ
+
+The APCard can be used to access the parking by driving up to the parking entrance and holding the APCard against the reader. If the APCard is valid, the system will allow you access to the parking area.
+true
+
+--- PAGE: Logistics & Operations ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/overview
+
+Search this space
+
+--- PAGE: Car Parking Entry & Exit Instructions ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/1169096851/Car+Parking+Entry+Exit+Instructions
+
+This is a instructional guide of APU Campus car parking at Zone A & Zone B, for students and staff;
+Entry Guide
+Step 1
+- Stop your vehicle in front of the parking barrier gate.
+Step 2
+- Tap your APCard on the sensor located at the parking entrance. The barrier gate will open and the sensor will display your remaining
+note
+Please hold for at least 2 seconds in order for the reader to complete reading your card
+Please hold for at least 2 seconds in order for the reader to complete reading your card
+If the barrier gate does not open during this process, it will be due to:
+Your card is not activated.
+You card has an invalid status due to incomplete entry-exit cycle. (Note: Please refer to the Exit Procedures and please ensure that you follow the Exit Procedures to avoid this issue from happening).
+You have an insufficient balance on your card.
+4bdee4bb-512e-4348-b8c5-a96b58c1f8e3
+fb212bc2-0555-44e6-b171-c18121baabf5
+DECIDED
+If the scenarios above happen, please redirect your vehicle to the
+visitor parking
+and please proceed to
+Payment Counter at Level 3
+, Spine to activate your card/top up the balance of your card.
+If the scenarios above happen, please redirect your vehicle to the
+visitor parking
+and please proceed to
+Payment Counter at Level 3
+, Spine to activate your card/top up the balance of your card.
+Step 3
+- Proceed to the designated parking floor:
+Students: Level 2
+Staff: Level 1
+Exit Guide
+Step 1
+- Stop your vehicle in front of the parking barrier gate.
+Due to safety reasons, if your distance with the car ahead of you is too near, the barrier gate will remain open. Please stop and do not attempt to exit the parking without tapping your card at the sensor.
+Step 2
+- Tap your APCard on the sensor located at the parking exit. The barrier gate will open and the sensor will display your remaining balance.
+note
+Please hold for at least 2 seconds in order for the reader to complete reading your card.
+Please hold for at least 2 seconds in order for the reader to complete reading your card.
+If the barrier gate is open before this process, please continue to tap your card on the sensor to complete your entry-exit process.
+Failure to do so will result in your card being unable to be recognized at your next entry.
+If you are under the Daily Parking scheme, failure to complete your entry-exit cycle within the same day will also result in your balance being deducted for multiple daily parking rates, as if you have parked overnight.
+If the barrier gate does not open during this process, it will be due to:
+You have an insufficient balance on your card.
+67a4a023-036c-4ed2-aeb6-9364c295f6cf
+49b49e6b-419b-45b1-802d-9dfbc9e8af3d
+DECIDED
+If the scenario above happen, please redirect your vehicle back to
+parking
+and please proceed to
+Payment Counter at Level 3
+, Spine to top up the balance of your card.
+If the scenario above happen, please redirect your vehicle back to
+parking
+and please proceed to
+Payment Counter at Level 3
+, Spine to top up the balance of your card.
+Step 3
+- Upon successful completion of Step 2, please exit the parking.
+
+--- PAGE: APU Car Parking Rates ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/1189838921/APU+Car+Parking+Rates
+
+Parking Zone A (Category: Covered Parking)
+Daily Parking Rate
+RM 5.60
+Parking Zone B  (Category: Open Parking)
+Hourly Parking Rates
+1st hour or part thereof
+RM 1.82
+Every subsequent hour or part thereof
+RM 1.06
+Maximum charge per day
+RM 5.00
+Parking rates are based on per entry basis. Should you exit and re-enter the parking, rates will be recalculated from the first hour.
+Rates will be calculated via the card reader upon exit to/from the car park. Please ensure that you have sufficient balance in your APCard before entering & exiting the car park.
+Daily Parking Rates will still be applied if you wish to park your vehicle at the Covered Parking (Zone A).
+note
+The Open Space Parking (known as Parking Zone B) will offer Hourly Parking Rates for students.
+All parking fees transactions will be made through APCard.
+NO CASH WILL BE ACCEPTED
+.
+The Open Space Parking (known as Parking Zone B) will offer Hourly Parking Rates for students.
+All parking fees transactions will be made through APCard.
+NO CASH WILL BE ACCEPTED
+.
+Park vehicle at your own risk. The management is not responsible for any injury or loss of property within the car park.
+Related pages -
+false
+10
+title
+false
+label = "parking"
+
+--- PAGE: APU Car Park – Zone B ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/1191936023/APU+Car+Park+Zone+B
+
+note
+The Covered Parking area (known as Parking Zone A) will continue to apply the Daily Parking Rate of RM5.60 per day.
+The Open Space Parking (known as Parking Zone B) will offer Hourly Parking Rates for students.
+All parking fees transactions will be made through APCard.
+NO CASH WILL BE ACCEPTED
+.
+The Covered Parking area (known as Parking Zone A) will continue to apply the Daily Parking Rate of RM5.60 per day.
+The Open Space Parking (known as Parking Zone B) will offer Hourly Parking Rates for students.
+All parking fees transactions will be made through APCard.
+NO CASH WILL BE ACCEPTED
+.
+Hourly Rates @ Open Space Parking – Zone B
+The availability of parking bays is on a
+first-come-first-served basis
+. You will not be able to enter the car park once the car park is full.
+Parking rates are as follows:
+1st Hour or part thereof: RM 1.82
+Every subsequent hour or part thereof: RM1.06
+Maximum rate per day: RM5.00
+Parking rates are based on per entry basis. Should you exit and re-enter the parking, rates will be recalculated from the first hour.
+Rates will be calculated via the card reader upon exit to/from the car park. Please ensure that you have sufficient balance in your APCard before entering & exiting the car park.
+Daily Parking Rates will still be applied if you wish to park your vehicle at the Covered Parking (Zone A).
+Park vehicle at your own risk. The management is not responsible for any injury or loss of property within the car park.
+
+--- PAGE: What are the differences between Zone A and Zone B? ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/1191936096/What+are+the+differences+between+Zone+A+and+Zone+B
+
+Zone A is covered parking while Zone B is open parking. The rate for Zone B costs slightly lesser than Zone A.
+Check out the parking rates here -
+APU Car Parking Rates
+
+--- PAGE: RapidKL Bus & LRT ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/1199669249/RapidKL+Bus+LRT
+
+View LRT Routes
+View Rapid KL Bus Route
+-
+https://www.myrapid.com.my/traveling-with-us/how-to-travel-with-us/rapid-kl/bus (https://www.myrapid.com.my/traveling-with-us/how-to-travel-with-us/rapid-kl/bus)
+RapidKL Plan My Journey
+-
+https://www.myrapid.com.my/pulse-journey-planner (https://www.myrapid.com.my/pulse-journey-planner)
+
+--- PAGE: Parking ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/2272296961/Parking
+
+[No content available]
+
+--- PAGE: APU Car Park – Zone A ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/2275737832/APU+Car+Park+Zone+A
+
+To serve you better with even more parking space at APU Campus, we are upgraded  APU Campus Car Parking called Zone A with APCard payment system in
+APU Campus
+.
+Although the cost of operating open parking have increased, we are pleased to inform that we are offering the same
+Hourly Parking Rates
+for students without any increase.
+Please refer to
+http://kb.sites.apiit.edu.my/knowledge-base/what-is-the-parking-rate-in-apu (http://kb.sites.apiit.edu.my/knowledge-base/what-is-the-parking-rate-in-apu/)
+for parking rates.
+note
+The Open Space Parking (known as Parking Zone A) will offer Hourly Parking Rates for students.
+All parking fees transactions will be made through APCard.
+NO CASH WILL BE ACCEPTED
+.
+The Open Space Parking (known as Parking Zone A) will offer Hourly Parking Rates for students.
+All parking fees transactions will be made through APCard.
+NO CASH WILL BE ACCEPTED
+.
+
+--- PAGE: APU Residences ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/2328199231/APU+Residences
+
+[No content available]
+
+--- PAGE: Product requirements ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/2362146826/Product+requirements
+
+com.atlassian.confluence.plugins.confluence-software-blueprints:requirements-blueprint
+LNO
+com.atlassian.confluence.plugins.confluence-software-blueprints:requirements-blueprint
+Add Product requirements
+requirements
+requirements
+
+--- PAGE: Prepaid Smart Meter ---
+URL: https://apiit.atlassian.net/wiki/spaces/LNO/pages/2383872728/Prepaid+Smart+Meter
+
+In our commitment to sustainability and reducing our carbon footprint, the adoption of Smart Meters aligns perfectly with our University's "green" initiatives. These smart meters offer real-time monitoring of their consumption, enabling us to collectively make more informed choices about our energy usage. By being more conscious of their own consumption patterns, students could potentially contribute to conserving energy making a positive impact on the environment.
+The Prepaid Smart Meter system gives students' greater control over their energy consumption.
+Real-time data access allows students to monitor their usage and learn how to conserve energy effectively.
+The system promotes fairness by charging units only for consumed energy.
+It encourages collective responsibility for energy use among residents in shared living spaces.
+1
+6
+false
+list
+false
+How to access the system?
+Step 1
+- Login to your
+APSpace
+on your smartphone.
+Step 2
+- Click on More.
+Click on More
+Step 3
+- Click on Campus Life →  Residence.
+Select Residence
+This menu is exclusively available to APU residents with active status. If you encounter the message like below after multiple attempts, please reach out to us at
+assist@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:assist@apu.edu.my)
+or open a ticket through the Virtual Help Centre, specifically the
+https://apiit.atlassian.net/servicedesk/customer/portal/4 (https://apiit.atlassian.net/servicedesk/customer/portal/4)
+.
+Error Message
+Step 4
+- You will be redirected to a page which will show your information. Please Click Continue button.
+Step 5
+- You will be redirected to a page similar to the one shown below.
+Click Scan to add Smart Meter
+How to register your room?
+Step 1
+- Register to your room by clicking the “Scan” button.
+Click on Scan Button
+In the event if you ever change your room, you will be required to complete the registration process once more. To avoid any potential confusion, kindly delete your previous room registration.
+Step 2
+- Scan the QR Code at the
+back of the main entrance door
+of the room that you want to top up.
+Scan QR Code
+Step 3
+- The system will display a confirmation message, "Scan successful," as shown below.
+Successful Message
+If you get the below error prompt, please
+click here (https://apiit.atlassian.net/wiki/spaces/ITSM/pages/2396258372/What+s+causing+the+error+when+I+try+to+use+my+camera+to+scan+a+QR+code+in+APSpace)
+on guidance how to set your APSpace permission in the smartphone.
+Step 4
+- Upon completing the scanning process, your account will be automatically associated with room, and you'll be able to view the prepaid smart meter for your room.
+Step 5
+- It's important to cross-check the room number to avoid any complications when topping-up your smart meter.
+note
+You can also check the kWh balance, prepaid smart meter Wi-Fi and power status, as well as the last update timestamp. To access more detailed information, click on the room number.
+You can also check the kWh balance, prepaid smart meter Wi-Fi and power status, as well as the last update timestamp. To access more detailed information, click on the room number.
+Room Number
+In reference to the photo above, a green dot indicates that the Wi-Fi/Power is connected, while a red dot signifies that Wi-Fi/Power is not connected.
+How to deregister (remove) room?
+Step 1
+- Click on the room number or the upward arrow.
+Click on the room number
+Step 2
+- Once the view is expanded, it will reveal your room details. Then proceed to click on the delete icon.
+Click on Delete Icon
+Step 3
+- You will be prompted to confirm the deletion. Select “Yes.”
+Confirm the changes
+Please be aware that once the room is deleted, the action cannot be reversed unless the QR code for the particular unit is scanned again.
+How to check your balance and top-up?
+Step 1
+- Please ensure you maintain the smart meter minimum balance according to our guidance to avoid any disruptions.
+When to Top-Up
+IMPORTANT!:
+To prevent the prepaid smart meter balance from running too low, you should top up before your balance reaches the following thresholds to avoid any disruptions:
+For
+Single
+rooms: Top up before the balance reaches
+30 kWh
+For
+Twin
+sharing: Top up before the balance reaches
+54 kWh
+For
+Quad
+sharing: Top up before the balance reaches
+107 kWh
+For
+Common Area,Living Hall
+(Off Campus Residences): Top up before the balance reaches
+57 kWh
+The above minimal balances are estimated (based on normal energy usage) to last for
+3 days
+before reaching zero (and resulting in energy disruption).
+Step 2 -
+Click on the room number or the upward arrow.
+Click on room number
+Step 3
+- Once the view is expanded, it will reveal your room details.
+Room Details
+Step 4
+- Click on the "Top-Up" button to access a range of top-up options in RM. The total unit of kWH will be reflected at the bottom of the screen based on the top-up amount.
+note
+For top-up amounts of RM10, RM20, and RM50, the deduction will be made from your APCard. Please make sure your
+APCard balance has sufficient funds
+For top-up amounts of RM100, RM150, and RM200, you have the option to either deduct the amount from your APCard or make a direct transfer from online banking (via Payex)
+For top-up amounts of RM10, RM20, and RM50, the deduction will be made from your APCard. Please make sure your
+APCard balance has sufficient funds
+For top-up amounts of RM100, RM150, and RM200, you have the option to either deduct the amount from your APCard or make a direct transfer from online banking (via Payex)
+Step 5
+- When you select any of the top-up amount range, it will display the total kWh units that will be added to the meter upon top-up.
+Step 6
+- Click the "Pay Now" button. If you choose an amount of RM 100 or more, you can decide whether to top up using your APCard or make a direct transfer from your online banking account, which will be processed through the associated payment gateway provider, Payex.
+Step 7
+- If you opt for Payex, you will be redirected to the Payex page. From there, select your preferred bank, submit your bank details and click "Pay".
+Step 8
+- The system will confirm the payment status, and if the payment is successful, your balance will be updated and reflected in the app accordingly.
+How to sync smart meter?
+Step 1
+- Click on the room number or the upward arrow.
+Click on room number
+Step 2
+- Once the view is expanded, it will reveal your room details. Then proceed to click on the “Sync Meter” button.
+Click on “Sync Meter button“
+Step 3
+- It will show you the synchronization status and reflect the “Last Updated“ value.
+Successful Message
+How do you check your top-up history?
+Step 1
+- Click on the room number or the upward arrow.
+Room Number
+Step 2
+- Once the view is expanded, it will reveal your room details. Then proceed to click on the history icon.
+Room Details
+Step 3
+- A calendar will appear. By default, it displays date range from yesterday until today. You can choose your desired date range.
+Select Date
+View Transaction
+
