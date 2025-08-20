@@ -33,14 +33,15 @@ class LocalConfig(Config):
     
     # Semantic enhancement settings - Explicitly enable for local development
     USE_ENHANCED_SEMANTICS = os.environ.get("SARA_USE_ENHANCED_SEMANTICS", "true").lower() == "true"
-    # SEMANTIC_MODEL = os.environ.get("SARA_SEMANTIC_MODEL", "en_core_web_sm")
+    # Use medium model for better similarity calculations (includes word vectors)
     SEMANTIC_MODEL = os.environ.get("SARA_SEMANTIC_MODEL", "en_core_web_md")  # Medium model (~43MB) - better accuracy
+    # SEMANTIC_MODEL = os.environ.get("SARA_SEMANTIC_MODEL", "en_core_web_sm")  # Small model - no word vectors
     # SEMANTIC_MODEL = os.environ.get("SARA_SEMANTIC_MODEL", "en_core_web_lg")  # Large model (~588MB) - recommended for production
     
     SEMANTIC_EXPANSION_LIMIT = int(os.environ.get("SARA_SEMANTIC_EXPANSION_LIMIT", "5"))
     
     # Context processing settings
-    MAX_CONTEXT_SIZE = int(os.environ.get("SARA_MAX_CONTEXT_SIZE", "3000"))  # Smaller for local
+    MAX_CONTEXT_SIZE = int(os.environ.get("SARA_MAX_CONTEXT_SIZE", "7000"))  # Generous context for comprehensive responses
     USE_CONTEXT_COMPRESSION = os.environ.get("SARA_CONTEXT_COMPRESSION", "True").lower() in ("true", "1", "t")
     
     # Session (chats) management

@@ -6,11 +6,15 @@ Simple, reliable, and production-ready solution.
 import logging
 from typing import List, Dict, Any, Tuple
 from functools import lru_cache
+import warnings
 import spacy
 from spacy.tokens import Doc, Token
 import re
 import time
 from config import Config, config
+
+# Suppress spaCy similarity warnings for small models without word vectors
+warnings.filterwarnings("ignore", message=".*has no word vectors loaded.*", category=UserWarning)
 
 logger = logging.getLogger("Sara")
 

@@ -15,6 +15,20 @@ import platform
 from datetime import datetime
 from dotenv import load_dotenv
 
+# Disable ChromaDB telemetry globally before any ChromaDB imports
+os.environ.setdefault('ANONYMIZED_TELEMETRY', 'False')
+os.environ.setdefault('CHROMA_TELEMETRY_DISABLED', '1')
+
+# Suppress ChromaDB telemetry error logs
+def suppress_chromadb_telemetry_errors():
+    """Suppress annoying ChromaDB telemetry error logs."""
+    import logging
+    chromadb_telemetry_logger = logging.getLogger("chromadb.telemetry.product.posthog")
+    chromadb_telemetry_logger.setLevel(logging.CRITICAL)
+
+# Apply telemetry log suppression immediately
+suppress_chromadb_telemetry_errors()
+
 # Determine environment
 ENV = os.environ.get("SARA_ENV", "local").lower()
 

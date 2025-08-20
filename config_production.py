@@ -40,7 +40,7 @@ class ProductionConfig(Config):
     SEMANTIC_EXPANSION_LIMIT = int(os.environ.get("SARA_SEMANTIC_EXPANSION_LIMIT", "8"))  # Higher for production
     
     # Context processing settings
-    MAX_CONTEXT_SIZE = int(os.environ.get("SARA_MAX_CONTEXT_SIZE", "5000"))  # Larger for production
+    MAX_CONTEXT_SIZE = int(os.environ.get("SARA_MAX_CONTEXT_SIZE", "8000"))  # Maximum context for production responses
     USE_CONTEXT_COMPRESSION = os.environ.get("SARA_CONTEXT_COMPRESSION", "True").lower() in ("true", "1", "t")
     
     # Session (chats) management
