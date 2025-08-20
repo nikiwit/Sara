@@ -1,259 +1,489 @@
-# APURAG - Advanced Retrieval Augmented Generation System
+# SARA - Smart Academic Research Assistant
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-APURAG is an advanced Retrieval Augmented Generation (RAG) system specifically designed for the APU Knowledge Base. It provides intelligent question-answering capabilities by leveraging natural language processing and vector-based retrieval techniques.
+SARA (Smart Academic Research Assistant) is an advanced Retrieval-Augmented Generation (RAG) chatbot system developed as part of the APU University project. The system provides intelligent question-answering capabilities by leveraging state-of-the-art natural language processing and vector-based retrieval techniques, specifically optimized for academic and institutional knowledge bases.
 
-## 🌟 Features
+## 🎯 Project Overview
 
-- **Specialized APU Knowledge Base Integration**
-  - Optimized for FAQ-style content
-  - Preserves document structure and hierarchy
-  - Enhanced metadata extraction
+This project represents a comprehensive implementation of a production-ready RAG system designed to serve as an intelligent academic assistant. SARA combines modern machine learning techniques with robust system architecture to provide accurate, contextual responses to user queries across various academic domains.
 
-- **Advanced Document Processing**
-  - Support for multiple document formats:
-    - PDF
-    - Word (DOCX)
-    - PowerPoint (PPTX)
-    - EPUB
-  - Intelligent text extraction and processing
-  - Structure preservation
+**Key Achievements:**
+- Advanced multi-format document processing pipeline
+- Hybrid retrieval system with semantic and keyword matching
+- Production-grade model lifecycle management
+- Dual-environment configuration for development and deployment
+- Comprehensive session management and conversation memory
+- Real-time streaming responses with optimized user experience
 
-- **Enhanced Query Processing**
-  - Education-specific query classification
-  - FAQ-optimized retrieval strategies
-  - Improved direct question matching
-  - Better context generation for Q&A content
+## 🌟 Core Features
 
-- **Vector Management**
-  - Efficient vector storage and retrieval
-  - Optimized similarity search
-  - Backup and restore capabilities
+### 🤖 Intelligent Chatbot System
+- **Conversational AI**: Natural language interaction with context awareness
+- **Session Management**: Isolated conversation histories with automatic cleanup
+- **Streaming Responses**: Real-time response generation for enhanced user experience
+- **Memory Management**: Persistent conversation context across sessions
 
-- **Dual Environment Configuration**
-  - Local development environment optimized for laptops
-  - Production environment optimized for HGX H100 G593-SD2 servers
-  - Environment-specific resource management
-  - Automatic hardware detection and optimization
+### 📚 Advanced Document Processing
+- **Multi-Format Support**: 
+  - PDF documents with advanced text extraction
+  - Microsoft Word (DOCX) files
+  - PowerPoint (PPTX) presentations
+  - EPUB electronic books
+  - Plain text and Markdown files
+- **Intelligent Content Extraction**: Preserves document structure and hierarchy
+- **Metadata Enhancement**: Automatic extraction of document metadata and context
+- **APU-Specific Optimization**: Enhanced processing for university knowledge bases
 
-## 📋 Prerequisites
+### 🔍 Sophisticated Retrieval System
+- **Hybrid Search Architecture**: Combines vector similarity and keyword matching
+- **FAQ-Optimized Retrieval**: Specialized handling for frequently asked questions
+- **Semantic Understanding**: Enhanced query comprehension using spaCy NLP models
+- **Query Expansion**: Automatic query enhancement for improved search results
+- **Context Compression**: Intelligent context optimization for better response generation
 
-- Python 3.8 or higher
-- pip (Python package installer)
-- Sufficient disk space for vector storage
-- Internet connection for initial package downloads
-- [Ollama](https://ollama.ai/) installed and running locally
-  - Required for local LLM inference
-  - Must be running in the background while using APURAG
-  - Minimum 8GB RAM recommended for optimal performance
+### ⚡ Production-Grade Infrastructure
+- **Dual Environment Support**:
+  - **Local Development**: Optimized for laptops and development machines
+  - **Production Deployment**: Optimized for HGX H100 G593-SD2 servers
+- **Model Lifecycle Management**: Automatic model updates and cache management
+- **Resource Optimization**: Environment-specific resource allocation and management
+- **Comprehensive Monitoring**: Health checks and performance monitoring
 
-## 🚀 Installation
+### 🎛️ Advanced Configuration Management
+- **Environment-Specific Settings**: Separate configurations for development and production
+- **Hardware Detection**: Automatic GPU detection and optimization (CUDA/Apple Silicon MPS)
+- **Dynamic Resource Allocation**: Adaptive resource management based on available hardware
+- **Extensive Customization**: Over 30 configurable parameters for fine-tuning
 
-1. Install and set up Ollama:
-   ```bash
-   # For macOS/Linux
-   curl https://ollama.ai/install.sh | sh
-   # or manual download and install from https://ollama.ai/download
+## 📋 System Requirements
 
-   
-   # For Windows
-   # Download and install from https://ollama.ai/download
-   ```
+### Minimum Requirements
+- **Python**: Version 3.8 or higher
+- **RAM**: 8GB minimum (16GB recommended)
+- **Storage**: 10GB free space for models and vector storage
+- **Network**: Internet connection for initial setup and model downloads
 
-2. Pull the required Ollama model:
-   ```bash
-   # For local development
-   ollama pull qwen2.5:3b-instruct
-   
-   # For production
-   ollama pull qwen2.5:7b-instruct
-   ```
+### Recommended Hardware
+- **Development**: Modern laptop with 16GB+ RAM
+- **Production**: High-performance server (e.g., HGX H100 G593-SD2)
+- **GPU**: CUDA-compatible GPU or Apple Silicon (optional but recommended)
 
-3. Ensure Ollama is running:
-   ```bash
-   # Check Ollama status
-   ollama list
-   
-   # If not running, start Ollama
-   ollama serve
-   ```
+### Software Dependencies
+- **Ollama**: Required for local LLM inference
+- **spaCy**: For advanced semantic processing
+- **ChromaDB**: Vector database for document storage
+- **PyTorch**: Machine learning framework
+- **LangChain**: LLM application framework
 
-4. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/APURAG.git
-   cd APURAG
-   ```
+## 🚀 Installation and Setup
 
-5. Create and activate a virtual environment (recommended):
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+### 1. Ollama Installation and Configuration
 
-6. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+Ollama is required for local language model inference and must be installed first:
 
-7. Set up environment configuration:
-   ```bash
-   # For local development (default)
-   cp .env.local .env
-   
-   # For production environment
-   # cp .env.production .env
-   ```
+```bash
+# macOS/Linux Installation
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Windows Installation
+# Download installer from https://ollama.ai/download
+```
+
+**Pull Required Models:**
+```bash
+# For local development (lighter model)
+ollama pull qwen2.5:3b-instruct
+
+# For production deployment (more capable model)
+ollama pull qwen2.5:7b-instruct
+```
+
+**Verify Ollama Installation:**
+```bash
+# Check available models
+ollama list
+
+# Start Ollama service (if not running)
+ollama serve
+```
+
+### 2. Project Setup
+
+**Clone Repository:**
+```bash
+git clone https://github.com/nikiwit/SARA.git
+cd SARA
+```
+
+**Create Virtual Environment:**
+```bash
+python -m venv venv
+
+# Activate virtual environment
+# On macOS/Linux:
+source venv/bin/activate
+
+# On Windows:
+venv\Scripts\activate
+```
+
+**Install Dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+### 3. spaCy Model Installation
+
+SARA requires spaCy language models for enhanced semantic processing:
+
+```bash
+# Install medium model (recommended for better semantic processing)
+python -m spacy download en_core_web_md  # Medium model (~43MB) - includes word vectors
+
+# Alternative: Install base model (smaller but limited semantic capabilities)
+python -m spacy download en_core_web_sm  # Small model (~50MB) - no word vectors
+
+# Optional: Install large model for production (best accuracy)
+python -m spacy download en_core_web_lg  # Large model (~588MB) - full word vectors
+```
+
+### 4. Embedding Models
+
+SARA automatically downloads and caches embedding models on first run:
+
+**Local Development:**
+- **Model**: `BAAI/bge-base-en-v1.5` (~438MB)
+- **Purpose**: Document embeddings and semantic search
+- **Location**: Cached in `model_cache/huggingface/`
+
+**Production Environment:**
+- **Model**: `BAAI/bge-large-en-v1.5` (~1.34GB)
+- **Purpose**: Enhanced accuracy for document embeddings
+- **Features**: Automatic cache management and integrity checking
+
+**Note**: First startup will be slower as embedding models download automatically. Subsequent startups use cached models for faster initialization.
+
+### 5. Environment Configuration
+
+SARA supports dual-environment configuration with automatic detection:
+
+**Environment Selection:**
+```bash
+# Run in local development mode (default)
+python main.py
+
+# Run in production mode
+SARA_ENV=production python main.py
+```
 
 ## 💻 Usage
 
-1. Ensure Ollama is running in the background:
-   ```bash
-   ollama serve
-   ```
+### Starting the Application
 
-2. Start the application:
-   ```bash
-   # Run with default environment (local)
-   python main.py
-   
-   # Or specify environment explicitly
-   APURAG_ENV=production python main.py
-   ```
+**Basic Startup:**
+```bash
+# Ensure Ollama is running
+ollama serve
 
-3. Follow the interactive CLI prompts to:
-   - Process documents
-   - Query the knowledge base
-   - Manage vector storage
-   - Configure system settings
-
-## 📁 Project Structure
-
-*Request environment files for up-to-date settings (.env files are in gitignore by default for security reasons).*
-
-```
-APURAG/
-├── app.py                 # Main application logic
-├── main.py                # Entry point
-├── config.py              # Base configuration settings
-├── config_local.py        # Local environment configuration
-├── config_production.py   # Production environment configuration
-├── resource_manager.py    # Hardware resource management
-├── apurag_types.py        # Type definitions
-├── input_processing.py    # Input handling
-├── utils.py               # Utility functions
-├── requirements.txt       # Project dependencies
-├── .env.local             # Local environment variables template
-├── .env.production        # Production environment variables template
-├── .gitignore             # Git ignore rules
-├── data/                  # Data directory
-├── document_processing/   # Document processing modules
-├── query_handling/        # Query processing modules
-├── response/              # Response generation modules
-├── retrieval/             # Retrieval system modules
-└── vector_management/     # Vector storage management
+# Start SARA (in separate terminal)
+python main.py
 ```
 
-## 🔧 Configuration
+**Advanced Usage:**
+```bash
+# Specify environment explicitly
+SARA_ENV=production python main.py
 
-The system supports dual environment configuration:
+# Enable debug logging
+SARA_LOG_LEVEL=DEBUG python main.py
 
-### Environment Selection
-- Set `APURAG_ENV` to either `local` (default) or `production`
-- Or copy the appropriate `.env.local` or `.env.production` to `.env`
+# Force document reindexing
+SARA_FORCE_REINDEX=True python main.py
+```
 
-*Request environment files for up-to-date settings (.env files are in gitignore by default for security reasons).*
+### Interactive Commands
 
-### Local Environment (Laptops)
-- Optimized for lower resource usage
-- Smaller models and chunk sizes
-- Reduced memory footprint
-- Debug-level logging
+SARA provides comprehensive CLI commands for system management:
 
-### Production Environment (HGX H100)
-- Optimized for high-performance hardware
-- Larger, more capable models
-- Enhanced retrieval parameters
-- Production-level logging
-- Absolute file paths for reliability
+**Document Management:**
+- `reindex` - Rebuild document index from scratch
+- `stats` - Display system and document statistics
 
-### Configuration Files
-- `config.py` - Base configuration with environment detection
-- `config_local.py` - Local-specific configuration overrides
-- `config_production.py` - Production-specific configuration overrides
-- `.env.local` - Environment variables for local development
-- `.env.production` - Environment variables for production deployment
+**Session Management:**
+- `new session [name]` - Create a new conversation session
+- `list sessions` - Show all available sessions
+- `switch session <id>` - Switch to a specific session
+- `clear session` - Clear current session memory
+
+**Model Management:**
+- `model report` - Display model status and health information
+- `model check` - Check for available model updates
+- `model update` - Update models (requires confirmation)
+
+**System Commands:**
+- `clear` - Clear conversation memory
+- `help` - Display available commands
+- `exit` - Shutdown SARA gracefully
+
+### Query Examples
+
+**APU Knowledge Base Questions:**
+```
+"How do I submit ec?"
+"What are the library operating hours?"
+"Where do I get medical insurance from?"
+"How do I pay my fees?"
+"What is the process for the visa renewal?"
+```
+
+**Note**: SARA only answers questions based on the [APU Knowledge Base](https://apiit.atlassian.net/wiki/spaces/KB/overview?mode=global) content (last updated 13.08.2025). It cannot provide general knowledge or information outside of the university's knowledge base.
+
+## 📁 Project Architecture
+
+```
+SARA/
+├── 📋 Core Application
+│   ├── main.py                     # Application entry point with error handling
+│   ├── app.py                      # Main Sara class and CLI interface
+│   ├── config.py                   # Base configuration with environment detection
+│   ├── config_local.py             # Local development configuration
+│   ├── config_production.py        # Production environment configuration
+│   ├── resource_manager.py         # Hardware resource management
+│   ├── sara_types.py               # Type definitions and data structures
+│   └── input_processing.py         # User input processing and validation
+│
+├── 📄 Document Processing
+│   ├── document_processing/
+│   │   ├── loaders.py              # Multi-format document loaders
+│   │   ├── parsers.py              # Content parsing and extraction
+│   │   └── splitters.py            # Text chunking and segmentation
+│
+├── 🔍 Query and Retrieval
+│   ├── query_handling/
+│   │   ├── router.py               # Query routing and classification
+│   │   ├── conversation.py         # Conversation flow management
+│   │   └── commands.py             # CLI command processing
+│   ├── retrieval/
+│   │   ├── handler.py              # Main retrieval orchestrator
+│   │   ├── context_processor.py    # Context optimization and compression
+│   │   ├── faq_matcher.py          # FAQ-specific matching logic
+│   │   └── reranker.py             # Result reranking and optimization
+│
+├── 🧠 AI and Response Generation
+│   ├── response/
+│   │   ├── generator.py            # LLM response generation with streaming
+│   │   └── cache.py                # Response caching system
+│   ├── spacy_semantic_processor.py # Advanced semantic processing
+│
+├── 💾 Data Management
+│   ├── vector_management/
+│   │   ├── manager.py              # Vector store operations and lifecycle
+│   │   └── chromadb_manager.py     # ChromaDB client management
+│   ├── session_management/
+│   │   ├── session_manager.py      # Session lifecycle coordination
+│   │   ├── session_storage.py      # JSON-based session persistence
+│   │   └── session_types.py        # Session data structures
+│
+├── 📊 Data and Storage
+│   ├── data/                       # Knowledge base documents
+│   │   ├── apu_AA_kb.txt           # Academic Affairs knowledge base
+│   │   ├── apu_BUR_kb.txt          # Bursar/Finance knowledge base
+│   │   ├── apu_ITSM_kb.txt         # IT Service Management knowledge base
+│   │   ├── apu_LIB_kb.txt          # Library services knowledge base
+│   │   ├── apu_LNO_kb.txt          # Learning Network Office knowledge base
+│   │   └── apu_VISA_kb.txt         # Visa and immigration knowledge base
+│
+└── 📚 Configuration and Documentation
+    ├── requirements.txt            # Project dependencies
+    ├── .gitignore                  # Version control exclusions
+    ├── LICENSE                     # MIT License
+    ├── CLAUDE.md                   # Development instructions for Claude Code
+    └── README.md                   # This file
+```
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+SARA uses environment variables for configuration, with support for environment-specific files:
+
+**File Structure:**
+- `config.py` - Base configuration with defaults
+- `config_local.py` - Local development overrides
+- `config_production.py` - Production deployment overrides
+
+**Key Configuration Parameters:**
+
+| Parameter | Local Default | Production Default | Description |
+|-----------|---------------|-------------------|-------------|
+| `SARA_ENV` | `local` | `production` | Environment selection |
+| `SARA_EMBEDDING_MODEL` | `BAAI/bge-base-en-v1.5` | `BAAI/bge-large-en-v1.5` | Embedding model |
+| `SARA_LLM_MODEL` | `qwen2.5:3b-instruct` | `qwen2.5:7b-instruct` | Language model |
+| `SARA_CHUNK_SIZE` | `400` | `800` | Document chunk size |
+| `SARA_MAX_CONTEXT_SIZE` | `7000` | `8000` | Maximum context tokens |
+| `SARA_MAX_THREADS` | `2` | `32` | Processing threads |
+| `SARA_MAX_MEMORY` | `2G` | `64G` | Memory allocation |
+
+### Local Development Configuration
+
+Optimized for development environments with resource constraints:
+
+- **Resource Efficient**: Smaller models and reduced memory usage
+- **Fast Iteration**: Quick startup and response times
+- **Enhanced Logging**: Detailed debug information
+- **Frequent Updates**: Weekly model update checks
+
+### Production Configuration
+
+Optimized for high-performance deployment:
+
+- **Performance Focused**: Larger models and enhanced capabilities
+- **Resource Intensive**: Full utilization of available hardware
+- **Conservative Updates**: Monthly model checks with manual approval
+- **Monitoring**: Comprehensive health checks and alerts
 
 ## 📚 Dependencies
 
-Major dependencies include:
+### Core Machine Learning
+- **torch**: PyTorch deep learning framework
+- **sentence-transformers**: Sentence embedding models
+- **transformers**: Hugging Face transformers library
+- **langchain**: LLM application development framework
+- **langchain-huggingface**: Hugging Face integration for LangChain
+- **langchain-chroma**: ChromaDB integration for LangChain
 
-- **Core:**
-  - torch
-  - langchain
-  - sentence-transformers
-  - chromadb
+### Document Processing
+- **pypdf**: PDF document processing
+- **python-docx**: Microsoft Word document handling
+- **python-pptx**: PowerPoint presentation processing
+- **ebooklib**: EPUB electronic book processing
+- **unstructured**: Advanced document parsing
 
-- **Document Processing:**
-  - pypdf
-  - python-docx
-  - python-pptx
-  - ebooklib
-  - unstructured
+### Natural Language Processing
+- **spacy**: Advanced NLP and semantic processing
+- **nltk**: Natural Language Toolkit
+- **huggingface-hub**: Model repository access
 
-- **Utilities:**
-  - python-dotenv
-  - numpy
-  - tqdm
-  - psutil
+### Vector Database and Storage
+- **chromadb**: Vector database for document embeddings
+- **numpy**: Numerical computing support
 
-For a complete list, see `requirements.txt`.
+### Web and API
+- **requests**: HTTP requests for model updates
+- **ollama**: Local LLM inference integration
 
-## 📝 Version Control
+### Utilities
+- **python-dotenv**: Environment variable management
+- **tqdm**: Progress bars for long-running operations
+- **psutil**: System resource monitoring
+- **typing-extensions**: Enhanced type annotations
 
-The project includes a comprehensive `.gitignore` file to ensure that only necessary files are tracked in version control:
+For the complete dependency list with versions, see `requirements.txt`.
 
-### Excluded from Version Control
-- Environment-specific files (`.env`, `.env.local`, `.env.production`)
-- Vector store data (`vector_store/*`)
-- Log files (`*.log`)
-- Cached Python files (`__pycache__/`, `*.pyc`)
-- OS-specific files (`.DS_Store`, etc.)
-- IDE configuration files (`.vscode/`, `.idea/`)
+## 🔧 Advanced Configuration
 
-### Best Practices
-- Always use the provided `.gitignore` to avoid committing sensitive or large files
-- Keep data files in the `data/` directory (only `apu_kb.txt` is tracked)
-- Store vector databases in the `vector_store/` directory (not tracked)
-- Use environment-specific configuration files for local customization
+### Model Management
+
+SARA implements comprehensive model lifecycle management:
+
+**Automatic Updates:**
+- Periodic checks for model updates from Hugging Face Hub
+- Age-based warnings for outdated models
+- User prompts for update approval
+
+**Cache Management:**
+- Intelligent model caching with metadata tracking
+- Automatic cleanup of incomplete downloads
+- Backup and recovery capabilities
+
+**Health Monitoring:**
+- Model integrity verification
+- Performance monitoring
+- Error detection and recovery
+
+### Performance Optimization
+
+**Hardware Acceleration:**
+- Automatic GPU detection (CUDA/MPS)
+- Optimized tensor operations
+- Memory-efficient processing
+
+**Resource Management:**
+- Environment-specific resource allocation
+- Dynamic scaling based on available hardware
+- Memory usage optimization
+
+### Security and Reliability
+
+**Data Safety:**
+- No sensitive information in configuration
+- Secure model caching
+- Comprehensive error handling
+
+**Reliability Features:**
+- Graceful degradation on errors
+- Automatic retry mechanisms
+- Comprehensive logging
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+Contributions are welcome and encouraged. Please follow these guidelines:
 
+### Development Workflow
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes with appropriate tests
+4. Ensure code follows project standards
+5. Commit changes (`git commit -m 'Add amazing feature'`)
+6. Push to branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+### Code Standards
+- Follow Python PEP 8 style guidelines
+- Include comprehensive docstrings
+- Add type hints where appropriate
+- Write unit tests for new functionality
+- Update documentation as needed
+
+### Areas for Contribution
+- Additional document format support
+- Enhanced semantic processing
+- Performance optimizations
+- UI/Web interface development
+- Integration with external systems
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👥 Authors
+## 👥 Authors and Acknowledgments
 
-- **Nik** - [nikiwit.com](https://nikiwit.com/) - *Original Author* 
+**Original Author:**
+- **Nik** - [nikiwit.com](https://nikiwit.com/) - *Project Creator and Lead Developer*
 
-## 🙏 Acknowledgments
+**Acknowledgments:**
+- APU University for project support and requirements
+- The open-source community for excellent libraries and frameworks
+- Contributors who have helped improve the project
 
-- Thanks to all contributors who have helped shape this project
+## 📞 Support and Contact
 
-## 📞 Support
+For support, questions, or contributions:
 
-For support, please open an issue in the GitHub repository or contact the maintainers.
+- **Issues**: Open an issue in the GitHub repository
+- **Documentation**: Refer to inline code documentation and CLAUDE.md
+- **Community**: Engage with the APU community and contributors
+
+## 🎓 Academic Context
+
+This project was developed as part of academic research and development at APU University. It shows practical application of advanced AI technologies in educational settings and serves as a foundation for further research and development in intelligent academic assistance tools.
+
+The system architecture and implementation choices reflect real-world production requirements while maintaining academic rigor and educational value.
 
 ---
 
-Made with ❤️ for the APU community
+**Made with ❤️ for the APU Community**
+
+*SARA represents the intersection of cutting-edge AI technology and practical educational applications, designed to enhance the academic experience through intelligent, responsive, and reliable assistance.*
