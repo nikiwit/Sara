@@ -620,33 +620,14 @@ class RetrievalHandler:
         response = re.sub(r'\n\s*\n\s*\n+', '\n\n', response)
         response = response.strip()
         
-        # Find the most relevant source URL from the documents that were actually used
-        source_url = None
-        if docs:
-            # Find the document whose content is most represented in the response
-            best_match_score = 0
-            for doc in docs:
-                main_url = doc.metadata.get('main_url', '')
-                if main_url and len(main_url) > 0:
-                    # Calculate how much of this document's content appears in the response
-                    doc_words = set(doc.page_content.lower().split())
-                    response_words = set(response.lower().split())
-                    
-                    # Calculate overlap
-                    overlap = len(doc_words.intersection(response_words))
-                    if overlap > best_match_score:
-                        best_match_score = overlap
-                        source_url = main_url
-            
-            # Only add source if the response contains useful information
-            if source_url and self._response_contains_useful_info(response):
-                response += f"\n\nSource: {source_url}"
-                logger.debug(f"Added source URL: {source_url}")
+        # Add source attribution using improved 2024-2025 RAG best practices
+        source_urls = self._extract_source_attribution(response, docs)
+        if source_urls and self._response_contains_useful_info(response):
+            if len(source_urls) == 1:
+                response += f"\n\nSource: {source_urls[0]}"
             else:
-                if not source_url:
-                    logger.debug("No valid source URL found in documents")
-                else:
-                    logger.debug("Response doesn't contain useful info - not adding source")
+                # Multiple sources - show primary source only to avoid clutter
+                response += f"\n\nSource: {source_urls[0]}"
         
         if response != original_response:
             logger.debug("Response was modified during post-processing")
@@ -696,6 +677,218 @@ class RetrievalHandler:
             return False
             
         return True
+    
+    def _extract_source_attribution(self, response: str, docs: List[Any]) -> List[str]:
+        """
+        Extract source URLs using improved attribution logic based on 2024-2025 RAG best practices.
+        
+        This implements multiple attribution strategies for robust source detection:
+        1. Semantic similarity-based matching
+        2. Key phrase overlap detection  
+        3. Document ranking-based fallback
+        4. Content density analysis
+        
+        Args:
+            response: Generated response text
+            docs: List of source documents used for generation
+            
+        Returns:
+            List of source URLs ordered by relevance (primary source first)
+        """
+        if not docs:
+            return []
+        
+        source_candidates = []
+        response_lower = response.lower()
+        
+        for doc in docs:
+            main_url = doc.metadata.get('main_url', '')
+            if not main_url:
+                continue
+                
+            # Strategy 1: Content-based similarity scoring
+            content_score = self._calculate_content_similarity(response, doc.page_content)
+            
+            # Strategy 2: Key phrase overlap (improved beyond simple word matching)  
+            phrase_score = self._calculate_phrase_overlap(response, doc.page_content)
+            
+            # Strategy 3: Document metadata scoring (title, section relevance)
+            metadata_score = self._calculate_metadata_relevance(response, doc.metadata)
+            
+            # Combined weighted score
+            total_score = (
+                content_score * 0.4 +      # Content similarity (most important)
+                phrase_score * 0.4 +       # Phrase overlap (most important)  
+                metadata_score * 0.2       # Metadata relevance (supporting)
+            )
+            
+            if total_score > 0.1:  # Minimum threshold for attribution
+                source_candidates.append({
+                    'url': main_url,
+                    'score': total_score,
+                    'doc': doc
+                })
+        
+        # Fallback strategy: If no good matches found, use document order (retrieval ranking)
+        if not source_candidates:
+            for doc in docs[:2]:  # Take top 2 retrieved documents
+                main_url = doc.metadata.get('main_url', '')
+                if main_url:
+                    source_candidates.append({
+                        'url': main_url,
+                        'score': 0.5,  # Medium confidence fallback score
+                        'doc': doc
+                    })
+        
+        # Sort by score and return URLs
+        source_candidates.sort(key=lambda x: x['score'], reverse=True)
+        attributed_urls = [candidate['url'] for candidate in source_candidates]
+        
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_urls = []
+        for url in attributed_urls:
+            if url not in seen:
+                seen.add(url)
+                unique_urls.append(url)
+        
+        return unique_urls[:3]  # Return top 3 sources maximum
+    
+    def _calculate_content_similarity(self, response: str, doc_content: str) -> float:
+        """
+        Calculate semantic content similarity between response and document.
+        
+        Uses improved matching beyond simple word overlap:
+        - N-gram matching (2-4 word phrases)
+        - Normalized scoring by content length
+        - Handles paraphrasing better than word-only matching
+        """
+        try:
+            # Tokenize both texts
+            response_tokens = response.lower().split()
+            doc_tokens = doc_content.lower().split()
+            
+            if not response_tokens or not doc_tokens:
+                return 0.0
+            
+            # Generate n-grams for better semantic matching
+            def get_ngrams(tokens, n):
+                return set(' '.join(tokens[i:i+n]) for i in range(len(tokens) - n + 1))
+            
+            # Calculate overlaps for different n-gram sizes
+            bigram_response = get_ngrams(response_tokens, 2)
+            bigram_doc = get_ngrams(doc_tokens, 2)
+            bigram_overlap = len(bigram_response.intersection(bigram_doc))
+            
+            trigram_response = get_ngrams(response_tokens, 3)  
+            trigram_doc = get_ngrams(doc_tokens, 3)
+            trigram_overlap = len(trigram_response.intersection(trigram_doc))
+            
+            # Single word overlap (with less weight)
+            word_response = set(response_tokens)
+            word_doc = set(doc_tokens)
+            word_overlap = len(word_response.intersection(word_doc))
+            
+            # Weighted score (higher n-grams get more weight)
+            total_overlap = trigram_overlap * 3 + bigram_overlap * 2 + word_overlap * 1
+            
+            # Normalize by response length to avoid bias toward long documents
+            max_possible_score = len(response_tokens) * 2  # Reasonable normalization factor
+            similarity_score = min(total_overlap / max_possible_score, 1.0)
+            
+            return similarity_score
+            
+        except Exception as e:
+            logger.warning(f"Content similarity calculation failed: {e}")
+            return 0.0
+    
+    def _calculate_phrase_overlap(self, response: str, doc_content: str) -> float:
+        """
+        Calculate overlap of key phrases between response and document.
+        
+        Focuses on meaningful phrases rather than common words.
+        """
+        try:
+            # Extract key phrases (filter out common words)
+            import re
+            
+            # Common words to ignore in phrase matching
+            common_words = {
+                'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 
+                'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 
+                'has', 'had', 'will', 'would', 'could', 'should', 'may', 'might',
+                'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they'
+            }
+            
+            # Extract meaningful phrases (2-5 words, avoiding common words)
+            def extract_key_phrases(text):
+                # Split into sentences and then phrases
+                sentences = re.split(r'[.!?]', text.lower())
+                phrases = set()
+                
+                for sentence in sentences:
+                    words = sentence.split()
+                    # Extract 2-5 word phrases that contain at least one non-common word
+                    for i in range(len(words)):
+                        for length in [2, 3, 4, 5]:
+                            if i + length <= len(words):
+                                phrase = ' '.join(words[i:i+length])
+                                phrase_words = phrase.split()
+                                # Include phrase if it has at least one meaningful word
+                                if any(word not in common_words and len(word) > 3 for word in phrase_words):
+                                    phrases.add(phrase)
+                
+                return phrases
+            
+            response_phrases = extract_key_phrases(response)
+            doc_phrases = extract_key_phrases(doc_content)
+            
+            if not response_phrases:
+                return 0.0
+            
+            # Calculate overlap
+            overlap_count = len(response_phrases.intersection(doc_phrases))
+            phrase_score = overlap_count / len(response_phrases)
+            
+            return min(phrase_score, 1.0)
+            
+        except Exception as e:
+            logger.warning(f"Phrase overlap calculation failed: {e}")
+            return 0.0
+    
+    def _calculate_metadata_relevance(self, response: str, metadata: dict) -> float:
+        """
+        Calculate relevance based on document metadata (title, section, etc.).
+        
+        Gives bonus scores for documents whose metadata aligns with response content.
+        """
+        try:
+            score = 0.0
+            response_lower = response.lower()
+            
+            # Check title relevance
+            title = metadata.get('page_title', '').lower()
+            if title:
+                title_words = set(title.split())
+                response_words = set(response_lower.split())
+                title_overlap = len(title_words.intersection(response_words))
+                if title_overlap > 0:
+                    score += 0.3  # Bonus for title relevance
+            
+            # Check section relevance  
+            section = metadata.get('section_title', '').lower()
+            if section:
+                section_words = set(section.split())
+                response_words = set(response_lower.split())
+                section_overlap = len(section_words.intersection(response_words))
+                if section_overlap > 0:
+                    score += 0.2  # Bonus for section relevance
+            
+            return min(score, 1.0)
+            
+        except Exception as e:
+            logger.warning(f"Metadata relevance calculation failed: {e}")
+            return 0.0
     
     def _format_faq_match(self, match_result: Dict[str, Any]) -> str:
         """Format a direct FAQ match into a context for the LLM."""

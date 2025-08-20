@@ -192,9 +192,13 @@ class InputProcessor:
         
         return expanded_query
     
-    def analyze_query(self, query: str) -> Dict[str, Any]:
+    def analyze_query(self, query: str, conversation_context: str = None) -> Dict[str, Any]:
         """
         Analyze the query to extract features for better retrieval.
+        
+        Args:
+            query: Original user query
+            conversation_context: Optional conversation history for context-aware processing
         
         Returns:
             A dictionary with query analysis including:
@@ -205,9 +209,15 @@ class InputProcessor:
             - query_type: Type of query (enum)
             - expanded_queries: List of expanded query variants
             - extracted_terms: Education/APU-specific terms extracted
+            - contextual_query: Context-enhanced query (if context provided)
         """
-        # Normalize the query
-        normalized_query = self.normalize_query(query)
+        # Apply conversational context enhancement if provided
+        contextual_query = query
+        if conversation_context:
+            contextual_query = self._enhance_query_with_context(query, conversation_context)
+        
+        # Normalize the query (use contextual query if enhanced)
+        normalized_query = self.normalize_query(contextual_query)
         
         # Expand abbreviations
         expanded_query = self.expand_abbreviations(normalized_query)
@@ -242,6 +252,7 @@ class InputProcessor:
         
         return {
             "original_query": query,
+            "contextual_query": contextual_query if conversation_context else query,
             "normalized_query": normalized_query,
             "expanded_query": expanded_query,
             "tokens": tokens,
@@ -660,3 +671,234 @@ class InputProcessor:
             ])
         
         return variations
+    
+    def _enhance_query_with_context(self, query: str, context: str) -> str:
+        """
+        Enhance the query using conversation context for better follow-up question handling.
+        
+        This implements conversational RAG best practices for 2024-2025:
+        - Query reformulation based on recent conversation history
+        - Contextual entity extraction and disambiguation
+        - Follow-up question expansion with topic continuity
+        
+        Args:
+            query: Current user query
+            context: Recent conversation history
+            
+        Returns:
+            Enhanced query with conversational context
+        """
+        try:
+            # Check if this is a follow-up question that needs context
+            if not self._is_followup_question(query):
+                return query
+            
+            # Extract entities and topics from recent context
+            context_entities = self._extract_context_entities(context)
+            context_topics = self._extract_context_topics(context)
+            
+            # Apply query reformulation based on context
+            enhanced_query = self._reformulate_with_context(
+                query, context_entities, context_topics
+            )
+            
+            return enhanced_query
+            
+        except Exception as e:
+            logger.warning(f"Context enhancement failed: {e}")
+            return query
+    
+    def _is_followup_question(self, query: str) -> bool:
+        """
+        Determine if a query is likely a follow-up question needing context.
+        
+        Args:
+            query: User query to analyze
+            
+        Returns:
+            True if this appears to be a follow-up question
+        """
+        query_lower = query.lower().strip()
+        
+        # Common follow-up question patterns
+        followup_patterns = [
+            # Pronoun-based questions
+            r'\b(?:how much|what about|what is)\s+(?:it|this|that|they?)\b',
+            r'\b(?:it|this|that|they?)\s+(?:cost|costs?)\b',
+            r'\b(?:how|what|when|where)\s+(?:about|for)\s+(?:it|this|that|they?)\b',
+            
+            # Generic cost/pricing questions
+            r'^(?:how much|what(?:\'s| is) the)\s+(?:cost|price|fee)\??$',
+            r'^(?:cost|price|fee)\??$',
+            r'^how much\??$',
+            
+            # Generic time/schedule questions
+            r'^(?:when|what time)\??$',
+            r'^(?:schedule|timing|hours)\??$',
+            
+            # Generic location questions
+            r'^(?:where|location)\??$',
+            
+            # Generic process questions
+            r'^(?:how|process|procedure)\??$',
+            
+            # Other vague follow-ups
+            r'^(?:what about|how about|and)\s+\w+\??$',
+            r'^(?:more info|details|information)\??$'
+        ]
+        
+        for pattern in followup_patterns:
+            if re.search(pattern, query_lower):
+                return True
+        
+        # Additional heuristics: short questions with vague terms
+        vague_terms = ['it', 'this', 'that', 'they', 'them', 'cost', 'price', 'when', 'where', 'how']
+        words = query_lower.split()
+        
+        if (len(words) <= 4 and 
+            any(term in words for term in vague_terms) and 
+            query_lower.endswith('?') or len(words) <= 2):
+            return True
+        
+        return False
+    
+    def _extract_context_entities(self, context: str) -> List[str]:
+        """
+        Extract key entities from conversation context.
+        
+        Args:
+            context: Recent conversation history
+            
+        Returns:
+            List of important entities mentioned in context
+        """
+        entities = []
+        context_lower = context.lower()
+        
+        # APU-specific entities to look for
+        apu_entities = {
+            # Academic entities
+            'visa renewal', 'student pass', 'visa extension', 'immigration',
+            'medical insurance', 'insurance card', 'health insurance',
+            'fee payment', 'tuition fee', 'university fee', 'payment',
+            'reference letter', 'recommendation letter', 'academic reference',
+            'library hours', 'library services', 'library card',
+            'parking permit', 'parking pass', 'vehicle registration',
+            'apkey password', 'login credentials', 'student portal',
+            'exam docket', 'examination slip', 'exam registration',
+            'course registration', 'module enrollment', 'class schedule',
+            'transcript request', 'academic transcript', 'official transcript',
+            'graduation ceremony', 'convocation', 'degree certificate',
+            
+            # Services and facilities
+            'student services', 'academic office', 'international office',
+            'finance office', 'registry office', 'it services',
+            'counseling services', 'career services', 'accommodation',
+            
+            # Academic programs
+            'computer science', 'information technology', 'engineering',
+            'business administration', 'accounting', 'finance',
+        }
+        
+        # Look for multi-word entities first (more specific)
+        for entity in sorted(apu_entities, key=len, reverse=True):
+            if entity in context_lower:
+                entities.append(entity)
+        
+        # Look for course codes and IDs
+        course_codes = re.findall(r'\b[A-Z]{2,}[0-9]{1,}[A-Z0-9]{2,}\b', context)
+        entities.extend(course_codes)
+        
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_entities = []
+        for entity in entities:
+            if entity not in seen:
+                seen.add(entity)
+                unique_entities.append(entity)
+        
+        return unique_entities[:5]  # Limit to most recent/relevant entities
+    
+    def _extract_context_topics(self, context: str) -> List[str]:
+        """
+        Extract main topics from conversation context.
+        
+        Args:
+            context: Recent conversation history
+            
+        Returns:
+            List of main topics discussed
+        """
+        topics = []
+        context_lower = context.lower()
+        
+        # Topic keywords mapping
+        topic_mapping = {
+            'visa_immigration': ['visa', 'immigration', 'student pass', 'permit', 'renewal', 'extension'],
+            'medical_insurance': ['medical', 'insurance', 'health', 'card', 'coverage', 'claim'],
+            'fees_payment': ['fee', 'payment', 'tuition', 'cost', 'price', 'charge', 'invoice'],
+            'library_services': ['library', 'book', 'borrow', 'study', 'resource', 'hours'],
+            'parking': ['parking', 'vehicle', 'car', 'permit', 'registration'],
+            'academic_records': ['transcript', 'certificate', 'record', 'grade', 'result'],
+            'registration': ['registration', 'enrollment', 'course', 'module', 'class'],
+            'it_support': ['password', 'apkey', 'login', 'portal', 'system', 'access'],
+            'reference_letters': ['reference', 'letter', 'recommendation', 'document']
+        }
+        
+        # Check which topics are present in context
+        for topic, keywords in topic_mapping.items():
+            if any(keyword in context_lower for keyword in keywords):
+                topics.append(topic)
+        
+        return topics
+    
+    def _reformulate_with_context(self, query: str, entities: List[str], topics: List[str]) -> str:
+        """
+        Reformulate the query by incorporating contextual information.
+        
+        Args:
+            query: Original user query
+            entities: Relevant entities from context
+            topics: Relevant topics from context
+            
+        Returns:
+            Reformulated query with context
+        """
+        query_lower = query.lower().strip()
+        
+        # Handle cost/price questions
+        if re.search(r'\b(?:how much|cost|price|fee)\b', query_lower):
+            if any('visa' in entity or 'immigration' in entity for entity in entities):
+                return f"visa renewal cost fee {query}"
+            elif any('medical' in entity or 'insurance' in entity for entity in entities):
+                return f"medical insurance cost fee {query}"
+            elif any('parking' in entity for entity in entities):
+                return f"parking permit cost fee {query}"
+            elif 'fees_payment' in topics:
+                return f"university fee payment cost {query}"
+        
+        # Handle time/schedule questions
+        if re.search(r'\b(?:when|time|hours|schedule)\b', query_lower):
+            if any('library' in entity for entity in entities):
+                return f"library opening hours schedule {query}"
+            elif any('office' in entity for entity in entities):
+                return f"office hours operating time {query}"
+        
+        # Handle location questions
+        if re.search(r'\b(?:where|location)\b', query_lower):
+            if entities:
+                # Use the most specific entity
+                primary_entity = entities[0]
+                return f"{primary_entity} location address {query}"
+        
+        # Handle process/procedure questions
+        if re.search(r'\b(?:how|process|procedure)\b', query_lower):
+            if entities:
+                primary_entity = entities[0]
+                return f"{primary_entity} process procedure {query}"
+        
+        # General enhancement: add the most relevant entity if available
+        if entities and len(query.split()) <= 3:
+            return f"{entities[0]} {query}"
+        
+        return query

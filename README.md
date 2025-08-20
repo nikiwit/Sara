@@ -20,8 +20,9 @@ This project represents a comprehensive implementation of a production-ready RAG
 ## 🌟 Core Features
 
 ### 🤖 Intelligent Chatbot System
-- **Conversational AI**: Natural language interaction with context awareness
-- **Session Management**: Isolated conversation histories with automatic cleanup
+- **Conversational AI**: Natural language interaction with advanced context awareness
+- **Follow-up Question Handling**: Intelligent query reformulation for contextual follow-ups
+- **Session Management**: Isolated conversation histories with automatic cleanup (max 5 sessions)
 - **Streaming Responses**: Real-time response generation for enhanced user experience
 - **Memory Management**: Persistent conversation context across sessions
 

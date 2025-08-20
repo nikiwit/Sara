@@ -722,8 +722,11 @@ class Sara:
                 print("\nThinking...\n")
                 
                 try:
-                    # Process and route query
-                    query_analysis = self.input_processor.analyze_query(query)
+                    # Extract conversation context from current session for better follow-up handling
+                    conversation_context = self._get_conversation_context()
+                    
+                    # Process and route query with conversational context
+                    query_analysis = self.input_processor.analyze_query(query, conversation_context)
                     
                     # Route the query to appropriate handler with streaming enabled
                     response, should_continue = self.query_router.route_query(query_analysis, stream=True)
@@ -764,6 +767,44 @@ class Sara:
             except Exception as e:
                 logger.error(f"Error in CLI: {e}")
                 print("\n[An unexpected error occurred. Please try again.]")
+    
+    def _get_conversation_context(self) -> str:
+        """
+        Extract recent conversation history for conversational context enhancement.
+        
+        Returns conversation history from current session for better follow-up handling.
+        This follows 2024-2025 conversational RAG best practices for contextual query reformulation.
+        
+        Returns:
+            String containing recent conversation history, or empty string if no context
+        """
+        try:
+            current_session = self.session_manager.get_current_session()
+            if not current_session or not current_session.memory:
+                return ""
+            
+            # Get recent messages (last 6 messages = last 3 exchanges)
+            messages = current_session.memory.chat_memory.messages
+            if len(messages) <= 1:  # Only system message or empty
+                return ""
+            
+            # Extract last 6 messages (3 user-assistant pairs) for context
+            recent_messages = messages[-6:] if len(messages) > 6 else messages[1:]  # Skip system message
+            
+            context_parts = []
+            for message in recent_messages:
+                if hasattr(message, 'content'):
+                    # Limit each message to prevent context explosion
+                    content = message.content[:200] + "..." if len(message.content) > 200 else message.content
+                    context_parts.append(content)
+            
+            context = " ".join(context_parts)
+            
+            return context
+            
+        except Exception as e:
+            logger.warning(f"Failed to extract conversation context: {e}")
+            return ""
                 
     def cleanup(self):
         """
