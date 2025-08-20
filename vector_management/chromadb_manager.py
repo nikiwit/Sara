@@ -4,6 +4,12 @@ ChromaDB client management with optimized initialization and error handling.
 
 import os
 import logging
+
+# Disable ChromaDB telemetry completely before importing chromadb
+os.environ['ANONYMIZED_TELEMETRY'] = 'False'
+os.environ['CHROMA_TELEMETRY_DISABLED'] = '1'
+os.environ['CHROMA_TELEMETRY'] = 'False'
+
 import chromadb
 from chromadb.config import Settings
 from langchain_chroma import Chroma

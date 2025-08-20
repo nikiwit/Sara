@@ -738,7 +738,8 @@ class VectorStoreManager:
             f"models--{model_name.replace('/', '--')}",  # New HF format
             model_name.replace('/', '_'),  # Old format
             model_name,  # Direct name
-            f"sentence-transformers_{model_name.replace('/', '_')}"  # ST format
+            f"sentence-transformers_{model_name.replace('/', '_')}",  # ST format
+            f"models--{model_name.replace('/', '--')}"  # ST directory format (redundant but explicit)
         ]
         
         found_path = None
@@ -749,14 +750,46 @@ class VectorStoreManager:
             for variant in model_variants:
                 model_path = os.path.join(cache_dir, variant)
                 if os.path.exists(model_path):
-                    # Check for essential files
+                    # Check for essential files in both root and snapshot directories
                     essential_files = ['config.json']
                     model_files = ['pytorch_model.bin', 'model.safetensors', 'model.onnx']
                     tokenizer_files = ['tokenizer.json', 'tokenizer_config.json', 'vocab.txt']
                     
+                    # First check root directory
                     has_config = any(os.path.exists(os.path.join(model_path, f)) for f in essential_files)
                     has_model = any(os.path.exists(os.path.join(model_path, f)) for f in model_files)
                     has_tokenizer = any(os.path.exists(os.path.join(model_path, f)) for f in tokenizer_files)
+                    
+                    # If not found in root, check snapshots directory (HF cache structure)
+                    if not (has_config and (has_model or has_tokenizer)):
+                        snapshots_dir = os.path.join(model_path, 'snapshots')
+                        if os.path.exists(snapshots_dir):
+                            for snapshot in os.listdir(snapshots_dir):
+                                snapshot_path = os.path.join(snapshots_dir, snapshot)
+                                if os.path.isdir(snapshot_path):
+                                    # Check for files directly in snapshots (they may be symlinks)
+                                    snapshot_has_config = any(os.path.exists(os.path.join(snapshot_path, f)) for f in essential_files)
+                                    snapshot_has_model = any(os.path.exists(os.path.join(snapshot_path, f)) for f in model_files)
+                                    snapshot_has_tokenizer = any(os.path.exists(os.path.join(snapshot_path, f)) for f in tokenizer_files)
+                                    
+                                    has_config = has_config or snapshot_has_config
+                                    has_model = has_model or snapshot_has_model
+                                    has_tokenizer = has_tokenizer or snapshot_has_tokenizer
+                                    
+                                    if has_config and (has_model or has_tokenizer):
+                                        break
+                    
+                    # Additional check for HF blob integrity (symlinks should resolve)
+                    if has_config and (has_model or has_tokenizer):
+                        # Check if this is an HF cache with symlinks and verify they resolve
+                        snapshots_dir = os.path.join(model_path, 'snapshots')
+                        blobs_dir = os.path.join(model_path, 'blobs')
+                        if os.path.exists(snapshots_dir) and os.path.exists(blobs_dir):
+                            # Check for incomplete downloads in blobs directory
+                            incomplete_files = [f for f in os.listdir(blobs_dir) if f.endswith('.incomplete')]
+                            if incomplete_files:
+                                logger.warning(f"Model {model_name} has incomplete downloads: {incomplete_files}")
+                                has_model = False  # Mark as not properly cached
                     
                     if has_config and (has_model or has_tokenizer):
                         logger.info(f"Model {model_name} found in cache at {model_path}")
