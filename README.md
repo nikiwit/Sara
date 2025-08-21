@@ -1,9 +1,9 @@
-# SARA - Smart Academic Research Assistant
+# SARA - Smart Academic Retrieval Assistant
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-SARA (Smart Academic Research Assistant) is an advanced Retrieval-Augmented Generation (RAG) chatbot system developed as part of the APU University project. The system provides intelligent question-answering capabilities by leveraging state-of-the-art natural language processing and vector-based retrieval techniques, specifically optimized for academic and institutional knowledge bases.
+SARA (Smart Academic Retrieval Assistant) is an advanced Retrieval-Augmented Generation (RAG) chatbot system developed as part of the APU University project. The system provides intelligent question-answering capabilities by leveraging state-of-the-art natural language processing and vector-based retrieval techniques, specifically optimized for academic and institutional knowledge bases.
 
 ## 🎯 Project Overview
 
