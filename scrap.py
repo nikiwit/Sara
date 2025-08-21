@@ -2,10 +2,10 @@ import requests
 import os
 from bs4 import BeautifulSoup
 
-# --- Your provided information ---
+# --- Information ---
 atlassian_domain = "apiit.atlassian.net"
-api_username = "TP083057@mail.apu.edu.my"
-api_token = "ATATT3xFfGF0GzrHEcrKMIbTgVyMicdOmh2_grmCPvhcGicr23FPyWZNyaMmOAf8_0eGaYUAyVbwyOSuT-9eHoJsgSnBy5XAVV2tuuZv1Z4rYRf_52-KTaH0idwfg6y-pSACC7gvs4HndodDyc8OylNuXGcBzpAH5-OiiNPe9lB1dAwuulUXPA=72D838BC"
+api_username = "TPexample@mail.apu.edu.my"
+api_token = "example"
 
 # List of space keys to scrape
 space_keys = ["ITSM", "LIB", "LNO", "VISA", "BUR", "AA", ]
