@@ -13,6 +13,9 @@ class LocalConfig(Config):
     # Use smaller models suitable for laptops
     EMBEDDING_MODEL_NAME = os.environ.get("SARA_EMBEDDING_MODEL", "BAAI/bge-base-en-v1.5")
     LLM_MODEL_NAME = os.environ.get("SARA_LLM_MODEL", "qwen2.5:3b-instruct")
+    
+    # Reranker model - balanced performance for local development
+    RERANKER_MODEL_NAME = os.environ.get("SARA_RERANKER_MODEL", "BAAI/bge-reranker-base")
 
     # Smaller chunk sizes for faster processing
     CHUNK_SIZE = int(os.environ.get("SARA_CHUNK_SIZE", "400"))

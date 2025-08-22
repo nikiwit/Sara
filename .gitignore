@@ -59,19 +59,24 @@ model_cache/
 en_core_web_*
 en_core_news_*
 en_core_trf_*
+
 # spaCy cache directories
 .spacy/
 *.spacy
+
 # HuggingFace transformers cache
 .transformers_cache/
 transformers_cache/
+
 # NLTK data directory
 nltk_data/
+
 # General ML model cache
 models/
 *.model
 *.pkl
 *.joblib
+
 # Sentence transformers cache (already covered by model_cache/ but being explicit)
 sentence_transformers_cache/
 
@@ -80,3 +85,6 @@ test-*/
 
 # Claude Instructions
 CLAUDE.md
+
+# Personal configuration setup commands
+configuration.md

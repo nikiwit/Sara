@@ -14,6 +14,9 @@ class ProductionConfig(Config):
     EMBEDDING_MODEL_NAME = os.environ.get("SARA_EMBEDDING_MODEL", "BAAI/bge-large-en-v1.5")
     LLM_MODEL_NAME = os.environ.get("SARA_LLM_MODEL", "qwen2.5:7b-instruct")
     
+    # Reranker model - maximum performance for production
+    RERANKER_MODEL_NAME = os.environ.get("SARA_RERANKER_MODEL", "BAAI/bge-reranker-large")
+    
     # Optimized chunk sizes
     CHUNK_SIZE = int(os.environ.get("SARA_CHUNK_SIZE", "800"))
     CHUNK_OVERLAP = int(os.environ.get("SARA_CHUNK_OVERLAP", "200"))

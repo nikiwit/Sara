@@ -29,8 +29,9 @@ class AdvancedReranker:
             # Try to import sentence-transformers for cross-encoder reranking
             from sentence_transformers import CrossEncoder
             
-            # Use a lightweight but effective cross-encoder model
-            model_name = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+            # Use configured reranker model (environment-specific)
+            from config import Config
+            model_name = Config.RERANKER_MODEL_NAME
             self.cross_encoder = CrossEncoder(model_name)
             self.initialized = True
             logger.info(f"Initialized cross-encoder reranker with model: {model_name}")

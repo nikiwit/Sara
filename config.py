@@ -125,6 +125,9 @@ class Config:
     EMBEDDING_MODEL_NAME = os.environ.get("SARA_EMBEDDING_MODEL", "BAAI/bge-base-en-v1.5")
     LLM_MODEL_NAME = os.environ.get("SARA_LLM_MODEL", "qwen2.5:3b-instruct")
     
+    # Reranker model settings
+    RERANKER_MODEL_NAME = os.environ.get("SARA_RERANKER_MODEL", "BAAI/bge-reranker-base")
+    
     # Chunking settings
     CHUNK_SIZE = int(os.environ.get("SARA_CHUNK_SIZE", "500"))
     CHUNK_OVERLAP = int(os.environ.get("SARA_CHUNK_OVERLAP", "150"))
