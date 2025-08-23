@@ -412,7 +412,7 @@ I would like to check on my EC status
 --- PAGE: How do I submit EC? ---
 URL: https://apiit.atlassian.net/wiki/spaces/AA/pages/221152223/How+do+I+submit+EC
 
-You can submit EC Online from the following link –
+You can submit EC (Extenuating Circumstances) Online from the following link –
 e-Forms (Forms & Applications) (http://forms.sites.apiit.edu.my/)
 . APSpace > More > e-Forms. The claims for extenuating circumstances with supporting evidence must be submitted
 no more than 3 working days
