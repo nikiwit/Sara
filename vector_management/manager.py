@@ -23,7 +23,7 @@ from pathlib import Path
 from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 
-from config import Config
+from config import config
 from .chromadb_manager import ChromaDBManager
 
 logger = logging.getLogger("Sara")
@@ -42,22 +42,22 @@ class VectorStoreManager:
     @classmethod
     def get_model_config(cls):
         """
-        Get model management configuration from Config.
+        Get model management configuration from config.
         
         Returns:
             dict: Configuration dictionary containing model management settings
         """
         return {
-            'CHECK_INTERVAL_DAYS': Config.MODEL_CHECK_INTERVAL_DAYS,
-            'WARNING_AGE_DAYS': Config.MODEL_WARNING_AGE_DAYS,
-            'CRITICAL_AGE_DAYS': Config.MODEL_CRITICAL_AGE_DAYS,
-            'AUTO_UPDATE_PROMPT': Config.MODEL_AUTO_UPDATE_PROMPT,
-            'UPDATE_CHECK_ENABLED': Config.MODEL_UPDATE_CHECK_ENABLED,
-            'REQUIRE_APPROVAL': Config.MODEL_REQUIRE_APPROVAL,
-            'CACHE_CLEANUP': Config.MODEL_CACHE_CLEANUP,
-            'BACKUP_ENABLED': Config.MODEL_BACKUP_ENABLED,
-            'MAX_BACKUPS': Config.MODEL_MAX_BACKUPS,
-            'NOTIFICATION_EMAIL': Config.MODEL_NOTIFICATION_EMAIL
+            'CHECK_INTERVAL_DAYS': config.MODEL_CHECK_INTERVAL_DAYS,
+            'WARNING_AGE_DAYS': config.MODEL_WARNING_AGE_DAYS,
+            'CRITICAL_AGE_DAYS': config.MODEL_CRITICAL_AGE_DAYS,
+            'AUTO_UPDATE_PROMPT': config.MODEL_AUTO_UPDATE_PROMPT,
+            'UPDATE_CHECK_ENABLED': config.MODEL_UPDATE_CHECK_ENABLED,
+            'REQUIRE_APPROVAL': config.MODEL_REQUIRE_APPROVAL,
+            'CACHE_CLEANUP': config.MODEL_CACHE_CLEANUP,
+            'BACKUP_ENABLED': config.MODEL_BACKUP_ENABLED,
+            'MAX_BACKUPS': config.MODEL_MAX_BACKUPS,
+            'NOTIFICATION_EMAIL': config.MODEL_NOTIFICATION_EMAIL
         }
     
     @staticmethod
@@ -289,7 +289,7 @@ class VectorStoreManager:
         Returns:
             dict: Model age information and update recommendations
         """
-        config = VectorStoreManager.get_model_config()
+        model_config = VectorStoreManager.get_model_config()
         registry = VectorStoreManager._load_model_registry()
         model_entry = registry.get(model_name, {})
         
@@ -299,7 +299,7 @@ class VectorStoreManager:
             return {
                 'status': 'unknown',
                 'age_days': 0,
-                'should_check_updates': config['UPDATE_CHECK_ENABLED'],
+                'should_check_updates': model_config['UPDATE_CHECK_ENABLED'],
                 'message': 'Model not registered, will check for updates'
             }
         
@@ -308,21 +308,21 @@ class VectorStoreManager:
             age_days = (datetime.now() - cached_date).days
             
             # Determine status using config values
-            if age_days < config['CHECK_INTERVAL_DAYS']:
+            if age_days < model_config['CHECK_INTERVAL_DAYS']:
                 status = 'fresh'
                 should_check = False
                 message = f"Model is fresh ({age_days} days old)"
-            elif age_days < config['WARNING_AGE_DAYS']:
+            elif age_days < model_config['WARNING_AGE_DAYS']:
                 status = 'good'
                 should_check = VectorStoreManager._should_check_for_updates(model_name)
                 message = f"Model is good ({age_days} days old)"
-            elif age_days < config['CRITICAL_AGE_DAYS']:
+            elif age_days < model_config['CRITICAL_AGE_DAYS']:
                 status = 'aging'
-                should_check = config['UPDATE_CHECK_ENABLED']
+                should_check = model_config['UPDATE_CHECK_ENABLED']
                 message = f"Model is aging ({age_days} days old) - checking for updates recommended"
             else:
                 status = 'stale'
-                should_check = config['UPDATE_CHECK_ENABLED']
+                should_check = model_config['UPDATE_CHECK_ENABLED']
                 message = f"Model is stale ({age_days} days old) - update strongly recommended"
             
             return {
@@ -338,7 +338,7 @@ class VectorStoreManager:
             return {
                 'status': 'error',
                 'age_days': 0,
-                'should_check_updates': config['UPDATE_CHECK_ENABLED'],
+                'should_check_updates': model_config['UPDATE_CHECK_ENABLED'],
                 'message': 'Could not determine model age, will check for updates'
             }
     
@@ -353,9 +353,9 @@ class VectorStoreManager:
         Returns:
             bool: True if update check should be performed
         """
-        config = VectorStoreManager.get_model_config()
+        model_config = VectorStoreManager.get_model_config()
         
-        if not config['UPDATE_CHECK_ENABLED']:
+        if not model_config['UPDATE_CHECK_ENABLED']:
             return False
             
         registry = VectorStoreManager._load_model_registry()
@@ -367,7 +367,7 @@ class VectorStoreManager:
         
         try:
             last_check_date = datetime.fromisoformat(last_check)
-            check_interval = timedelta(days=config['CHECK_INTERVAL_DAYS'])
+            check_interval = timedelta(days=model_config['CHECK_INTERVAL_DAYS'])
             return datetime.now() - last_check_date > check_interval
         except:
             return True
@@ -518,10 +518,10 @@ class VectorStoreManager:
         Returns:
             bool: True if user wants to update the model
         """
-        config = VectorStoreManager.get_model_config()
+        model_config = VectorStoreManager.get_model_config()
         
         # Skip prompting in production if auto-prompts are disabled
-        if Config.ENV == "production" and not config['AUTO_UPDATE_PROMPT']:
+        if config.ENV == "production" and not model_config['AUTO_UPDATE_PROMPT']:
             logger.info("Model update available but auto-prompts disabled in production")
             logger.info("Use 'model check' and 'model update' commands to manage updates")
             return False
@@ -530,7 +530,7 @@ class VectorStoreManager:
         print(f"=" * 50)
         print(f"Model: {model_name}")
         print(f"Status: {age_info['message']}")
-        print(f"Environment: {Config.ENV.upper()}")
+        print(f"Environment: {config.ENV.upper()}")
         
         if update_info and update_info.get('has_updates'):
             print(f"Updates: {update_info['message']}")
@@ -548,11 +548,11 @@ class VectorStoreManager:
             print(f"INFO: Model age check completed")
         
         # Show environment-specific advice
-        if Config.ENV == "production":
+        if config.ENV == "production":
             print(f"\nProduction Environment:")
             print(f"   • Conservative update policy active")
-            print(f"   • Manual approval required: {config['REQUIRE_APPROVAL']}")
-            print(f"   • Cache cleanup enabled: {config['CACHE_CLEANUP']}")
+            print(f"   • Manual approval required: {model_config['REQUIRE_APPROVAL']}")
+            print(f"   • Cache cleanup enabled: {model_config['CACHE_CLEANUP']}")
         
         print(f"\nOptions:")
         print(f"1. Continue with current model (default)")
@@ -563,7 +563,7 @@ class VectorStoreManager:
             choice = input(f"\nEnter your choice (1-3, default=1): ").strip()
             
             if choice == '2':
-                if config['REQUIRE_APPROVAL'] and Config.ENV == "production":
+                if model_config['REQUIRE_APPROVAL'] and config.ENV == "production":
                     confirm = input(f"Production update requires confirmation. Type 'CONFIRM' to proceed: ").strip()
                     if confirm != 'CONFIRM':
                         print(f"Update cancelled.")
@@ -930,9 +930,9 @@ class VectorStoreManager:
             HuggingFaceEmbeddings: Configured embedding model instance
         """
         if model_name is None:
-            model_name = Config.EMBEDDING_MODEL_NAME
+            model_name = config.EMBEDDING_MODEL_NAME
         
-        config = VectorStoreManager.get_model_config()
+        model_config = VectorStoreManager.get_model_config()
         
         # Check if we already have cached embeddings for this model
         if (VectorStoreManager._cached_embeddings is not None and 
@@ -944,7 +944,7 @@ class VectorStoreManager:
         cache_dir = VectorStoreManager.setup_model_cache()
         
         # Production model age and update checking (only if enabled)
-        if (config['UPDATE_CHECK_ENABLED'] and 
+        if (model_config['UPDATE_CHECK_ENABLED'] and 
             not getattr(VectorStoreManager, '_skip_age_checks', False)):
             
             age_info = VectorStoreManager._check_model_age_and_updates(model_name)
@@ -1014,6 +1014,10 @@ class VectorStoreManager:
                 'batch_size': 32,  # Optimize batch size for performance
             }
             
+            # Add fp16 optimization for bge-large models  
+            if 'bge-large' in model_name:
+                encode_kwargs['use_fp16'] = True
+            
             embeddings = HuggingFaceEmbeddings(
                 model_name=model_name,
                 model_kwargs=model_kwargs,
@@ -1053,7 +1057,7 @@ class VectorStoreManager:
             return False
             
         if filepath is None:
-            filepath = os.path.join(os.path.dirname(Config.PERSIST_PATH), "embeddings_backup.pkl")
+            filepath = os.path.join(os.path.dirname(config.PERSIST_PATH), "embeddings_backup.pkl")
             
         try:
             data = vector_store.get()
@@ -1092,7 +1096,7 @@ class VectorStoreManager:
             Chroma: Restored vector store instance or None if failed
         """
         if filepath is None:
-            filepath = os.path.join(os.path.dirname(Config.PERSIST_PATH), "embeddings_backup.pkl")
+            filepath = os.path.join(os.path.dirname(config.PERSIST_PATH), "embeddings_backup.pkl")
             
         if not os.path.exists(filepath):
             logger.warning(f"No embeddings backup found at {filepath}")
@@ -1469,7 +1473,7 @@ class VectorStoreManager:
             Chroma: Vector store instance or None if failed
         """
         if persist_directory is None:
-            persist_directory = Config.PERSIST_PATH
+            persist_directory = config.PERSIST_PATH
             
         collection_name = "apu_kb_collection"
         logger.info(f"Using collection name: {collection_name}")
@@ -1478,7 +1482,7 @@ class VectorStoreManager:
         cls._check_vector_store_directory(persist_directory)
         
         # Reset directory if needed
-        if Config.FORCE_REINDEX or not os.path.exists(persist_directory) or not os.listdir(persist_directory):
+        if config.FORCE_REINDEX or not os.path.exists(persist_directory) or not os.listdir(persist_directory):
             cls.reset_chroma_db(persist_directory)
         
         # Get ChromaDB client
@@ -1581,8 +1585,8 @@ class VectorStoreManager:
             # Get or create collection with metadata
             metadata = {
                 "document_count": len(sanitized_chunks),
-                "chunk_size": Config.CHUNK_SIZE,
-                "chunk_overlap": Config.CHUNK_OVERLAP
+                "chunk_size": config.CHUNK_SIZE,
+                "chunk_overlap": config.CHUNK_OVERLAP
             }
             
             _, vector_store = ChromaDBManager.get_or_create_collection(

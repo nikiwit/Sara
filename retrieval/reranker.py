@@ -1,6 +1,5 @@
 """
 Advanced reranking system for improved RAG accuracy using cross-encoder models.
-Based on 2025 best practices for production RAG systems.
 """
 
 import logging
@@ -30,8 +29,8 @@ class AdvancedReranker:
             from sentence_transformers import CrossEncoder
             
             # Use configured reranker model (environment-specific)
-            from config import Config
-            model_name = Config.RERANKER_MODEL_NAME
+            from config import config
+            model_name = config.RERANKER_MODEL_NAME
             self.cross_encoder = CrossEncoder(model_name)
             self.initialized = True
             logger.info(f"Initialized cross-encoder reranker with model: {model_name}")
@@ -87,7 +86,7 @@ class AdvancedReranker:
             try:
                 cross_score = self.cross_encoder.predict([[query, document.page_content]])[0]
                 scores.append(float(cross_score))
-                weights.append(0.6)  # High weight for cross-encoder
+                weights.append(0.4)  # Reduced weight to prevent over-aggressive reranking
             except Exception as e:
                 logger.debug(f"Cross-encoder scoring failed: {e}")
         
@@ -194,9 +193,9 @@ class AdvancedReranker:
         if 'http' in content:
             score += 0.1
         
-        # Prefer FAQ-style content
+        # Strongly prefer FAQ-style content (increased boost)
         if document.metadata.get('is_faq', False):
-            score += 0.15
+            score += 0.25
         
         # Prefer documents with good length (not too short, not too long)
         content_length = len(content.split())

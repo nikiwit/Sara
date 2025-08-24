@@ -69,10 +69,6 @@ class APUKnowledgeBaseParser:
                 "main_url": main_url  # Primary source URL
             }
             
-            # Special metadata for medical insurance related pages
-            if any(term in title.lower() for term in ["medical", "insurance", "health", "card"]):
-                metadata["is_medical_insurance"] = True
-                metadata["priority_topic"] = "medical_insurance"
             
             # Create document
             doc = Document(

@@ -43,8 +43,6 @@ class FAQMatcher:
         if query is None:
             return None # Exit if query is still None (error case)
         
-        # Apply spelling correction for common typos
-        query = self._apply_spelling_corrections(query)
         
         # Check if query is a question (ends with ?)
         is_question = query.strip().endswith('?')
@@ -169,74 +167,13 @@ class FAQMatcher:
         if query == title:
             return 1.0
         
-        # Check for specific phrase matches first (highest priority)
-        exact_phrases = [
-            ("tutorial group", ["tutorial group"]),
-            ("change programme", ["change programme", "change program"]),
-            ("exam docket", ["exam docket", "examination docket"]),
-            ("medical insurance", ["medical insurance", "health insurance"]),
-            ("student id", ["student id", "id card"]),
-            ("visa application", ["visa application", "visa"]),
-            # Enhanced login-related phrases
-            ("unable sign in", ["unable to sign in", "sign in", "login", "apkey troubleshooting"]),
-            ("cannot login", ["unable to sign in", "sign in", "login", "apkey troubleshooting"]),
-            ("login problem", ["unable to sign in", "sign in", "login", "apkey troubleshooting"]),
-            ("apspace", ["unable to sign in", "sign in", "login", "apkey troubleshooting"]),
-            ("apkey", ["unable to sign in", "apkey troubleshooting", "apkey"]),
-            # Enhanced exam result phrases
-            ("check result", ["check my result online", "result online", "exam result", "semester result"]),
-            ("exam result", ["check my result online", "result online", "exam result", "semester result"]),
-            ("my result", ["check my result online", "result online", "exam result"]),
-            ("know result", ["check my result online", "result online", "exam result"]),
-        ]
-        
-        phrase_boost = 0
-        for query_phrase, match_phrases in exact_phrases:
-            if query_phrase in query.lower():
-                for match_phrase in match_phrases:
-                    if match_phrase in title.lower():
-                        phrase_boost = 0.5  # High boost for exact phrase matches
-                        break
-                if phrase_boost > 0:
-                    break
-        
-        # Only apply domain keyword boost if no exact phrase match
-        domain_boost = 0
-        if phrase_boost == 0:
-            # More specific domain keyword matching
-            domain_keywords = [
-                # Login/authentication terms - high priority
-                ("login", ["login", "sign in", "apkey", "password", "authenticate", "access",
-                          "troubleshooting", "unable", "cannot", "apspace", "cas"]),
-                # Academic/results terms - high priority
-                ("academic", ["result", "exam", "grade", "check", "online", "semester", "transcript",
-                             "docket", "schedule", "appraisal", "module"]),
-                # Financial terms - only boost if both query and title are financial
-                ("financial", ["fee", "payment", "pay", "cash", "credit", "debit", "invoice", 
-                              "receipt", "outstanding", "due", "overdue", "installment",
-                              "scholarship", "loan", "charge", "refund", "deposit"]),
-                # Medical/insurance terms
-                ("medical", ["medical", "insurance", "health", "card", "coverage", "claim",
-                            "collect", "pickup", "pick up", "pick-up", "counter"]),
-                # Administrative terms
-                ("admin", ["visa", "passport", "document", "form", "application", "submit",
-                          "register", "registration", "enroll", "enrollment"])
-            ]
-            
-            for category, keywords in domain_keywords:
-                query_has_terms = any(kw in query for kw in keywords)
-                title_has_terms = any(kw in title for kw in keywords)
-                
-                if query_has_terms and title_has_terms:
-                    domain_boost = 0.2  # Reduced from 0.3
-                    break
         
         # Check for substring match (more lenient)
         if query in title or title in query:
             # Calculate relative length ratio for boosting based on how close in length they are
             length_ratio = min(len(query), len(title)) / max(len(query), len(title))
             substring_score = 0.8 * length_ratio
-            return substring_score + phrase_boost + domain_boost
+            return substring_score
         
         # Check for partial matches (new)
         query_parts = query.split()
@@ -246,7 +183,7 @@ class FAQMatcher:
         common_words = set(query_parts).intersection(set(title_parts))
         if len(common_words) >= len(query_parts) * 0.7:  # 70% of query words appear in title
             partial_score = 0.7 * (len(common_words) / len(query_parts))
-            return partial_score + phrase_boost + domain_boost
+            return partial_score
         
         # Tokenize
         query_tokens = set(word_tokenize(query))
@@ -266,8 +203,7 @@ class FAQMatcher:
         # Check for overlapping n-grams (phrases)
         ngram_match = self._check_ngram_overlap(query, title)
         
-        # Combine scores (weighted)
-        return (jaccard * 0.6) + (ngram_match * 0.2) + phrase_boost + domain_boost
+        return (jaccard * 0.7) + (ngram_match * 0.3)
     
     def _check_ngram_overlap(self, text1: str, text2: str) -> float:
         """
@@ -299,60 +235,3 @@ class FAQMatcher:
         combined_overlap = (bigram_overlap * 0.4) + (trigram_overlap * 0.6)
         
         return combined_overlap
-
-    def _apply_spelling_corrections(self, query: str) -> str:
-        """
-        Apply common spelling corrections to improve matching.
-        
-        Args:
-            query: Original query string
-            
-        Returns:
-            Query with spelling corrections applied
-        """
-        # Common APU-specific typos and corrections
-        corrections = {
-            'grop': 'group',
-            'grup': 'group',
-            'groop': 'group',
-            'tuto': 'tutorial',
-            'tutorail': 'tutorial',
-            'tutotial': 'tutorial',
-            'programe': 'programme',
-            'programm': 'programme',
-            'progam': 'programme',
-            'exame': 'exam',
-            'exm': 'exam',
-            'docket': 'docket',  # Keep as is but normalize
-            'doket': 'docket',
-            'docet': 'docket',
-            'colect': 'collect',
-            'collet': 'collect',
-            'aplly': 'apply',
-            'aply': 'apply',
-            'aplications': 'applications',
-            'aplication': 'application'
-        }
-        
-        # Apply word-level corrections
-        words = query.lower().split()
-        corrected_words = []
-        
-        for word in words:
-            # Remove punctuation for matching
-            clean_word = word.strip('.,!?;:')
-            punct = word[len(clean_word):]  # Keep original punctuation
-            
-            if clean_word in corrections:
-                corrected_words.append(corrections[clean_word] + punct)
-                logger.debug(f"Corrected '{clean_word}' to '{corrections[clean_word]}'")
-            else:
-                corrected_words.append(word)
-        
-        corrected_query = ' '.join(corrected_words)
-        
-        # Log if any corrections were made
-        if corrected_query.lower() != query.lower():
-            logger.info(f"Applied spelling corrections: '{query}' -> '{corrected_query}'")
-        
-        return corrected_query

@@ -17,7 +17,7 @@ from nltk.corpus import stopwords
 from nltk.util import ngrams
 import numpy as np
 
-from config import Config, config
+from config import config
 from sara_types import QueryType, RetrievalStrategy
 from .system_info import SystemInformation
 from .faq_matcher import FAQMatcher
@@ -217,48 +217,6 @@ class RetrievalHandler:
                 self.memory.chat_memory.add_ai_message(cached_response)
                 return cached_response
         
-        # Check for medical insurance related queries first
-        if self._is_medical_insurance_query(original_query):
-            logger.info("Detected medical insurance related query")
-            medical_docs = self._retrieve_medical_insurance_docs(original_query)
-            
-            if medical_docs:
-                logger.info(f"Found {len(medical_docs)} medical insurance related documents")
-                # Format context with medical insurance docs
-                context = self._format_medical_insurance_context(medical_docs)
-                
-                # Generate response
-                input_dict = {
-                    "question": original_query,
-                    "context": context,
-                    "chat_history": self.memory.chat_memory.messages,
-                    "is_medical_insurance": True
-                }
-                
-                # Generate response through LLM with streaming if requested
-                from response.generator import RAGSystem
-                response = RAGSystem.stream_ollama_response(
-                    self._create_prompt(input_dict), 
-                    config.LLM_MODEL_NAME,
-                    stream_output=stream
-                )
-                
-                # Post-process response to clean formatting and add source URLs
-                if not stream:
-                    response = self._post_process_response(response, medical_docs)
-                    # Validate response quality
-                    response = self._validate_response(response, original_query)
-                    self.memory.chat_memory.add_user_message(original_query)
-                    self.memory.chat_memory.add_ai_message(response)
-                    # Cache medical insurance responses
-                    if self.response_cache.should_cache(original_query, response):
-                        self.response_cache.set(original_query, response, {'type': 'medical_insurance'})
-                    return response
-                else:
-                    # For streaming responses, return a streaming generator
-                    return self._stream_with_postprocess(response, medical_docs, original_query)
-        
-        # Note: Relying on general semantic understanding instead of specific query detection
         
         # Handle identity questions with SystemInformation
         if query_type == QueryType.IDENTITY:
@@ -281,8 +239,8 @@ class RetrievalHandler:
         # First try direct FAQ matching for a quick answer
         faq_match_result = self.faq_matcher.match_faq(query_analysis)
         
-        # Increased threshold to 0.75 to prevent hallucination from loose FAQ matches
-        if faq_match_result and faq_match_result.get("match_score", 0) > 0.75:
+        # Optimized threshold to 0.65 for bge-large-en-v1.5 model performance
+        if faq_match_result and faq_match_result.get("match_score", 0) > 0.65:
             # Additional validation: check topical relevance
             if self._validate_faq_relevance(original_query, faq_match_result):
                 # High confidence direct FAQ match
@@ -352,7 +310,6 @@ class RetrievalHandler:
             else:
                 return no_info_response
         
-        # Enhanced confidence assessment with multiple factors
         confidence_score = self._calculate_confidence_score(context_docs, original_query)
         logger.info(f"Confidence score: {confidence_score:.3f}")
         
@@ -424,43 +381,6 @@ class RetrievalHandler:
             # For streaming responses, return a streaming generator
             return self._stream_with_postprocess(response, context_docs, original_query)
     
-    def _is_medical_insurance_query(self, query: str) -> bool:
-        """
-        Check if a query is related to medical insurance.
-        
-        Args:
-            query: Query string
-            
-        Returns:
-            True if the query is related to medical insurance, False otherwise
-        """
-        query_lower = query.lower()
-        
-        # Check for medical insurance keywords
-        medical_keywords = ["medical", "insurance", "health", "card", "collect", "pickup", "pick up", "pick-up"]
-        keyword_count = sum(1 for kw in medical_keywords if kw in query_lower)
-        
-        # If at least two keywords are present, it's likely a medical insurance query
-        if keyword_count >= 2:
-            return True
-            
-        # Check for specific phrases
-        medical_phrases = [
-            "medical insurance", 
-            "health insurance", 
-            "insurance card", 
-            "medical card",
-            "get my insurance",
-            "collect my insurance",
-            "pickup my insurance",
-            "pick up my insurance"
-        ]
-        
-        for phrase in medical_phrases:
-            if phrase in query_lower:
-                return True
-                
-        return False
     
     def _intelligent_document_filtering(self, query: str, retrieved_docs: List[Document]) -> List[Document]:
         """
@@ -504,91 +424,6 @@ class RetrievalHandler:
         # Fallback: return documents as-is if semantic ranking unavailable
         return retrieved_docs
     
-    def _retrieve_medical_insurance_docs(self, query: str) -> List[Document]:
-        """
-        Retrieve documents specifically related to medical insurance.
-        
-        Args:
-            query: Query string
-            
-        Returns:
-            List of documents related to medical insurance
-        """
-        # Get all documents from the vector store
-        all_docs = self.vector_store.get()
-        
-        if not all_docs or not all_docs.get('documents'):
-            return []
-            
-        documents = all_docs.get('documents', [])
-        metadatas = all_docs.get('metadatas', [])
-        
-        # Find documents with medical insurance metadata
-        medical_docs = []
-        for i, doc_text in enumerate(documents):
-            if i >= len(metadatas):
-                continue
-                
-            metadata = metadatas[i]
-            
-            # Check for medical insurance metadata
-            if metadata.get('is_medical_insurance', False) or metadata.get('priority_topic') == 'medical_insurance':
-                medical_docs.append(
-                    Document(
-                        page_content=doc_text,
-                        metadata=metadata
-                    )
-                )
-                continue
-                
-            # Also check content for medical insurance keywords
-            doc_lower = doc_text.lower()
-            if "medical insurance" in doc_lower or "collect" in doc_lower and "insurance" in doc_lower:
-                # Check if title contains relevant keywords
-                title = metadata.get('page_title', '').lower()
-                if "medical" in title or "insurance" in title or "collect" in title:
-                    medical_docs.append(
-                        Document(
-                            page_content=doc_text,
-                            metadata=metadata
-                        )
-                    )
-        
-        return medical_docs
-    
-    # Removed specific APSpace query detection methods - using general semantic understanding
-    
-    def _format_medical_insurance_context(self, docs: List[Document]) -> str:
-        """
-        Format medical insurance documents into a context for the LLM.
-        
-        Args:
-            docs: List of medical insurance documents
-            
-        Returns:
-            Formatted context string
-        """
-        context = "--- MEDICAL INSURANCE INFORMATION ---\n\n"
-        
-        for doc in docs:
-            title = doc.metadata.get('page_title', 'Medical Insurance Information')
-            
-            # Clean the document content before adding to context
-            clean_content = doc.page_content
-            # Remove bracketed headers
-            import re
-            clean_content = re.sub(r'\[.*?Knowledge Base[^\]]*\]', '', clean_content)
-            # Remove "Related Pages" sections
-            clean_content = re.sub(r'Related Pages.*', '', clean_content, flags=re.IGNORECASE | re.DOTALL)
-            # Clean up whitespace
-            clean_content = re.sub(r'\n\s*\n\s*\n+', '\n\n', clean_content).strip()
-            
-            context += f"Question: {title}\n\n"
-            context += f"Answer:\n{clean_content}\n\n"
-            
-        context += "Instructions: Answer the user's question about medical insurance using ONLY the information provided above. Be direct and specific about where to collect the medical insurance card if that information is present.\n\n"
-        
-        return context
     
     def _post_process_response(self, response: str, docs: List[Document]) -> str:
         """
@@ -610,24 +445,14 @@ class RetrievalHandler:
         import re
         
         # Clean up the response by removing unwanted elements
-        # Remove bracketed headers like [AA Knowledge Base - ...]
         response = re.sub(r'\[.*?Knowledge Base[^\]]*\]', '', response)
-        
-        # Remove "Related Pages" and everything after it
         response = re.sub(r'Related Pages.*', '', response, flags=re.IGNORECASE | re.DOTALL)
-        
-        # Clean up extra whitespace and newlines
         response = re.sub(r'\n\s*\n\s*\n+', '\n\n', response)
         response = response.strip()
         
-        # Add source attribution using improved 2024-2025 RAG best practices
         source_urls = self._extract_source_attribution(response, docs)
         if source_urls and self._response_contains_useful_info(response):
-            if len(source_urls) == 1:
-                response += f"\n\nSource: {source_urls[0]}"
-            else:
-                # Multiple sources - show primary source only to avoid clutter
-                response += f"\n\nSource: {source_urls[0]}"
+            response += f"\n\nSource: {source_urls[0]}"
         
         if response != original_response:
             logger.debug("Response was modified during post-processing")
@@ -635,6 +460,188 @@ class RetrievalHandler:
             logger.debug("Response unchanged during post-processing")
         
         return response
+    
+    def _find_most_relevant_document_for_response(self, response: str, docs: List[Document]) -> Document:
+        """
+        Find the document most relevant to the response content for better source attribution.
+        
+        Args:
+            response: The generated response text
+            docs: List of source documents
+            
+        Returns:
+            Most relevant document or None if no good match
+        """
+        if not docs:
+            return None
+            
+        response_lower = response.lower()
+        
+        # Extract key terms from the response
+        import re
+        from nltk.tokenize import word_tokenize
+        from nltk.corpus import stopwords
+        
+        try:
+            # Clean and tokenize response
+            response_text = re.sub(r'[^\w\s]', ' ', response_lower)
+            response_words = word_tokenize(response_text)
+            stop_words = set(stopwords.words('english'))
+            response_keywords = [word for word in response_words 
+                               if word not in stop_words and len(word) > 2]
+            
+            best_doc = None
+            best_score = 0
+            
+            for doc in docs:
+                doc_content_lower = doc.page_content.lower()
+                
+                # Calculate keyword overlap score
+                doc_words = word_tokenize(re.sub(r'[^\w\s]', ' ', doc_content_lower))
+                doc_keywords = set([word for word in doc_words 
+                                  if word not in stop_words and len(word) > 2])
+                
+                # Calculate relevance score based on keyword overlap
+                if response_keywords:
+                    common_keywords = len(set(response_keywords) & doc_keywords)
+                    relevance_score = common_keywords / len(response_keywords)
+                    
+                    # Strong boost for title matches (primary topic indicator)
+                    page_title = doc.metadata.get('page_title', '').lower()
+                    title_keywords = word_tokenize(re.sub(r'[^\w\s]', ' ', page_title))
+                    title_keyword_matches = len(set(response_keywords) & set(title_keywords))
+                    if title_keyword_matches > 0:
+                        # Higher weight for title matches - these indicate primary topic
+                        title_relevance = (title_keyword_matches / len(response_keywords))
+                        relevance_score += 0.6 * title_relevance
+                        
+                    # Boost for exact phrase matches in content
+                    response_phrases = [response_lower[i:i+20] for i in range(0, len(response_lower)-20, 10)]
+                    content_phrase_boost = 0
+                    for phrase in response_phrases:
+                        if phrase.strip() and phrase in doc_content_lower:
+                            content_phrase_boost = 0.2
+                            break
+                    relevance_score += content_phrase_boost
+                    
+                    # General approach: Documents with high title relevance should be preferred
+                    # over documents with only content matches (no hardcoded rules)
+                    # The title match boost already handles this naturally by giving more weight
+                    # to documents whose primary topic (title) aligns with the response
+                    
+                    if relevance_score > best_score:
+                        best_score = relevance_score
+                        best_doc = doc
+                        
+            logger.debug(f"Found most relevant document with score {best_score:.3f}")
+            return best_doc if best_score > 0.1 else None
+            
+        except Exception as e:
+            logger.debug(f"Error finding most relevant document: {e}")
+            return None
+    
+    def _response_uses_knowledge_base_info(self, response: str, docs: List[Document] = None) -> bool:
+        """
+        Determine if the response actually uses information from the knowledge base
+        using semantic similarity analysis instead of hardcoded patterns.
+        
+        Args:
+            response: The generated response text
+            docs: Source documents used for context (optional)
+            
+        Returns:
+            True if response contains actual knowledge base information, False otherwise
+        """
+        response_lower = response.lower().strip()
+        
+        # Quick check: empty or very short responses likely don't use KB info
+        if len(response_lower) < 20:
+            return False
+            
+        # Check for explicit "no information" patterns (minimal, common phrases only)
+        no_info_indicators = [
+            "i don't have information",
+            "no information available", 
+            "information is not available",
+            "i don't know"
+        ]
+        
+        for indicator in no_info_indicators:
+            if indicator in response_lower:
+                return False
+        
+        # Special case: If we have FAQ documents, assume they're being used for knowledge
+        # FAQ matches are specifically triggered for relevant questions, so responses should get sources
+        if docs and any(doc.metadata.get('is_faq', False) for doc in docs):
+            # For FAQ matches, if the response is substantive (not a "no info" response), 
+            # assume it uses the knowledge base information
+            return len(response_lower) > 50
+        
+        # Modern approach: If we have source documents, use semantic analysis
+        if docs:
+            return self._analyze_response_knowledge_usage(response, docs)
+        
+        # Fallback: Simple heuristics for substantive content
+        # Responses with specific data, procedures, or detailed information likely use KB
+        return (
+            len(response_lower) > 50 and  # Substantial length
+            (
+                # Contains structured information indicators
+                any(indicator in response_lower for indicator in [':', '-', '•', 'step', 'http']) or
+                # Contains specific data patterns (minimal detection)
+                len([word for word in response_lower.split() if word.isdigit()]) > 0 or
+                # Contains URL or structured content
+                'http' in response_lower or
+                len(response_lower.split('\n')) > 2  # Multi-line suggests detailed info
+            )
+        )
+    
+    def _analyze_response_knowledge_usage(self, response: str, docs: List[Document]) -> bool:
+        """
+        Analyze if response uses knowledge base information through semantic similarity.
+        
+        Args:
+            response: Generated response text
+            docs: Source documents
+            
+        Returns:
+            True if response shows high semantic overlap with source documents
+        """
+        if not docs or not response.strip():
+            return False
+            
+        try:
+            from nltk.tokenize import word_tokenize
+            from nltk.corpus import stopwords
+            
+            # Tokenize and clean response
+            response_words = set(word_tokenize(response.lower()))
+            stop_words = set(stopwords.words('english'))
+            response_keywords = {word for word in response_words 
+                               if word not in stop_words and len(word) > 2 and word.isalnum()}
+            
+            if len(response_keywords) < 3:  # Too few keywords to analyze
+                return False
+                
+            # Analyze overlap with source documents
+            max_overlap = 0
+            for doc in docs:
+                doc_words = set(word_tokenize(doc.page_content.lower()))
+                doc_keywords = {word for word in doc_words 
+                              if word not in stop_words and len(word) > 2 and word.isalnum()}
+                
+                if doc_keywords:
+                    overlap_ratio = len(response_keywords & doc_keywords) / len(response_keywords)
+                    max_overlap = max(max_overlap, overlap_ratio)
+            
+            # If response shares >20% keywords with source docs, likely uses KB info
+            # Lower threshold for better source attribution
+            return max_overlap > 0.2
+            
+        except Exception as e:
+            logger.debug(f"Error in semantic analysis: {e}")
+            # Fallback to simple length-based heuristic
+            return len(response.strip()) > 50
     
     def _response_contains_useful_info(self, response: str) -> bool:
         """
@@ -680,7 +687,7 @@ class RetrievalHandler:
     
     def _extract_source_attribution(self, response: str, docs: List[Any]) -> List[str]:
         """
-        Extract source URLs using improved attribution logic based on 2024-2025 RAG best practices.
+        Extract source URLs from documents.
         
         This implements multiple attribution strategies for robust source detection:
         1. Semantic similarity-based matching
@@ -900,9 +907,12 @@ class RetrievalHandler:
         source = doc.metadata.get("source", "Unknown Source")
         filename = doc.metadata.get("filename", os.path.basename(source) if source != "Unknown Source" else "Unknown File")
         
+        # Try to get complete FAQ content by finding related chunks
+        complete_content = self._get_complete_faq_content(doc, title)
+        
         # Clean the document content before formatting
         import re
-        clean_content = doc.page_content
+        clean_content = complete_content
         # Remove bracketed headers
         clean_content = re.sub(r'\[.*?Knowledge Base[^\]]*\]', '', clean_content)
         # Remove "Related Pages" sections
@@ -935,6 +945,112 @@ class RetrievalHandler:
                 context += f"- {page}\n"
         
         return context
+    
+    def _get_complete_faq_content(self, current_doc: Document, title: str) -> str:
+        """
+        Get complete FAQ content by finding and combining all chunks with the same page_title.
+        
+        Args:
+            current_doc: The current document (one chunk)
+            title: The FAQ title to search for
+            
+        Returns:
+            Complete FAQ content reconstructed from all chunks
+        """
+        try:
+            # Get all documents from the vector store
+            all_docs = self.vector_store.get()
+            
+            if not all_docs or not all_docs.get('documents'):
+                logger.warning("No documents found in vector store for FAQ reconstruction")
+                return current_doc.page_content
+            
+            documents = all_docs.get('documents', [])
+            metadatas = all_docs.get('metadatas', [])
+            
+            # Find all chunks belonging to the same FAQ page
+            matching_chunks = []
+            
+            for i, doc_text in enumerate(documents):
+                if i >= len(metadatas):
+                    continue
+                
+                metadata = metadatas[i]
+                page_title = metadata.get('page_title', '')
+                
+                # Check if this chunk belongs to the same FAQ
+                if page_title == title and metadata.get('content_type') == 'apu_kb_page':
+                    chunk_id = metadata.get('chunk_id', 0)
+                    matching_chunks.append({
+                        'content': doc_text,
+                        'chunk_id': chunk_id,
+                        'metadata': metadata
+                    })
+            
+            # If only one chunk found, return the current content
+            if len(matching_chunks) <= 1:
+                logger.debug(f"Only one chunk found for FAQ '{title}'")
+                return current_doc.page_content
+            
+            logger.info(f"Found {len(matching_chunks)} chunks for FAQ '{title}', reconstructing complete content")
+            
+            # Sort chunks by chunk_id to maintain proper order
+            matching_chunks.sort(key=lambda x: x['chunk_id'])
+            
+            # Combine all chunks while removing duplicate headers
+            complete_content = ""
+            seen_headers = set()
+            
+            for chunk in matching_chunks:
+                content = chunk['content']
+                
+                # Remove context headers from individual chunks
+                import re
+                # Remove bracketed headers like [ITSM Knowledge Base - ...]
+                content = re.sub(r'\[.*?Knowledge Base[^\]]*\]\s*\n*', '', content)
+                
+                # Split content into lines for processing
+                lines = content.split('\n')
+                processed_lines = []
+                
+                for line in lines:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    # Check if this line is a duplicate header
+                    line_lower = line.lower()
+                    is_header = (
+                        line_lower == title.lower() or
+                        line_lower.startswith(title.lower()[:20]) or
+                        line_lower in seen_headers
+                    )
+                    
+                    if is_header and line_lower in seen_headers:
+                        continue  # Skip duplicate header
+                    
+                    if is_header:
+                        seen_headers.add(line_lower)
+                    
+                    processed_lines.append(line)
+                
+                # Add processed content to complete content
+                if processed_lines:
+                    chunk_text = '\n'.join(processed_lines)
+                    if complete_content:
+                        complete_content += '\n\n' + chunk_text
+                    else:
+                        complete_content = chunk_text
+            
+            # Clean up the final content
+            complete_content = re.sub(r'\n\s*\n\s*\n+', '\n\n', complete_content).strip()
+            
+            logger.debug(f"Reconstructed complete FAQ content ({len(complete_content)} chars) from {len(matching_chunks)} chunks")
+            return complete_content
+            
+        except Exception as e:
+            logger.error(f"Error reconstructing complete FAQ content for '{title}': {e}")
+            return current_doc.page_content
     
     def _select_retrieval_strategy(self, query_type: QueryType) -> RetrievalStrategy:
         """
@@ -1056,10 +1172,6 @@ class RetrievalHandler:
             is_apu_kb = metadata.get('content_type') == 'apu_kb_page'
             page_title = metadata.get('page_title', '')
             
-            # Check for medical insurance priority
-            if metadata.get('is_medical_insurance', False) or metadata.get('priority_topic') == 'medical_insurance':
-                if any(kw in query.lower() for kw in ["medical", "insurance", "collect", "card"]):
-                    score += 5.0  # Very high boost for medical insurance pages
             
             # Count exact keyword matches
             for keyword in keywords:
@@ -1421,14 +1533,9 @@ class RetrievalHandler:
             if doc.metadata.get('content_type') == 'apu_kb_page':
                 apu_kb_boost = 0.2
             
-            # Check for medical insurance priority
-            medical_boost = 0
-            if doc.metadata.get('is_medical_insurance', False) or doc.metadata.get('priority_topic') == 'medical_insurance':
-                if any(kw in query.lower() for kw in ["medical", "insurance", "collect", "card"]):
-                    medical_boost = 2.0  # Very high boost for medical insurance pages
             
             # Calculate final score
-            final_score = base_score + phrase_match + keyword_match + faq_boost + apu_kb_boost + medical_boost
+            final_score = base_score + phrase_match + keyword_match + faq_boost + apu_kb_boost
             
             # Add to scored docs
             scored_docs.append((final_score, doc))
@@ -1497,24 +1604,12 @@ class RetrievalHandler:
                 apu_kb_match_score = 0.5
                 break
         
-        # Check for medical insurance matches
-        medical_match_score = 0
-        if any(kw in query.lower() for kw in ["medical", "insurance", "collect", "card"]):
-            for doc in docs:
-                if doc.metadata.get('is_medical_insurance', False) or doc.metadata.get('priority_topic') == 'medical_insurance':
-                    medical_match_score = 1.0
-                    break
-                elif "medical insurance" in doc.page_content.lower() or ("collect" in doc.page_content.lower() and "insurance" in doc.page_content.lower()):
-                    medical_match_score = 0.8
-                    break
-        
         # Calculate overall relevance
         relevance = max(
             exact_match_score,
             keyword_coverage * 0.7,
             faq_match_score,
-            apu_kb_match_score,
-            medical_match_score
+            apu_kb_match_score
         )
         
         return relevance
@@ -1672,7 +1767,6 @@ class RetrievalHandler:
                 "or contact the relevant department directly."
             )
         
-        # Note: Removed library hours boundary response as this info exists in knowledge base
         
         elif any(word in query_lower for word in ['accommodation', 'hostel', 'housing', 'dormitory']):
             return (
@@ -1702,91 +1796,21 @@ class RetrievalHandler:
         question = input_dict["question"]
         context = input_dict["context"]
         is_faq_match = input_dict.get("is_faq_match", False)
-        is_medical_insurance = input_dict.get("is_medical_insurance", False)
         confidence_score = input_dict.get("confidence_score", 0.5)
         
-        if is_medical_insurance:
-            # Medical insurance prompt - direct answers
-            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer the question about medical insurance directly and concisely.
+        if is_faq_match:
+            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer this student's question directly and naturally.
 
-    Question: {question}
+Question: {question}
 
-    Available Information:
-    {context}
+Available Information:
+{context}
 
-    Instructions:
-    1. Answer the question directly and concisely using ONLY the available information above.
-    2. Do NOT use formatting like "Where to collect your medical insurance card:" - just give the direct answer.
-    3. Be specific about where to collect the medical insurance card if that information is present.
-    4. Include any relevant details like location, counter number, or staff names.
-    5. Preserve all URLs and links exactly as they appear (e.g., https://example.com).
-    6. If you find step-by-step instructions, present them clearly with numbers or bullet points.
-    7. Use a helpful and professional tone appropriate for a university assistant.
-    8. **CRITICAL**: Do NOT add contact information (email addresses, phone numbers, physical addresses) unless they are explicitly mentioned in the available information above.
-    9. If information is incomplete, say "I don't have additional details about that" instead of suggesting specific contact methods.
+Provide a clear, direct answer. Be concise and short for simple questions and comprehensive for complex ones. Include full relevant details like locations, steps, contact information, and requirements where available and only if relevant to the question. Write naturally without mentioning sources or information basis.
 
-    Answer:"""
-        
-        elif is_faq_match:
-            # Enhanced FAQ match prompt - handles all content types effectively
-            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer the student's question directly and naturally using the available information.
-
-    Question: {question}
-
-    Available Information:
-    {context}
-
-    Content Analysis & Response Instructions:
-    
-    **CRITICAL: ALWAYS extract and present the actual information from the source content. NEVER redirect to URLs unless the content is truly empty or insufficient.**
-    
-    1. **Content Extraction Priority**: 
-       - Extract ALL actionable information, guidance, steps, requirements, and details from the source
-       - Present procedural content as clear numbered steps
-       - Present guidance content as organized bullet points or structured paragraphs
-       - Include contact information, locations, timelines, and requirements explicitly mentioned
-    
-    2. **Response Structure**:
-       - Start with a direct answer to the question
-       - Follow with detailed steps, guidance, or requirements from the source
-       - End with any additional relevant information (contacts, locations, deadlines)
-    
-    3. **Content Type Handling**:
-       - **Procedural content** (steps, guides): Format as numbered lists or clear step-by-step instructions
-       - **Guidance content** (advice, recommendations): Structure as organized bullets or clear paragraphs
-       - **Reference content** (contacts, locations): Include all specific details mentioned
-       - **Empty/insufficient content**: Only then provide the URL as a helpful reference
-    
-    4. **Critical Requirements**:
-       - **EXTRACT, DON'T REDIRECT**: Use the actual content from the source instead of sending users to URLs
-       - Preserve all URLs, email addresses, and links exactly as they appear
-       - Include specific locations, contact information, deadlines, and requirements
-       - Use conversational tone - address the student directly with "you"
-       - Be concise but comprehensive - include all relevant details from the source
-    
-    5. **Personalization Guidelines**:
-       - DO NOT assume personal circumstances (attendance, fees, grades, internship status)
-       - Present conditional scenarios: "If you are...", "For students who...", "In cases where..."
-       - Avoid phrases like "I see that you..." or "I understand you are..."
-       - Present general guidance that covers different scenarios
-    
-    6. **Communication Style**:
-       - Be direct and helpful without explaining your reasoning process
-       - Use professional yet friendly university assistant tone
-       - Never mention "provided information", "documents", "sections", or internal system details
-       - If information is incomplete, say "I don't have details about that specific aspect yet"
-    
-    7. **CRITICAL CONTACT INFORMATION RULE**:
-       - Do NOT add contact information (email addresses, phone numbers, physical addresses) unless they are explicitly mentioned in the source content above
-       - Do NOT suggest contacting specific departments with made-up contact details
-       - If you need to suggest contacting someone, only mention it generally (e.g., "contact the relevant department") without providing specific contact details
-    
-    **Remember: Your goal is to provide the actual answer using the source content, not to redirect users to help pages.**
-
-    Answer:"""
+Answer:"""
 
         elif confidence_score < 0.25:  # Low confidence - likely partial match
-            # Enhanced prompt for partial matches
             prompt = f"""You are an AI assistant for APU (Asia Pacific University). The user asked a question, but the available information may only be partially related.
 
     User's Question: {question}
@@ -1821,31 +1845,30 @@ class RetrievalHandler:
     Answer:"""
 
         else:
-            # Direct answer prompt - no reasoning explanations
-            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer questions directly and concisely.
+            # Regular prompt for good relevance with enhanced URL preservation
+            prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer the question using the information available.
 
-    Question: {question}
+Question: {question}
 
-    Available Information:
-    {context}
+Available Information:
+{context}
 
-    Instructions:
-    1. Answer the question directly using the available information.
-    2. Be concise - give the answer without explaining your reasoning process.
-    3. Do NOT include phrases like "To determine...", "Based on this information...", "This can be derived from...", or "Let's look at...".
-    4. Do NOT show your thinking process or analysis steps.
-    5. **CRITICAL**: Preserve ALL URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
-    6. For step-by-step procedures, format them clearly with numbers or bullet points.
-    7. Include specific locations, people, contact information, and office hours ONLY if they are explicitly mentioned in the available information.
-    8. **CRITICAL CONTACT RULE**: Do NOT add contact information (email addresses, phone numbers, physical addresses) unless they are explicitly stated in the available information above.
-    9. **ABSOLUTELY FORBIDDEN**: Do NOT assume the user's personal circumstances from the source material.
-    10. **REQUIRED**: When the source describes specific situations, present them as conditional options: "If you are doing an internship...", "For students who...", "In cases where..."
-    11. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
-    12. **UX CRITICAL**: If the information doesn't fully answer the question, say "I don't have detailed information about [specific topic]" - never mention "provided information" or "documents".
-    13. **UX CRITICAL**: NEVER mention internal system details like "provided information", "documents", "sections", or "context". Speak naturally as if you're a knowledgeable assistant.
-    14. Use a helpful and professional tone appropriate for a university assistant.
+Instructions:
+1. Answer the question directly and concisely using the available information.
+2. **CRITICAL**: Preserve ALL URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
+3. For step-by-step procedures, format them clearly with numbers or bullet points.
+4. Include ONLY information that directly answers the user's question. Do NOT add supplementary information (like contact details) unless specifically requested.
+5. **ABSOLUTELY FORBIDDEN**: Do NOT assume the user's personal circumstances from the source material. If the source mentions "you are currently doing your internship" - this is an EXAMPLE scenario, NOT about this specific user.
+6. **ABSOLUTELY FORBIDDEN**: Do NOT start responses with phrases like "I understand you are..." or "I see that you..." about situations not mentioned by the user.
+7. **REQUIRED**: When the source describes specific situations (internships, attendance issues, etc.), present them as conditional options: "If you are doing an internship...", "For students who...", "In cases where..."
+8. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
+9. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
+10. Provide general guidance that covers different scenarios without assuming which applies to the user.
+11. **UX CRITICAL**: If the information doesn't fully answer the question, say "I don't have information about [specific topic]" - NEVER mention "provided information", "documents", "sections", "knowledge base", or "context".
+12. **UX CRITICAL**: NEVER mention internal system details. Speak naturally as if you're a knowledgeable assistant, not a system processing documents.
+13. Use a helpful and professional tone appropriate for a university assistant.
 
-    Answer:"""
+Answer:"""
 
         return prompt
     
@@ -1924,8 +1947,8 @@ class RetrievalHandler:
                 logger.info(f"FAQ validation failed: time query matched non-time FAQ")
                 return False
         
-        # 5. Require minimum keyword overlap (at least 30% for FAQ matches)
-        if overlap_ratio < 0.3:
+        # 5. Require minimum keyword overlap (reduced to 25% for bge-large compatibility)
+        if overlap_ratio < 0.25:
             logger.info(f"FAQ validation failed: insufficient keyword overlap {overlap_ratio:.2f} for query '{query}'")
             return False
         

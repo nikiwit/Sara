@@ -18,7 +18,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain_core.messages import SystemMessage
 from session_management import SessionManager
 
-from config import Config
+from config import config
 from document_processing import DocumentProcessor
 from input_processing import InputProcessor
 from query_handling import QueryRouter, ConversationHandler, CommandHandler
@@ -47,7 +47,7 @@ class Sara:
         self.conversation_handler = None
         self.command_handler = None
         self.query_router = None
-        self.session_manager = SessionManager(max_sessions=Config.MAX_SESSIONS)
+        self.session_manager = SessionManager(max_sessions=config.MAX_SESSIONS)
     
     def initialize(self):
         """
@@ -116,12 +116,12 @@ class Sara:
             bool: True if a valid vector store was initialized
         """
         # Path for backup
-        backup_path = os.path.join(os.path.dirname(Config.PERSIST_PATH), "embeddings_backup.pkl")
+        backup_path = os.path.join(os.path.dirname(config.PERSIST_PATH), "embeddings_backup.pkl")
         backup_exists = os.path.exists(backup_path)
         
         # First try to load from ChromaDB (normal flow)
         vector_store_valid = False
-        if not Config.FORCE_REINDEX and os.path.exists(Config.PERSIST_PATH):
+        if not config.FORCE_REINDEX and os.path.exists(config.PERSIST_PATH):
             try:
                 logger.info("Attempting to load existing vector store")
                 self.vector_store = VectorStoreManager.get_or_create_vector_store(None, self.embeddings)
@@ -140,11 +140,11 @@ class Sara:
                 vector_store_valid = VectorStoreManager.check_vector_store_health(self.vector_store)
         
         # If both ChromaDB and backup failed, or we're forcing reindex, create from scratch
-        if not vector_store_valid or Config.FORCE_REINDEX:
+        if not vector_store_valid or config.FORCE_REINDEX:
             logger.info("Creating new vector store from documents")
             
             # Load and process documents
-            documents = DocumentProcessor.load_documents(Config.DATA_PATH)
+            documents = DocumentProcessor.load_documents(config.DATA_PATH)
             if not documents:
                 logger.error("No documents found to index")
                 return False
@@ -187,7 +187,7 @@ class Sara:
         
         elif command == "model check":
             # Force a model update check
-            model_name = Config.EMBEDDING_MODEL_NAME
+            model_name = config.EMBEDDING_MODEL_NAME
             age_info = VectorStoreManager._check_model_age_and_updates(model_name)
             update_info = VectorStoreManager._check_for_model_updates(model_name)
             
@@ -203,7 +203,7 @@ class Sara:
         
         elif command == "model update":
             # Force clear cache and update
-            model_name = Config.EMBEDDING_MODEL_NAME
+            model_name = config.EMBEDDING_MODEL_NAME
             response_lines = [f"\nClearing cache for {model_name}..."]
             
             if VectorStoreManager._clear_model_cache_for_update(model_name):
@@ -217,7 +217,7 @@ class Sara:
         
         elif command in ["model force update", "force model update"]:
             # Force update with immediate reload
-            model_name = Config.EMBEDDING_MODEL_NAME
+            model_name = config.EMBEDDING_MODEL_NAME
             response_lines = [f"\nForce updating model {model_name}..."]
             
             if VectorStoreManager._clear_model_cache_for_update(model_name):
@@ -512,14 +512,14 @@ class Sara:
                 logger.warning(f"Error closing vector store: {e}")
         
         # Reset the vector store directory with permissions
-        if not VectorStoreManager.reset_chroma_db_with_permissions(Config.PERSIST_PATH):
+        if not VectorStoreManager.reset_chroma_db_with_permissions(config.PERSIST_PATH):
             logger.error("Failed to reset vector store")
             print("Failed to reset vector store. Check permissions.")
             return False
         
         # Load and process documents
         try:
-            documents = DocumentProcessor.load_documents(Config.DATA_PATH)
+            documents = DocumentProcessor.load_documents(config.DATA_PATH)
             if not documents:
                 logger.error("No documents found to index")
                 print("No documents found to index.")

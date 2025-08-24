@@ -8,7 +8,7 @@ import logging
 from typing import List, Dict, Any, Tuple
 from langchain_core.documents import Document
 
-from config import Config
+from config import config
 from sara_types import QueryType, DocumentRelevance
 
 logger = logging.getLogger("Sara")
@@ -18,8 +18,8 @@ class ContextProcessor:
     
     def __init__(self):
         """Initialize the context processor."""
-        self.max_context_size = Config.MAX_CONTEXT_SIZE
-        self.use_compression = Config.USE_CONTEXT_COMPRESSION
+        self.max_context_size = config.MAX_CONTEXT_SIZE
+        self.use_compression = config.USE_CONTEXT_COMPRESSION
     
     def process_context(self, documents: List[Document], query_analysis: Dict[str, Any]) -> str:
         """Process documents with monitoring for context size."""

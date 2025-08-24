@@ -14,7 +14,7 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer, PorterStemmer
 from nltk.util import ngrams
 
-from config import Config, config
+from config import config
 from sara_types import QueryType
 
 logger = logging.getLogger("Sara")
@@ -66,82 +66,9 @@ class InputProcessor:
             logger.info("Enhanced semantics disabled by configuration")
             self.spacy_processor = None
         
-        # Enhanced synonym dictionary with APU-specific terms and time-related improvements
-        self.synonyms = {
-            "document": ["file", "text", "paper", "doc", "content"],
-            "find": ["locate", "search", "discover", "retrieve", "get"],
-            "explain": ["describe", "clarify", "elaborate", "detail", "elucidate"],
-            "show": ["display", "present", "exhibit", "demonstrate"],
-            "information": ["info", "data", "details", "facts", "knowledge"],
-            "create": ["make", "generate", "produce", "build", "develop"],
-            "modify": ["change", "alter", "adjust", "edit", "update"],
-            "remove": ["delete", "eliminate", "erase", "take out"],
-            "important": ["significant", "essential", "critical", "key", "vital"],
-            "problem": ["issue", "challenge", "difficulty", "trouble", "obstacle"],
-            "solution": ["answer", "resolution", "fix", "remedy", "workaround"],
-            # Essential time-related synonyms for library hours queries
-            "close": ["closes", "closing", "hours", "schedule", "timing", "operating hours"],
-            "closes": ["close", "hours", "schedule", "timing", "operating hours"], 
-            "opens": ["open", "hours", "schedule", "timing", "operating hours"],
-            "hours": ["time", "schedule", "timing", "operating hours", "operation hours"],
-            "when": ["what time", "at what time", "timing", "schedule"],
-            "library": ["lib", "learning center", "study center", "resource center"],
-            # Password and login related expansions
-            "password": ["passcode", "pin", "credentials", "login details", "authentication"],
-            "forgot": ["forgotten", "lost", "misplaced", "can't remember", "don't remember"],
-            "reset": ["recover", "restore", "retrieve", "get back", "change"],
-            # APU specific synonyms
-            "exam": ["examination", "test", "assessment", "final", "docket"],
-            "course": ["module", "class", "subject", "unit"],
-            "assignment": ["coursework", "homework", "project", "paper", "submission"],
-            "fee": ["payment", "charge", "cost", "expense", "tuition"],
-            "lecturer": ["professor", "teacher", "instructor", "tutor", "faculty"],
-            "result": ["grade", "mark", "score", "outcome", "performance"],
-            "deferment": ["postponement", "delay", "extension", "adjournment"],
-            "referral": ["resit", "retake", "redo", "resubmission"],
-            "attendance": ["presence", "participation", "turn up", "show up"],
-            "certificate": ["diploma", "degree", "qualification", "credential"],
-            "transcript": ["record", "academic record", "results"],
-            "docket": ["exam slip", "hall ticket", "exam ticket"],
-            "EC": ["extenuating circumstances", "special circumstances", "exception", "exemption"],
-            "registration": ["enrollment", "signup", "joining", "application"],
-            "scholarship": ["funding", "financial aid", "grant", "bursary"],
-            "internship": ["industrial training", "placement", "practical training", "industry experience"],
-            "visa": ["student pass", "immigration document", "permit"],
-            "APU": ["Asia Pacific University", "university", "school", "campus"],
-            "timetable": ["schedule", "class schedule", "calendar"],
-            "intake": ["batch", "cohort", "entry", "enrollment period"],
-            # Enhanced Login/Authentication synonyms
-            "login": ["sign in", "log in", "signin", "access", "authenticate", "log into"],
-            "cannot": ["unable", "can't", "could not", "couldn't", "trouble", "problem", "issue"],
-            "apspace": ["APSpace", "ap space", "student portal", "student system", "student platform"],
-            "apkey": ["APKey", "student ID", "authentication", "credentials", "password", "user ID"],
-            "troubleshoot": ["fix", "resolve", "solve", "help", "debug"],
-        }
         
-        # Note: Grammar correction now handled by spaCy processor
-        # Keeping minimal patterns for fallback only
         
-        # APU-specific abbreviations
-        self.apu_abbreviations = {
-            "EC": ["extenuating circumstances"],
-            "APU": ["Asia Pacific University"],
-            "APIIT": ["Asia Pacific Institute of Information Technology"],
-            "VC": ["Vice Chancellor"],
-            "MPU": ["Mata Pelajaran Umum"],
-            "PL": ["Programme Leader"],
-            "SIS": ["Student Information System"],
-            "EB": ["Examination Board"],
-            "UAC": ["University Appeals Committee"],
-            "SAC": ["School Appeals Committee"],
-            "FYP": ["Final Year Project"],
-            "LRT": ["Light Rail Transit"],
-            "MCO": ["Movement Control Order"],
-            "APKey": ["APU Key", "student ID"],
-            "HOS": ["Head of School"],
-            "CGPA": ["Cumulative Grade Point Average"],
-            "GPA": ["Grade Point Average"],
-        }
+        pass
     
     def normalize_query(self, query: str) -> str:
         """
@@ -180,17 +107,7 @@ class InputProcessor:
         Returns:
             Query with expanded abbreviations
         """
-        words = query.split()
-        expanded_query = query
-        
-        # Check for abbreviations and expand them
-        for abbr, expansions in self.apu_abbreviations.items():
-            if abbr in words:
-                for expansion in expansions:
-                    if expansion not in expanded_query:
-                        expanded_query += f" {expansion}"
-        
-        return expanded_query
+        return query
     
     def analyze_query(self, query: str, conversation_context: str = None) -> Dict[str, Any]:
         """
@@ -299,10 +216,6 @@ class InputProcessor:
         course_codes = re.findall(r'\b[A-Z]{2,}[0-9]{1,}[A-Z0-9]{2,}\b', query)
         edu_terms.extend(course_codes)
         
-        # Check for common abbreviations
-        for abbr in self.apu_abbreviations.keys():
-            if abbr in query:
-                edu_terms.append(abbr.lower())
         
         return list(set(edu_terms))  # Remove duplicates
     
@@ -539,27 +452,7 @@ class InputProcessor:
             if variation not in expanded_queries:
                 expanded_queries.append(variation)
         
-        # Expand using synonyms
-        for i, keyword in enumerate(keywords):
-            if keyword in self.synonyms:
-                for synonym in self.synonyms[keyword][:config.EXPANSION_FACTOR]:
-                    # Replace the keyword with its synonym
-                    new_keywords = keywords.copy()
-                    new_keywords[i] = synonym
-                    expanded_query = ' '.join(new_keywords)
-                    if expanded_query not in expanded_queries:
-                        expanded_queries.append(expanded_query)
         
-        # Expand abbreviations
-        for i, keyword in enumerate(keywords):
-            if keyword.upper() in self.apu_abbreviations:
-                for expansion in self.apu_abbreviations[keyword.upper()]:
-                    # Replace the abbreviation with its expanded form
-                    new_keywords = keywords.copy()
-                    new_keywords[i] = expansion
-                    expanded_query = ' '.join(new_keywords)
-                    if expanded_query not in expanded_queries:
-                        expanded_queries.append(expanded_query)
         
         # Generate contextual variations for specific domains
         domain_variations = self._generate_domain_variations(query, keywords)
@@ -676,11 +569,6 @@ class InputProcessor:
         """
         Enhance the query using conversation context for better follow-up question handling.
         
-        This implements conversational RAG best practices for 2024-2025:
-        - Query reformulation based on recent conversation history
-        - Contextual entity extraction and disambiguation
-        - Follow-up question expansion with topic continuity
-        
         Args:
             query: Current user query
             context: Recent conversation history
@@ -705,8 +593,9 @@ class InputProcessor:
             return enhanced_query
             
         except Exception as e:
-            logger.warning(f"Context enhancement failed: {e}")
+            logger.debug(f"Context enhancement failed: {e}")
             return query
+    
     
     def _is_followup_question(self, query: str) -> bool:
         """
@@ -779,7 +668,6 @@ class InputProcessor:
         apu_entities = {
             # Academic entities
             'visa renewal', 'student pass', 'visa extension', 'immigration',
-            'medical insurance', 'insurance card', 'health insurance',
             'fee payment', 'tuition fee', 'university fee', 'payment',
             'reference letter', 'recommendation letter', 'academic reference',
             'library hours', 'library services', 'library card',
@@ -835,7 +723,6 @@ class InputProcessor:
         # Topic keywords mapping
         topic_mapping = {
             'visa_immigration': ['visa', 'immigration', 'student pass', 'permit', 'renewal', 'extension'],
-            'medical_insurance': ['medical', 'insurance', 'health', 'card', 'coverage', 'claim'],
             'fees_payment': ['fee', 'payment', 'tuition', 'cost', 'price', 'charge', 'invoice'],
             'library_services': ['library', 'book', 'borrow', 'study', 'resource', 'hours'],
             'parking': ['parking', 'vehicle', 'car', 'permit', 'registration'],
@@ -870,8 +757,6 @@ class InputProcessor:
         if re.search(r'\b(?:how much|cost|price|fee)\b', query_lower):
             if any('visa' in entity or 'immigration' in entity for entity in entities):
                 return f"visa renewal cost fee {query}"
-            elif any('medical' in entity or 'insurance' in entity for entity in entities):
-                return f"medical insurance cost fee {query}"
             elif any('parking' in entity for entity in entities):
                 return f"parking permit cost fee {query}"
             elif 'fees_payment' in topics:

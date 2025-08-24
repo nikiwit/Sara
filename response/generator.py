@@ -9,7 +9,7 @@ import requests
 import time  # Add this import
 from typing import List, Iterator, Union
 
-from config import Config
+from config import config
 
 logger = logging.getLogger("Sara")
 
@@ -62,27 +62,33 @@ class RAGSystem:
             model_name: The name of the model to use
             base_url: The base URL for the Ollama API
             stream_output: Whether to stream output in real-time (yield tokens) or return full response
-            stream_delay: Delay between tokens when streaming (default: Config.STREAM_DELAY)
+            stream_delay: Delay between tokens when streaming (default: config.STREAM_DELAY)
             
         Returns:
             If stream_output is True, yields tokens as they are generated
             If stream_output is False, returns the full response as a string
         """
         if model_name is None:
-            model_name = Config.LLM_MODEL_NAME
+            model_name = config.LLM_MODEL_NAME
             
         if base_url is None:
-            base_url = Config.OLLAMA_BASE_URL
+            base_url = config.OLLAMA_BASE_URL
             
         if stream_delay is None:
-            stream_delay = Config.STREAM_DELAY
+            stream_delay = config.STREAM_DELAY
             
         url = f"{base_url}/api/generate"
         headers = {"Content-Type": "application/json"}
         data = {
             "model": model_name,
             "prompt": prompt,
-            "stream": True
+            "stream": True,
+            "options": {
+                "num_predict": 2048,  # Allow longer responses
+                "temperature": 0.1,   # Lower temperature for more consistent responses
+                "top_p": 0.9,         # Focused but still creative responses
+                "stop": []            # Don't stop early
+            }
         }
 
         full_response = ""

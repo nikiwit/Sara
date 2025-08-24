@@ -7,7 +7,7 @@ import time
 import logging
 from typing import Dict, Any, Tuple, Union, Iterator
 from sara_types import QueryType
-from config import Config
+from config import config
 
 logger = logging.getLogger("Sara")
 
@@ -848,4 +848,4 @@ What would you like to know about APU?"""
                 yield word
             else:
                 yield ' ' + word
-            time.sleep(Config.STREAM_DELAY)
+            time.sleep(config.STREAM_DELAY)

@@ -14,7 +14,7 @@ from langchain_community.document_loaders import (
 )
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-from config import Config
+from config import config
 from .parsers import APUKnowledgeBaseLoader, APUKnowledgeBaseParser
 from .splitters import APUKnowledgeBaseTextSplitter
 
@@ -162,10 +162,10 @@ class DocumentProcessor:
         - Otherwise: Loads all files with supported extensions
         """
         if extensions is None:
-            extensions = Config.SUPPORTED_EXTENSIONS
+            extensions = config.SUPPORTED_EXTENSIONS
                 
         # Use the configuration variable for filtering
-        filter_apu_only = Config.FILTER_APU_ONLY
+        filter_apu_only = config.FILTER_APU_ONLY
         
         if filter_apu_only:
             logger.info("APU-only filtering is ENABLED - loading only files starting with 'apu_'")
@@ -473,10 +473,10 @@ class DocumentProcessor:
             return []
             
         if chunk_size is None:
-            chunk_size = Config.CHUNK_SIZE
+            chunk_size = config.CHUNK_SIZE
             
         if chunk_overlap is None:
-            chunk_overlap = Config.CHUNK_OVERLAP
+            chunk_overlap = config.CHUNK_OVERLAP
             
         logger.info(f"Splitting {len(documents)} documents into chunks (size={chunk_size}, overlap={chunk_overlap})")
         

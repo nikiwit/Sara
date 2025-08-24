@@ -11,7 +11,7 @@ import spacy
 from spacy.tokens import Doc, Token
 import re
 import time
-from config import Config, config
+from config import config
 
 # Suppress spaCy similarity warnings for small models without word vectors
 warnings.filterwarnings("ignore", message=".*has no word vectors loaded.*", category=UserWarning)
@@ -40,7 +40,7 @@ class SpacySemanticProcessor:
             
             # Initialize monitoring
             self.error_count = 0
-            self.max_errors = getattr(Config, 'SEMANTIC_ERROR_THRESHOLD', 5)
+            self.max_errors = getattr(config, 'SEMANTIC_ERROR_THRESHOLD', 5)
             self.fallback_enabled = True
             self.stats = {
                 'queries_processed': 0,
@@ -150,7 +150,7 @@ class SpacySemanticProcessor:
         
         # Use config setting if not specified
         if max_expansions is None:
-            max_expansions = getattr(Config, 'SEMANTIC_EXPANSION_LIMIT', 5)
+            max_expansions = getattr(config, 'SEMANTIC_EXPANSION_LIMIT', 5)
         
         start_time = time.time()
         

@@ -3,7 +3,7 @@ System information management for identity queries.
 """
 
 from typing import Dict
-from config import Config
+from config import config
 
 class SystemInformation:
     """Manages information about the RAG system itself."""
@@ -23,11 +23,11 @@ class SystemInformation:
             "your name": "You can call me the APU Knowledge Base Assistant. I'm here to help you with any questions about APU.",
             
             # Technical information about the system
-            "model": f"I'm powered by {Config.LLM_MODEL_NAME} for answering questions, and I use the {Config.EMBEDDING_MODEL_NAME} embedding model to understand and retrieve relevant information from the APU knowledge base.",
-            "llm": f"I'm using {Config.LLM_MODEL_NAME} as my language model to generate responses based on information retrieved from the APU knowledge base.",
-            "embedding": f"I use the {Config.EMBEDDING_MODEL_NAME} embedding model to convert text into numerical vectors for semantic search capabilities.",
+            "model": f"I'm powered by {config.LLM_MODEL_NAME} for answering questions, and I use the {config.EMBEDDING_MODEL_NAME} embedding model to understand and retrieve relevant information from the APU knowledge base.",
+            "llm": f"I'm using {config.LLM_MODEL_NAME} as my language model to generate responses based on information retrieved from the APU knowledge base.",
+            "embedding": f"I use the {config.EMBEDDING_MODEL_NAME} embedding model to convert text into numerical vectors for semantic search capabilities.",
             "how do you work": "I use a technique called Retrieval Augmented Generation (RAG) to find relevant information in the APU knowledge base and create helpful responses to your questions. First, I analyze your question, then search for relevant documents, and finally generate a response based on the retrieved information.",
-            "technology": f"I'm built using the LangChain framework with {Config.LLM_MODEL_NAME} as my language model and {Config.EMBEDDING_MODEL_NAME} for embeddings. I use ChromaDB as my vector database to store and retrieve information efficiently.",
+            "technology": f"I'm built using the LangChain framework with {config.LLM_MODEL_NAME} as my language model and {config.EMBEDDING_MODEL_NAME} for embeddings. I use ChromaDB as my vector database to store and retrieve information efficiently.",
             "version": f"I'm running Enhanced CustomRAG version 1.0, an advanced Retrieval Augmented Generation system optimized for the APU knowledge base.",
             
             # Development information
@@ -68,4 +68,4 @@ class SystemInformation:
                 return value
         
         # Default response
-        return f"I'm the APU Knowledge Base Assistant. I'm powered by the {Config.LLM_MODEL_NAME} language model with {Config.EMBEDDING_MODEL_NAME} embeddings for retrieval. I'm here to help you find information about APU's academic procedures, administrative processes, and university services."
+        return f"I'm the APU Knowledge Base Assistant. I'm powered by the {config.LLM_MODEL_NAME} language model with {config.EMBEDDING_MODEL_NAME} embeddings for retrieval. I'm here to help you find information about APU's academic procedures, administrative processes, and university services."

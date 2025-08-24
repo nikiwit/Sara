@@ -34,8 +34,8 @@ class ChromaDBManager:
             force_new: Force creation of completely new client (for reindexing)
         """
         if persist_directory is None:
-            from config import Config
-            persist_directory = Config.PERSIST_PATH
+            from config import config
+            persist_directory = config.PERSIST_PATH
             
         # Force new client for reindexing operations
         if force_new or cls._client is None or reset:
@@ -77,14 +77,14 @@ class ChromaDBManager:
             embedding_function: Function for embeddings
             force_new: Force creation of new collection (delete existing if present)
         """
-        from config import Config
+        from config import config
         
         if metadata is None:
             metadata = {}
             
         full_metadata = {
             "hnsw:space": "cosine",
-            "embedding_model": Config.EMBEDDING_MODEL_NAME,
+            "embedding_model": config.EMBEDDING_MODEL_NAME,
             "embedding_version": "1.0",
             "app_version": "1.0",
             "created_at": datetime.now().isoformat()

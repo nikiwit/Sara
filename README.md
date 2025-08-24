@@ -43,8 +43,8 @@ pip install -r requirements.txt
 python -m spacy download en_core_web_md
 
 # 4. Pre-download AI models (optional but recommended)
-# This will download ~1GB of models for faster first startup
-python -c "from sentence_transformers import SentenceTransformer, CrossEncoder; SentenceTransformer('BAAI/bge-base-en-v1.5'); CrossEncoder('BAAI/bge-reranker-base')"
+# This will download ~2GB of models for faster first startup
+python -c "from sentence_transformers import SentenceTransformer, CrossEncoder; SentenceTransformer('BAAI/bge-large-en-v1.5'); CrossEncoder('BAAI/bge-reranker-large')"
 
 # 5. Run SARA (models will auto-download if not cached)
 python main.py
@@ -452,11 +452,11 @@ SARA uses environment variables for configuration, with support for environment-
 | Parameter | Local Default | Production Default | Description |
 |-----------|---------------|-------------------|-------------|
 | `SARA_ENV` | `local` | `production` | Environment selection |
-| `SARA_EMBEDDING_MODEL` | `BAAI/bge-base-en-v1.5` | `BAAI/bge-large-en-v1.5` | Embedding model |
+| `SARA_EMBEDDING_MODEL` | `BAAI/bge-large-en-v1.5` | `BAAI/bge-large-en-v1.5` | Embedding model |
 | `SARA_LLM_MODEL` | `qwen2.5:3b-instruct` | `qwen2.5:7b-instruct` | Language model |
-| `SARA_RERANKER_MODEL` | `BAAI/bge-reranker-base` | `BAAI/bge-reranker-large` | Reranker model |
-| `SARA_CHUNK_SIZE` | `400` | `800` | Document chunk size |
-| `SARA_MAX_CONTEXT_SIZE` | `7000` | `8000` | Maximum context tokens |
+| `SARA_RERANKER_MODEL` | `BAAI/bge-reranker-large` | `BAAI/bge-reranker-large` | Reranker model |
+| `SARA_CHUNK_SIZE` | `500` | `800` | Document chunk size |
+| `SARA_MAX_CONTEXT_SIZE` | `8000` | `8000` | Maximum context tokens |
 | `SARA_MAX_THREADS` | `2` | `32` | Processing threads |
 | `SARA_MAX_MEMORY` | `2G` | `64G` | Memory allocation |
 

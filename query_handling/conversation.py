@@ -8,7 +8,7 @@ import time
 import logging
 from difflib import SequenceMatcher
 
-from config import Config
+from config import config
 
 logger = logging.getLogger("Sara")
 
@@ -18,7 +18,7 @@ class ConversationHandler:
     def __init__(self, memory, stream_delay=None):
         """Initialize with a memory for conversation history."""
         self.memory = memory
-        self.stream_delay = stream_delay if stream_delay is not None else Config.STREAM_DELAY
+        self.stream_delay = stream_delay if stream_delay is not None else config.STREAM_DELAY
         
         # Core conversational patterns with enhanced fuzzy matching support
         self.greeting_patterns = [
@@ -56,7 +56,7 @@ class ConversationHandler:
         self.knowledge_responses = [
             "I'm Sara, your APU assistant! 😊 I can help with academics, admin procedures, fees, student services, and campus info. What would you like to know about APU?",
             
-            "Hey! I'm Sara, here to help with APU questions! 😄 I know about courses, applications, medical insurance, campus facilities, and more. What can I help you with?",
+            "Hey! I'm Sara, here to help with APU questions! 😄 I know about courses, applications, campus facilities, and more. What can I help you with?",
             
             "I'm Sara! 🌟 I can assist with APU academics, student services, financial info, and campus procedures. What APU topic interests you?",
         ]
