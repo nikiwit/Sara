@@ -658,7 +658,7 @@ class RetrievalHandler:
         # Check for safety/boundary responses (no source needed)
         safety_boundary_phrases = [
             "i'm designed to help with apu academic and administrative information",
-            "that question seems to be outside my area of expertise",
+            "i don't have information about that topic",
             "if you're experiencing distress",
             "is there something about apu services i can help you with instead"
         ]
@@ -1835,22 +1835,22 @@ Answer:"""
 
     Instructions:
     1. **SAFETY CHECK**: If the question contains harmful content (suicide, self-harm, etc.), respond: "I'm designed to help with APU academic and administrative information. If you're experiencing distress, please reach out to APU Student Counseling Services or contact emergency services. Is there something about APU services I can help with instead?"
-    2. **SCOPE CHECK**: If the question is clearly outside APU's scope (weather, sports, general news, entertainment, etc.), respond: "That question seems to be outside my area of expertise. I'm specialized in APU-related information like academic programs, administrative procedures, student services, and campus facilities. Is there anything about APU I can help you with?"
+    2. **SCOPE CHECK**: If the question is clearly outside APU's scope (weather, sports, general news, entertainment, etc.), respond: "I don't have information about that topic. I'm designed to help with APU academic and administrative information. Is there something about APU services I can help you with instead?"
     3. First, check if the available information directly answers the user's question.
     4. If YES - provide a direct, helpful answer.
-    5. If NO - but there is some related information, respond using this EXACT format:
+    5. If NO - but there is some related information, identify the specific topics from the available information and respond using this format:
 
     "I found some related information, but I'd like to help you find exactly what you're looking for.
 
     Could you please specify which of these you're interested in:
 
-    1) [First related topic you found in the information]
-    2) [Second related topic if available]
-    3) [Third related topic if available]
+    1) [Extract and list the first related topic from the information]
+    2) [Extract and list the second related topic if available]  
+    3) [Extract and list the third related topic if available]
 
     Or feel free to ask your question in a different way, and I'll do my best to help!"
 
-    6. If the available information is completely unrelated, say: "I don't have specific information about that topic. Could you provide more details about what you're looking for?"
+    6. If the available information is completely unrelated, say: "I don't have information about that topic. I'm designed to help with APU academic and administrative information. Is there something about APU services I can help you with instead?"
 
     IMPORTANT RULES:
     - Never mention "documents", "context", "FAQ", "questions", or other technical terms
@@ -1884,7 +1884,7 @@ Instructions:
 9. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
 10. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
 11. Provide general guidance that covers different scenarios without assuming which applies to the user.
-12. **UX CRITICAL**: If the information doesn't fully answer the question, say "I don't have information about [specific topic]" - NEVER mention "provided information", "documents", "sections", "knowledge base", or "context".
+12. **UX CRITICAL**: If the information doesn't fully answer the question, say "I don't have information about that topic" - NEVER mention "provided information", "documents", "sections", "knowledge base", or "context".
 13. **UX CRITICAL**: NEVER mention internal system details. Speak naturally as if you're a knowledgeable assistant, not a system processing documents.
 14. Use a helpful and professional tone appropriate for a university assistant.
 
