@@ -655,6 +655,19 @@ class RetrievalHandler:
         """
         response_lower = response.lower()
         
+        # Check for safety/boundary responses (no source needed)
+        safety_boundary_phrases = [
+            "i'm designed to help with apu academic and administrative information",
+            "that question seems to be outside my area of expertise",
+            "if you're experiencing distress",
+            "is there something about apu services i can help you with instead"
+        ]
+        
+        # Check for safety/boundary responses first
+        for phrase in safety_boundary_phrases:
+            if phrase in response_lower:
+                return False  # Don't add sources to safety/boundary responses
+        
         # Check for "no information" indicators
         no_info_phrases = [
             "i don't have information",
@@ -1778,9 +1791,8 @@ class RetrievalHandler:
         else:
             return (
                 "I don't have specific information about that topic in my knowledge base. "
-                "For accurate and detailed information, I recommend contacting the appropriate "
-                "APU department directly. You can also visit the APU website or call the main office "
-                "for general inquiries."
+                "I'm designed to help with APU academic and administrative information. "
+                "Is there something about APU services I can help you with instead?"
             )
 
     def _create_prompt(self, input_dict: Dict[str, Any]) -> str:
@@ -1806,7 +1818,10 @@ Question: {question}
 Available Information:
 {context}
 
-Provide a clear, direct answer. Be concise and short for simple questions and comprehensive for complex ones. Include full relevant details like locations, steps, contact information, and requirements where available and only if relevant to the question. Write naturally without mentioning sources or information basis.
+Instructions:
+- If the question contains harmful content (suicide, self-harm, etc.), respond: "I'm designed to help with APU academic and administrative information. If you're experiencing distress, please reach out to APU Student Counseling Services or contact emergency services. Is there something about APU services I can help with instead?"
+- If the question is clearly outside APU's scope (weather, sports, general news, entertainment, etc.), respond: "I don't have information about that topic. I'm designed to help with APU academic and administrative information. Is there something about APU services I can help you with instead?"
+- Otherwise, provide a clear, direct answer. Be concise and short for simple questions and comprehensive for complex ones. Include full relevant details like locations, steps, contact information, and requirements where available and only if relevant to the question. Write naturally without mentioning sources or information basis.
 
 Answer:"""
 
@@ -1819,9 +1834,11 @@ Answer:"""
     {context}
 
     Instructions:
-    1. First, check if the available information directly answers the user's question.
-    2. If YES - provide a direct, helpful answer.
-    3. If NO - but there is some related information, respond using this EXACT format:
+    1. **SAFETY CHECK**: If the question contains harmful content (suicide, self-harm, etc.), respond: "I'm designed to help with APU academic and administrative information. If you're experiencing distress, please reach out to APU Student Counseling Services or contact emergency services. Is there something about APU services I can help with instead?"
+    2. **SCOPE CHECK**: If the question is clearly outside APU's scope (weather, sports, general news, entertainment, etc.), respond: "That question seems to be outside my area of expertise. I'm specialized in APU-related information like academic programs, administrative procedures, student services, and campus facilities. Is there anything about APU I can help you with?"
+    3. First, check if the available information directly answers the user's question.
+    4. If YES - provide a direct, helpful answer.
+    5. If NO - but there is some related information, respond using this EXACT format:
 
     "I found some related information, but I'd like to help you find exactly what you're looking for.
 
@@ -1833,7 +1850,7 @@ Answer:"""
 
     Or feel free to ask your question in a different way, and I'll do my best to help!"
 
-    4. If the available information is completely unrelated, say: "I don't have specific information about that topic. Could you provide more details about what you're looking for?"
+    6. If the available information is completely unrelated, say: "I don't have specific information about that topic. Could you provide more details about what you're looking for?"
 
     IMPORTANT RULES:
     - Never mention "documents", "context", "FAQ", "questions", or other technical terms
@@ -1854,19 +1871,22 @@ Available Information:
 {context}
 
 Instructions:
-1. Answer the question directly and concisely using the available information.
-2. **CRITICAL**: Preserve ALL URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
-3. For step-by-step procedures, format them clearly with numbers or bullet points.
-4. Include ONLY information that directly answers the user's question. Do NOT add supplementary information (like contact details) unless specifically requested.
-5. **ABSOLUTELY FORBIDDEN**: Do NOT assume the user's personal circumstances from the source material. If the source mentions "you are currently doing your internship" - this is an EXAMPLE scenario, NOT about this specific user.
-6. **ABSOLUTELY FORBIDDEN**: Do NOT start responses with phrases like "I understand you are..." or "I see that you..." about situations not mentioned by the user.
-7. **REQUIRED**: When the source describes specific situations (internships, attendance issues, etc.), present them as conditional options: "If you are doing an internship...", "For students who...", "In cases where..."
-8. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
-9. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
-10. Provide general guidance that covers different scenarios without assuming which applies to the user.
-11. **UX CRITICAL**: If the information doesn't fully answer the question, say "I don't have information about [specific topic]" - NEVER mention "provided information", "documents", "sections", "knowledge base", or "context".
-12. **UX CRITICAL**: NEVER mention internal system details. Speak naturally as if you're a knowledgeable assistant, not a system processing documents.
-13. Use a helpful and professional tone appropriate for a university assistant.
+1. **SAFETY & SCOPE CHECK**: 
+   - If the question contains harmful content (suicide, self-harm, etc.), respond: "I'm designed to help with APU academic and administrative information. If you're experiencing distress, please reach out to APU Student Counseling Services or contact emergency services. Is there something about APU services I can help with instead?"
+   - If the question is clearly outside APU's scope (weather, sports, general news, entertainment, etc.), respond: "I don't have information about that topic. I'm designed to help with APU academic and administrative information. Is there something about APU services I can help you with instead?"
+2. Answer the question directly and concisely using the available information.
+3. **CRITICAL**: Preserve ALL URLs and links exactly as they appear (e.g., https://cas.apiit.edu.my/cas/login).
+4. For step-by-step procedures, format them clearly with numbers or bullet points.
+5. Include ONLY information that directly answers the user's question. Do NOT add supplementary information (like contact details) unless specifically requested.
+6. **ABSOLUTELY FORBIDDEN**: Do NOT assume the user's personal circumstances from the source material. If the source mentions "you are currently doing your internship" - this is an EXAMPLE scenario, NOT about this specific user.
+7. **ABSOLUTELY FORBIDDEN**: Do NOT start responses with phrases like "I understand you are..." or "I see that you..." about situations not mentioned by the user.
+8. **REQUIRED**: When the source describes specific situations (internships, attendance issues, etc.), present them as conditional options: "If you are doing an internship...", "For students who...", "In cases where..."
+9. NEVER personalize generic information (e.g., don't say "your attendance is 73%" - say "if attendance is below 80%").
+10. NEVER assume specific personal details about the student (attendance, fees, grades, etc.).
+11. Provide general guidance that covers different scenarios without assuming which applies to the user.
+12. **UX CRITICAL**: If the information doesn't fully answer the question, say "I don't have information about [specific topic]" - NEVER mention "provided information", "documents", "sections", "knowledge base", or "context".
+13. **UX CRITICAL**: NEVER mention internal system details. Speak naturally as if you're a knowledgeable assistant, not a system processing documents.
+14. Use a helpful and professional tone appropriate for a university assistant.
 
 Answer:"""
 
