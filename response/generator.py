@@ -108,7 +108,7 @@ class RAGSystem:
                 return error_msg if not stream_output else iter([error_msg])
 
             # Process the streaming response
-            with requests.post(url, headers=headers, json=data, stream=True, timeout=30) as response:
+            with requests.post(url, headers=headers, json=data, stream=True, timeout=3600) as response:
                 if response.status_code != 200:
                     error_msg = f"Error: Failed to generate response (HTTP {response.status_code})"
                     logger.error(f"Ollama API error: {response.status_code}")
