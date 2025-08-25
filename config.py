@@ -191,15 +191,49 @@ class Config:
         """
         try:
             import torch
+            logger.debug(f"PyTorch version: {torch.__version__}")
+            
             # Check for CUDA first (for compatibility)
             if torch.cuda.is_available():
-                return True
-            # Check for Apple Silicon MPS
-            elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                logger.debug(f"CUDA available: True, Device count: {torch.cuda.device_count()}")
                 return True
             else:
-                return False
-        except ImportError:
+                logger.debug("CUDA not available - checking reasons...")
+                # Provide detailed CUDA diagnostics
+                if hasattr(torch.cuda, 'is_available'):
+                    logger.debug(f"torch.cuda.is_available(): {torch.cuda.is_available()}")
+                if hasattr(torch, 'version') and hasattr(torch.version, 'cuda'):
+                    cuda_version = torch.version.cuda
+                    logger.debug(f"PyTorch compiled with CUDA: {cuda_version if cuda_version else 'No'}")
+                
+                # Check if NVIDIA GPU is present but PyTorch doesn't have CUDA support
+                try:
+                    import subprocess
+                    result = subprocess.run(['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'], 
+                                          capture_output=True, text=True, timeout=5)
+                    if result.returncode == 0 and result.stdout.strip():
+                        gpu_names = result.stdout.strip().split('\n')
+                        logger.warning(f"NVIDIA GPU(s) detected: {gpu_names}")
+                        logger.warning("PyTorch with CUDA support may not be installed. Install with: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121")
+                except (FileNotFoundError, subprocess.TimeoutExpired, Exception) as e:
+                    logger.debug(f"Could not check for NVIDIA GPUs: {e}")
+            
+            # Check for Apple Silicon MPS
+            if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                logger.debug("Apple Silicon MPS available")
+                return True
+            else:
+                if platform.system() == "Darwin":
+                    logger.debug("Running on macOS but MPS not available")
+                
+            return False
+            
+        except ImportError as e:
+            logger.warning(f"PyTorch not available: {e}")
+            logger.warning("Install PyTorch with: pip install torch torchvision torchaudio")
+            return False
+        except Exception as e:
+            logger.error(f"Error during GPU detection: {e}")
             return False
     
     @classmethod 
@@ -213,13 +247,40 @@ class Config:
         try:
             import torch
             if torch.cuda.is_available():
-                return "cuda", torch.cuda.get_device_name(0)
+                device_name = torch.cuda.get_device_name(0)
+                device_count = torch.cuda.device_count()
+                if device_count > 1:
+                    return "cuda", f"{device_name} (+{device_count-1} more)"
+                return "cuda", device_name
             elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
                 return "mps", "Apple Silicon MPS"
             else:
-                return "cpu", "CPU"
+                # Try to get CPU info for better diagnostics
+                cpu_info = "CPU"
+                try:
+                    if platform.system() == "Darwin":
+                        import subprocess
+                        result = subprocess.run(['sysctl', '-n', 'machdep.cpu.brand_string'], 
+                                              capture_output=True, text=True, timeout=3)
+                        if result.returncode == 0:
+                            cpu_info = f"CPU ({result.stdout.strip()})"
+                    elif platform.system() == "Windows":
+                        import subprocess
+                        result = subprocess.run(['wmic', 'cpu', 'get', 'name', '/format:value'], 
+                                              capture_output=True, text=True, timeout=3)
+                        if result.returncode == 0:
+                            for line in result.stdout.split('\n'):
+                                if line.startswith('Name='):
+                                    cpu_info = f"CPU ({line.split('=', 1)[1].strip()})"
+                                    break
+                except Exception:
+                    pass  # Keep default CPU info
+                return "cpu", cpu_info
         except ImportError:
             return "cpu", "CPU (PyTorch not available)"
+        except Exception as e:
+            logger.debug(f"Error getting device info: {e}")
+            return "cpu", "CPU"
     
     # Miscellaneous
     FORCE_REINDEX = os.environ.get("SARA_FORCE_REINDEX", "False").lower() in ("true", "1", "t")
