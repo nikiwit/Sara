@@ -70,8 +70,8 @@ This project represents a comprehensive implementation of a production-ready RAG
 
 ### Chatbot System
 - **Conversational AI**: Natural language interaction with advanced context awareness
-- **Language Detection**: Automatic detection and handling of non-English queries with helpful redirection
-- **Query Disambiguation**: Intelligent clarification of ambiguous or incomplete user queries
+- **Language Detection**: Multi-signal hybrid approach with Unicode-based script detection and confidence scoring for non-English query handling
+- **Query Disambiguation**: Pronoun resolution and typo correction using semantic analysis for improved query understanding
 - **Follow-up Question Handling**: Intelligent query reformulation for contextual follow-ups
 - **Session Management**: Isolated conversation histories with automatic cleanup (max 5 sessions)
 - **Streaming Responses**: Real-time response generation for enhanced user experience
@@ -462,7 +462,9 @@ SARA uses environment variables for configuration, with support for environment-
 | `SARA_MAX_THREADS` | `2` | `32` | Processing threads |
 | `SARA_MAX_MEMORY` | `2G` | `64G` | Memory allocation |
 | `SARA_LANGUAGE_DETECTION` | `True` | `True` | Enable language detection |
-| `SARA_LANG_CONFIDENCE` | `0.8` | `0.8` | Language detection confidence threshold |
+| `SARA_LANG_CONFIDENCE_THRESHOLD` | `0.65` | `0.70` | Language detection confidence threshold |
+| `SARA_SUPPORTED_LANGUAGES` | `en` | `en` | Supported languages (comma-separated) |
+| `SARA_LANG_STATS_ENABLED` | `True` | `True` | Enable language detection statistics |
 | `SARA_AMBIGUITY_DETECTION` | `True` | `True` | Enable query disambiguation |
 | `SARA_AMBIGUITY_THRESHOLD` | `0.7` | `0.7` | Ambiguity detection confidence threshold |
 

@@ -53,14 +53,21 @@ class QueryRouter:
         original_query = query_analysis["original_query"]
         query_type = query_analysis.get("query_type", QueryType.UNKNOWN)
         
-        # PRIORITY 1: Language Detection - Check before all other processing
+        # PRIORITY 1: Language Detection
+        llm_language_context = {}
         try:
-            should_block, lang_response = self.language_handler.handle_query(original_query)
+            should_block, lang_response, llm_context = self.language_handler.handle_query(original_query)
             if should_block:
                 logger.info(f"Non-English query blocked: {original_query[:50]}...")
                 if stream:
                     return self._stream_text_response(lang_response), True
                 return lang_response, True
+            
+            # Store LLM context for uncertain cases
+            if llm_context:
+                llm_language_context = llm_context
+                logger.debug(f"Language uncertain, deferring to LLM with context: {llm_context}")
+                
         except Exception as e:
             logger.warning(f"Language detection failed: {e}")
         
@@ -157,6 +164,9 @@ class QueryRouter:
             else:
                 query_type_str = str(query_type)
             logger.info(f"Processing {query_type_str} query through RAG pipeline: {original_query}")
+            # Add language context to query analysis for LLM instructions
+            if llm_language_context:
+                query_analysis["language_context"] = llm_language_context
             # Handle all other query types with retrieval system
             response = self.retrieval_handler.process_query(query_analysis, stream=stream)
             return response, True

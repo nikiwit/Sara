@@ -35,7 +35,8 @@ class LanguageHandler:
             'english_queries': 0,
             'blocked_queries': 0,
             'whitelist_rescues': 0,
-            'short_text_handled': 0
+            'short_text_handled': 0,
+            'llm_fallbacks': 0
         }
     
     def detect_language_with_confidence(self, query: str) -> tuple[str, float]:
@@ -86,7 +87,7 @@ class LanguageHandler:
     def _ensemble_language_detection(self, query: str) -> tuple[str, float]:
         """
         Enhanced language detection using ensemble approach with multiple validation strategies.
-        Implements enterprise-grade confidence scoring with multi-signal validation.
+        Implements confidence scoring with multi-signal validation.
         
         Args:
             query: User input text
@@ -103,12 +104,12 @@ class LanguageHandler:
             primary_lang = language_scores[0]
             base_confidence = primary_lang.prob
             
-            # Enterprise-grade confidence adjustment based on query characteristics
-            adjusted_confidence = self._calculate_enterprise_confidence(
+            # Confidence adjustment based on query characteristics
+            adjusted_confidence = self._calculate_adjusted_confidence(
                 query, primary_lang.lang, base_confidence
             )
             
-            # Multi-signal validation for enterprise accuracy
+            # Multi-signal validation for accuracy
             final_lang, final_confidence = self._validate_with_multiple_signals(
                 query, primary_lang.lang, adjusted_confidence
             )
@@ -129,9 +130,9 @@ class LanguageHandler:
             
             return 'unknown', 0.0
     
-    def _calculate_enterprise_confidence(self, query: str, detected_lang: str, base_confidence: float) -> float:
+    def _calculate_adjusted_confidence(self, query: str, detected_lang: str, base_confidence: float) -> float:
         """
-        Calculate enterprise-grade confidence using multiple signals.
+        Calculate adjusted confidence using multiple signals.
         Follows best practices from OpenAI, Anthropic, and NotebookLM.
         
         Args:
@@ -164,7 +165,7 @@ class LanguageHandler:
     def _validate_with_multiple_signals(self, query: str, detected_lang: str, confidence: float) -> tuple[str, float]:
         """
         Multi-signal validation using contextual analysis.
-        Implements enterprise patterns for production reliability.
+        Implements patterns for production reliability.
         
         Args:
             query: Input text
@@ -174,11 +175,20 @@ class LanguageHandler:
         Returns:
             Tuple of (final_language, final_confidence)
         """
-        # Signal 1: English pattern matching
+        # Signal 0: Non-Latin script detection
+        if self._contains_non_latin_scripts(query):
+            # If we detect non-Latin scripts, trust langdetect unless it's clearly wrong
+            if detected_lang != 'en':
+                logger.debug(f"Non-Latin script detected, maintaining {detected_lang} classification: {query[:30]}...")
+                return detected_lang, confidence
+        
+        # Signal 1: English pattern matching (only for Latin-based text)
         if self._looks_like_english(query) and detected_lang != 'en':
-            logger.debug(f"Multi-signal override: {detected_lang} -> en for: {query[:30]}...")
-            self.stats['whitelist_rescues'] += 1
-            return 'en', max(0.8, confidence)
+            # Additional safety check: ensure it's actually Latin script
+            if self._is_primarily_latin_script(query):
+                logger.debug(f"Multi-signal override: {detected_lang} -> en for: {query[:30]}...")
+                self.stats['whitelist_rescues'] += 1
+                return 'en', max(0.8, confidence)
         
         # Signal 2: Confidence threshold with contextual boost
         if detected_lang == 'en' and confidence < 0.7:
@@ -193,7 +203,7 @@ class LanguageHandler:
     def _has_english_context_indicators(self, query: str) -> bool:
         """
         Check for contextual indicators that suggest English text.
-        Uses configuration-driven semantic patterns (enterprise approach).
+        Uses configuration-driven semantic patterns.
         
         Args:
             query: Text to analyze
@@ -201,7 +211,7 @@ class LanguageHandler:
         Returns:
             True if text has English contextual indicators
         """
-        # Use externalized semantic patterns (enterprise approach)
+        # Use externalized semantic patterns
         try:
             from nlp_config_loader import config_loader
             patterns = config_loader.get_semantic_patterns()
@@ -247,11 +257,13 @@ class LanguageHandler:
         if not clean_text:
             return False
         
-        # Check if text is primarily Latin alphabet
-        latin_chars = len(clean_text)
-        total_chars = len(re.sub(r'\s', '', query))
+        # Safety check: if text contains non-Latin scripts, it's not English
+        if self._contains_non_latin_scripts(query):
+            logger.debug(f"Non-Latin script detected in _looks_like_english: {query[:30]}...")
+            return False
         
-        if total_chars > 0 and (latin_chars / total_chars) < 0.8:
+        # Check if text is primarily Latin alphabet
+        if not self._is_primarily_latin_script(query):
             return False
         
         # Check for English patterns
@@ -266,13 +278,74 @@ class LanguageHandler:
             if re.search(pattern, query.lower()):
                 return True
         
-        # Statistical whitelist analysis (enterprise approach)
+        # Statistical whitelist analysis
         return self._calculate_whitelist_confidence(query) > 0.5
+    
+    def _contains_non_latin_scripts(self, query: str) -> bool:
+        """
+        Detection of non-Latin scripts (Chinese, Arabic, Cyrillic, etc.).
+        Follows Unicode standards for script detection.
+        
+        Args:
+            query: Text to analyze
+            
+        Returns:
+            True if text contains non-Latin scripts
+        """
+        # Unicode ranges for major non-Latin scripts
+        non_latin_ranges = [
+            (0x4E00, 0x9FFF),   # CJK Unified Ideographs (Chinese, Japanese, Korean)
+            (0x3400, 0x4DBF),   # CJK Extension A
+            (0x20000, 0x2A6DF), # CJK Extension B
+            (0x0400, 0x04FF),   # Cyrillic
+            (0x0590, 0x05FF),   # Hebrew
+            (0x0600, 0x06FF),   # Arabic
+            (0x0900, 0x097F),   # Devanagari (Hindi)
+            (0x3040, 0x309F),   # Hiragana
+            (0x30A0, 0x30FF),   # Katakana
+        ]
+        
+        for char in query:
+            char_code = ord(char)
+            for start, end in non_latin_ranges:
+                if start <= char_code <= end:
+                    logger.debug(f"Detected non-Latin character: {char} (U+{char_code:04X})")
+                    return True
+        
+        return False
+    
+    def _is_primarily_latin_script(self, query: str) -> bool:
+        """
+        Check if text is primarily Latin script.
+        
+        Args:
+            query: Text to analyze
+            
+        Returns:
+            True if text is primarily Latin script
+        """
+        if not query.strip():
+            return False
+            
+        # Remove punctuation and spaces (using standard punctuation instead of Unicode class)
+        text_chars = re.sub(r'[\s\.,!?;:\"\'()\[\]{}\-_]', '', query)
+        if not text_chars:
+            return False
+        
+        latin_chars = 0
+        for char in text_chars:
+            char_code = ord(char)
+            # Basic Latin (0000-007F) + Latin-1 Supplement (0080-00FF) + Latin Extended (0100-024F)
+            if (0x0000 <= char_code <= 0x024F):
+                latin_chars += 1
+        
+        latin_ratio = latin_chars / len(text_chars)
+        return latin_ratio > 0.8
     
     def _calculate_whitelist_confidence(self, query: str) -> float:
         """
         Calculate confidence based on statistical analysis of whitelist overlap.
-        Enterprise approach - data-driven rather than hard-coded.
+        Data-driven approach.
         
         Args:
             query: Text to analyze
@@ -312,38 +385,54 @@ class LanguageHandler:
         """Check if query contains mixed languages."""
         return any(re.search(pattern, query) for pattern in self.mixed_language_patterns)
     
-    def handle_query(self, query: str) -> Tuple[bool, str]:
+    def handle_query(self, query: str) -> Tuple[bool, str, dict]:
         """
-        Process query using confidence thresholding.
+        Process query using hybrid approach.
+        Returns blocking decision and optional LLM context for fallback.
         
         Args:
             query: User input text
             
         Returns:
-            Tuple of (should_block, response_message)
+            Tuple of (should_block, response_message, llm_context)
         """
         detected_lang, confidence = self.detect_language_with_confidence(query)
         
+        # Handle low confidence cases intelligently
         if confidence < self.confidence_threshold:
-            logger.debug(f"Low confidence ({confidence:.2f}) language detection, allowing through: {query[:50]}...")
-            return False, ""
+            # Special case: Non-Latin scripts should be blocked regardless of confidence
+            if self._contains_non_latin_scripts(query) and detected_lang != 'en':
+                logger.info(f"Non-Latin script detected, blocking despite low confidence ({confidence:.2f}): {query[:50]}...")
+                self.stats['blocked_queries'] += 1
+                return True, self._get_language_message_by_code(detected_lang), {}
+            
+            # For ambiguous Latin-based text, defer to LLM
+            logger.debug(f"Low confidence ({confidence:.2f}) language detection, deferring to LLM: {query[:50]}...")
+            llm_context = {
+                'language_uncertain': True,
+                'detected_lang': detected_lang,
+                'confidence': confidence,
+                'instruction': 'If this query is not in English, politely redirect to English.'
+            }
+            self.stats['llm_fallbacks'] += 1
+            return False, "", llm_context
         
         if detected_lang in self.supported_languages:
             self.stats['english_queries'] += 1
-            return False, ""
+            return False, "", {}
             
-        # Block non-supported language
+        # High confidence non-English: Block immediately (performance optimization)
         self.stats['blocked_queries'] += 1
         logger.info(f"Blocked {detected_lang} query (confidence: {confidence:.2f}): {query[:50]}...")
             
         if detected_lang in ['zh', 'zh-cn', 'zh-tw']:
-            return True, self._get_chinese_redirect_message()
+            return True, self._get_chinese_redirect_message(), {}
         elif detected_lang == 'es':
-            return True, self._get_spanish_redirect_message()
+            return True, self._get_spanish_redirect_message(), {}
         elif detected_lang == 'mixed':
-            return True, self._get_mixed_language_message()
+            return True, self._get_mixed_language_message(), {}
         else:
-            return True, self._get_generic_language_message()
+            return True, self._get_generic_language_message(), {}
     
     def _get_chinese_redirect_message(self) -> str:
         """Message for Chinese language queries."""
@@ -384,6 +473,17 @@ class LanguageHandler:
             f"• Call: {config.SUPPORT_PHONE}\n"
             f"• Email: {config.SUPPORT_EMAIL}"
         )
+    
+    def _get_language_message_by_code(self, lang_code: str) -> str:
+        """Get appropriate message based on detected language code."""
+        if lang_code in ['zh', 'zh-cn', 'zh-tw']:
+            return self._get_chinese_redirect_message()
+        elif lang_code == 'es':
+            return self._get_spanish_redirect_message()
+        elif lang_code == 'mixed':
+            return self._get_mixed_language_message()
+        else:
+            return self._get_generic_language_message()
     
     def get_statistics(self) -> Dict[str, any]:
         """Get language detection statistics for monitoring."""

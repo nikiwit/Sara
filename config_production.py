@@ -62,6 +62,11 @@ class ProductionConfig(Config):
     # APU filtering setting
     FILTER_APU_ONLY = os.environ.get("FILTER_APU_ONLY", "False").lower() in ("true", "1", "t")
     
+    # Language Detection Settings - Production
+    LANGUAGE_DETECTION_CONFIDENCE_THRESHOLD = float(os.environ.get("SARA_LANG_CONFIDENCE_THRESHOLD", "0.70"))  # Higher threshold for production
+    LANGUAGE_DETECTION_SUPPORTED_LANGUAGES = set(os.environ.get("SARA_SUPPORTED_LANGUAGES", "en").split(","))
+    LANGUAGE_DETECTION_STATS_ENABLED = os.environ.get("SARA_LANG_STATS_ENABLED", "True").lower() in ("true", "1", "t")
+    
     # APU KB specific settings - enhanced for production
     APU_KB_ANSWER_CONTEXT_SIZE = int(os.environ.get("SARA_APU_KB_ANSWER_SIZE", "3"))
     APU_KB_EXACT_MATCH_BOOST = float(os.environ.get("SARA_APU_KB_EXACT_MATCH_BOOST", "2.0"))

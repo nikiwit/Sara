@@ -255,7 +255,8 @@ class RetrievalHandler:
                     "context": context,
                     "chat_history": self.memory.chat_memory.messages,
                     "is_faq_match": True,
-                    "match_score": faq_match_result["match_score"]
+                    "match_score": faq_match_result["match_score"],
+                    "language_context": query_analysis.get("language_context", {})
                 }
                 
                 # Generate response through LLM with streaming if requested
@@ -351,7 +352,8 @@ class RetrievalHandler:
             "context": context,
             "chat_history": self.memory.chat_memory.messages,
             "is_faq_match": False,
-            "confidence_score": confidence_score
+            "confidence_score": confidence_score,
+            "language_context": query_analysis.get("language_context", {})
         }
         
         # Generate response through LLM with streaming if requested
@@ -1809,6 +1811,7 @@ class RetrievalHandler:
         context = input_dict["context"]
         is_faq_match = input_dict.get("is_faq_match", False)
         confidence_score = input_dict.get("confidence_score", 0.5)
+        language_context = input_dict.get("language_context", {})
         
         if is_faq_match:
             prompt = f"""You are Sara, an AI assistant for APU (Asia Pacific University). Answer this student's question directly and naturally.
@@ -1819,6 +1822,7 @@ Available Information:
 {context}
 
 Instructions:
+- LANGUAGE CHECK: If the question is not in English, respond: "I can only assist in English. Please ask your question in English."
 - If the question contains harmful content (suicide, self-harm, etc.), respond: "I'm designed to help with APU academic and administrative information. If you're experiencing distress, please reach out to APU Student Counseling Services or contact emergency services. Is there something about APU services I can help with instead?"
 - If the question is clearly outside APU's scope (weather, sports, general news, entertainment, etc.), respond: "I don't have information about that topic. I'm designed to help with APU academic and administrative information. Is there something about APU services I can help you with instead?"
 - Otherwise, provide a clear, direct answer. Be concise and short for simple questions and comprehensive for complex ones. Include full relevant details like locations, steps, contact information, and requirements where available and only if relevant to the question. Write naturally without mentioning sources or information basis.
@@ -1834,11 +1838,12 @@ Answer:"""
     {context}
 
     Instructions:
-    1. **SAFETY CHECK**: If the question contains harmful content (suicide, self-harm, etc.), respond: "I'm designed to help with APU academic and administrative information. If you're experiencing distress, please reach out to APU Student Counseling Services or contact emergency services. Is there something about APU services I can help with instead?"
-    2. **SCOPE CHECK**: If the question is clearly outside APU's scope (weather, sports, general news, entertainment, etc.), respond: "I don't have information about that topic. I'm designed to help with APU academic and administrative information. Is there something about APU services I can help you with instead?"
-    3. First, check if the available information directly answers the user's question.
-    4. If YES - provide a direct, helpful answer.
-    5. If NO - but there is some related information, identify the specific topics from the available information and respond using this format:
+    1. **LANGUAGE CHECK**: If the question is not in English, respond: "I can only assist in English. Please ask your question in English."
+    2. **SAFETY CHECK**: If the question contains harmful content (suicide, self-harm, etc.), respond: "I'm designed to help with APU academic and administrative information. If you're experiencing distress, please reach out to APU Student Counseling Services or contact emergency services. Is there something about APU services I can help with instead?"
+    3. **SCOPE CHECK**: If the question is clearly outside APU's scope (weather, sports, general news, entertainment, etc.), respond: "I don't have information about that topic. I'm designed to help with APU academic and administrative information. Is there something about APU services I can help you with instead?"
+    4. First, check if the available information directly answers the user's question.
+    5. If YES - provide a direct, helpful answer.
+    6. If NO - but there is some related information, identify the specific topics from the available information and respond using this format:
 
     "I found some related information, but I'd like to help you find exactly what you're looking for.
 

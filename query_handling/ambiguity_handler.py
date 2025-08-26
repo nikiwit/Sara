@@ -15,7 +15,7 @@ class AmbiguityHandler:
     def __init__(self, confidence_threshold: float = 0.6):
         self.confidence_threshold = confidence_threshold
         
-        # Initialize pronoun disambiguation system (enterprise-grade)
+        # Initialize pronoun disambiguation system
         self.pronoun_disambiguator = self._initialize_pronoun_system()
         
         self.validation_methods = [
@@ -144,7 +144,7 @@ class AmbiguityHandler:
     def is_ambiguous(self, query: str) -> bool:
         """
         Check if query is ambiguous using ensemble validation methods.
-        Includes enterprise-grade pronoun disambiguation following OpenAI/Anthropic patterns.
+        Includes pronoun disambiguation following industry patterns.
         
         Args:
             query: User input text
@@ -152,7 +152,7 @@ class AmbiguityHandler:
         Returns:
             True if query is ambiguous, False otherwise
         """
-        # Step 1: Apply enterprise pronoun disambiguation
+        # Step 1: Apply pronoun disambiguation
         disambiguated_query = self._apply_pronoun_disambiguation(query)
         
         # Step 2: If query was disambiguated, it's not ambiguous
@@ -383,7 +383,7 @@ class AmbiguityHandler:
     
     def _initialize_pronoun_system(self) -> dict:
         """
-        Initialize enterprise pronoun disambiguation system.
+        Initialize pronoun disambiguation system.
         Follows best practices from OpenAI, Anthropic, and NotebookLM.
         
         Returns:
@@ -416,7 +416,7 @@ class AmbiguityHandler:
     
     def _apply_pronoun_disambiguation(self, query: str) -> str:
         """
-        Apply enterprise-grade pronoun disambiguation.
+        Apply pronoun disambiguation.
         Uses contextual analysis and semantic understanding.
         
         Args:
