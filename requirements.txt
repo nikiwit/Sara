@@ -116,3 +116,6 @@ pytest-cov>=4.1.0  # Only for testing environments
 # For Python 3.13 compatibility issues:
 # - Downgrade to Python 3.11 or 3.12 if encountering build errors
 # - Use conda for better dependency management: conda create -n sara python=3.12
+
+# Configuration management
+pyyaml==6.0.2

@@ -8,6 +8,7 @@ import logging
 from typing import Dict, Any, Tuple, Union, Iterator
 from sara_types import QueryType
 from config import config
+from .topic_extractor import SemanticTopicExtractor
 
 logger = logging.getLogger("Sara")
 
@@ -25,7 +26,18 @@ class QueryRouter:
         from .language_handler import LanguageHandler
         from .ambiguity_handler import AmbiguityHandler
         self.language_handler = LanguageHandler()
-        self.ambiguity_handler = AmbiguityHandler() 
+        self.ambiguity_handler = AmbiguityHandler()
+        
+        # Initialize semantic topic extractor
+        try:
+            self.topic_extractor = SemanticTopicExtractor()
+            if self.topic_extractor.is_healthy():
+                logger.info("SemanticTopicExtractor initialized successfully")
+            else:
+                logger.warning("SemanticTopicExtractor initialization failed, using fallback")
+        except Exception as e:
+            logger.error(f"Failed to initialize SemanticTopicExtractor: {e}")
+            self.topic_extractor = None 
     
     def route_query(self, query_analysis: Dict[str, Any], stream=False) -> Tuple[Any, bool]:
         """
@@ -762,29 +774,44 @@ What would you like to know about APU?"""
         return response
     
     def _handle_long_query(self, query: str, stream=False) -> Union[str, Iterator[str]]:
-        """Handle very long queries that might contain multiple questions."""
-        # Extract key topics from the long query
+        """Handle very long queries that might contain multiple questions using semantic analysis."""
+        # Extract key topics using semantic topic extractor
         key_topics = []
-        topic_keywords = {
-            'fees': ['fee', 'payment', 'pay', 'money', 'cost'],
-            'reference letter': ['reference', 'letter', 'document', 'certificate'],
-            'IT support': ['apkey', 'password', 'login', 'timetable', 'moodle'],
-            'library': ['library', 'book', 'borrow', 'opac'],
-            'parking': ['parking', 'park', 'car', 'vehicle'],
-            'visa': ['visa', 'immigration', 'pass', 'permit']
-        }
         
-        query_lower = query.lower()
-        for topic, keywords in topic_keywords.items():
-            if any(keyword in query_lower for keyword in keywords):
-                key_topics.append(topic)
+        if self.topic_extractor and self.topic_extractor.is_healthy():
+            try:
+                # Use semantic topic extraction with confidence threshold
+                topic_results = self.topic_extractor.extract_topics(query, confidence_threshold=0.3)
+                
+                # Convert to topic names, handling the naming differences
+                topic_mapping = {
+                    'reference_letter': 'reference letter',
+                    'IT_support': 'IT support'
+                }
+                
+                key_topics = [
+                    topic_mapping.get(topic, topic) 
+                    for topic, confidence in topic_results
+                    if confidence > 0.3
+                ]
+                
+                logger.debug(f"Semantic topic extraction found: {topic_results}")
+                
+            except Exception as e:
+                logger.error(f"Semantic topic extraction failed: {e}")
+                # Fall back to simple method
+                key_topics = self._fallback_topic_extraction(query)
+        else:
+            # Use fallback method
+            key_topics = self._fallback_topic_extraction(query)
         
         if key_topics:
             topics_text = ", ".join(key_topics)
             response = (
                 f"I can see you're asking about several topics including {topics_text}. "
                 "To give you the most accurate help, could you please ask about one topic at a time? "
-                f"Which would you like to start with: {topics_text}?"
+                f"Which would you like to start with: {topics_text}? "
+                "Please write a full question about what you need one at a time."
             )
         else:
             response = (
@@ -796,6 +823,29 @@ What would you like to know about APU?"""
         if stream:
             return self._stream_text_response(response)
         return response
+    
+    def _fallback_topic_extraction(self, query: str) -> list:
+        """Fallback topic extraction using regex word boundaries."""
+        import re
+        
+        try:
+            from nlp_config_loader import config_loader
+            topic_definitions = config_loader.get_topic_definitions()
+            topic_keywords = {topic: config['keywords'] for topic, config in topic_definitions.items()}
+        except Exception:
+            topic_keywords = {'general': ['help', 'support']}
+        
+        key_topics = []
+        query_lower = query.lower()
+        
+        for topic, keywords in topic_keywords.items():
+            for keyword in keywords:
+                pattern = r'\b' + re.escape(keyword) + r'\b'
+                if re.search(pattern, query_lower):
+                    key_topics.append(topic)
+                    break
+        
+        return key_topics
     
     def _handle_system_error(self, stream=False) -> Union[str, Iterator[str]]:
         """Handle system errors gracefully."""

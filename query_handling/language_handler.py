@@ -3,7 +3,7 @@ Language detection and handling module for SARA chatbot.
 """
 
 import re
-from typing import Tuple
+from typing import Tuple, Dict
 from langdetect import DetectorFactory, detect_langs
 import logging
 from config import config
@@ -25,10 +25,22 @@ class LanguageHandler:
             r'[a-zA-Z\s]+[\u0400-\u04ff]+',  # English + Cyrillic
             r'[a-zA-Z\s]+[\u00c0-\u017f]+',  # English + European accents
         ]
+        
+        # Load English whitelist dynamically
+        self.english_word_whitelist = self._load_english_whitelist()
+        
+        # Track statistics for monitoring
+        self.stats = {
+            'total_queries': 0,
+            'english_queries': 0,
+            'blocked_queries': 0,
+            'whitelist_rescues': 0,
+            'short_text_handled': 0
+        }
     
     def detect_language_with_confidence(self, query: str) -> tuple[str, float]:
         """
-        Detect language with confidence scoring.
+        Detect language with confidence scoring and whitelist checking.
         
         Args:
             query: User input text
@@ -36,25 +48,260 @@ class LanguageHandler:
         Returns:
             Tuple of (language_code, confidence_score)
         """
-        # Handle very short queries
+        self.stats['total_queries'] += 1
+        
+        # Handle very short queries (1-3 characters)
         if len(query.strip()) < 3:
+            self.stats['short_text_handled'] += 1
             return 'en', 1.0  # High confidence for short queries
+        
+        # Check English whitelist for single words or very short phrases
+        if len(query.strip().split()) <= 2:
+            query_words = {word.lower().strip('.,!?;:"()[]') for word in query.split()}
+            if query_words.intersection(self.english_word_whitelist):
+                self.stats['whitelist_rescues'] += 1
+                self.stats['english_queries'] += 1
+                logger.debug(f"Whitelist rescue for query: {query[:30]}...")
+                return 'en', 0.95  # High confidence for whitelisted terms
             
         # Handle mixed language queries
         if self._is_mixed_language(query):
             return 'mixed', 0.9
-            
+        
+        # Use ensemble approach for language detection
+        return self._ensemble_language_detection(query)
+    
+    def _load_english_whitelist(self) -> set:
+        """Load English whitelist from externalized configuration."""
         try:
-            language_scores = detect_langs(query)
-            if language_scores:
-                primary_lang = language_scores[0]
-                return primary_lang.lang, primary_lang.prob
-            else:
-                return 'unknown', 0.0
-                
+            from nlp_config_loader import config_loader
+            whitelist = config_loader.get_english_whitelist()
+            logger.info(f"Loaded {len(whitelist)} terms in English whitelist")
+            return whitelist
+            
         except Exception as e:
-            logger.warning(f"Language detection failed: {e}")
+            logger.error(f"Failed to load whitelist configuration: {e}")
+            return {'help', 'support', 'please', 'thanks', 'hello', 'hi'}
+    
+    def _ensemble_language_detection(self, query: str) -> tuple[str, float]:
+        """
+        Enhanced language detection using ensemble approach with multiple validation strategies.
+        Implements enterprise-grade confidence scoring with multi-signal validation.
+        
+        Args:
+            query: User input text
+            
+        Returns:
+            Tuple of (language_code, confidence_score)
+        """
+        try:
+            # Primary detection using langdetect
+            language_scores = detect_langs(query)
+            if not language_scores:
+                return 'unknown', 0.0
+            
+            primary_lang = language_scores[0]
+            base_confidence = primary_lang.prob
+            
+            # Enterprise-grade confidence adjustment based on query characteristics
+            adjusted_confidence = self._calculate_enterprise_confidence(
+                query, primary_lang.lang, base_confidence
+            )
+            
+            # Multi-signal validation for enterprise accuracy
+            final_lang, final_confidence = self._validate_with_multiple_signals(
+                query, primary_lang.lang, adjusted_confidence
+            )
+            
+            # Update statistics
+            if final_lang == 'en':
+                self.stats['english_queries'] += 1
+                
+            return final_lang, final_confidence
+            
+        except Exception as e:
+            logger.warning(f"Ensemble language detection failed: {e}")
+            
+            # Fallback: if it looks English, assume English
+            if self._looks_like_english(query):
+                self.stats['whitelist_rescues'] += 1
+                return 'en', 0.7
+            
             return 'unknown', 0.0
+    
+    def _calculate_enterprise_confidence(self, query: str, detected_lang: str, base_confidence: float) -> float:
+        """
+        Calculate enterprise-grade confidence using multiple signals.
+        Follows best practices from OpenAI, Anthropic, and NotebookLM.
+        
+        Args:
+            query: Input text
+            detected_lang: Detected language code
+            base_confidence: Base confidence from langdetect
+            
+        Returns:
+            Adjusted confidence score
+        """
+        word_count = len(query.split())
+        
+        # Length-based confidence penalty (short text is unreliable)
+        if word_count <= 3:
+            base_confidence *= 0.6  # Heavy penalty for very short text
+        elif word_count <= 6:
+            base_confidence *= 0.8  # Moderate penalty for short text
+        
+        # Domain relevance boost for university terms
+        query_words = set(query.lower().split())
+        whitelist_overlap = len(query_words.intersection(self.english_word_whitelist))
+        
+        if whitelist_overlap >= 2:  # Multiple domain terms
+            base_confidence = min(0.95, base_confidence * 1.3)
+        elif whitelist_overlap >= 1:  # Single domain term
+            base_confidence = min(0.9, base_confidence * 1.15)
+        
+        return base_confidence
+    
+    def _validate_with_multiple_signals(self, query: str, detected_lang: str, confidence: float) -> tuple[str, float]:
+        """
+        Multi-signal validation using contextual analysis.
+        Implements enterprise patterns for production reliability.
+        
+        Args:
+            query: Input text
+            detected_lang: Detected language
+            confidence: Current confidence
+            
+        Returns:
+            Tuple of (final_language, final_confidence)
+        """
+        # Signal 1: English pattern matching
+        if self._looks_like_english(query) and detected_lang != 'en':
+            logger.debug(f"Multi-signal override: {detected_lang} -> en for: {query[:30]}...")
+            self.stats['whitelist_rescues'] += 1
+            return 'en', max(0.8, confidence)
+        
+        # Signal 2: Confidence threshold with contextual boost
+        if detected_lang == 'en' and confidence < 0.7:
+            # Check for English contextual indicators
+            if self._has_english_context_indicators(query):
+                boosted_confidence = min(0.85, confidence + 0.2)
+                logger.debug(f"English context boost: {confidence:.2f} -> {boosted_confidence:.2f}")
+                return 'en', boosted_confidence
+        
+        return detected_lang, confidence
+    
+    def _has_english_context_indicators(self, query: str) -> bool:
+        """
+        Check for contextual indicators that suggest English text.
+        Uses configuration-driven semantic patterns (enterprise approach).
+        
+        Args:
+            query: Text to analyze
+            
+        Returns:
+            True if text has English contextual indicators
+        """
+        # Use externalized semantic patterns (enterprise approach)
+        try:
+            from nlp_config_loader import config_loader
+            patterns = config_loader.get_semantic_patterns()
+            english_patterns = patterns.get('english_indicators', [])
+            question_patterns = patterns.get('question_patterns', [])
+            grammar_patterns = patterns.get('english_grammar_patterns', [])
+            
+            # Combine all available patterns
+            all_patterns = english_patterns + question_patterns + grammar_patterns
+            
+        except Exception as e:
+            logger.warning(f"Could not load semantic patterns: {e}")
+            # Minimal fallback - use only whitelist overlap
+            return self._calculate_whitelist_confidence(query) > 0.3
+        
+        # Apply patterns dynamically from configuration
+        query_lower = query.lower()
+        for pattern in all_patterns:
+            try:
+                if re.search(pattern, query_lower, re.IGNORECASE):
+                    logger.debug(f"Matched English pattern: {pattern}")
+                    return True
+            except re.error:
+                logger.warning(f"Invalid regex pattern in config: {pattern}")
+                continue
+        
+        # Fallback: statistical analysis of word overlap
+        return self._calculate_whitelist_confidence(query) > 0.4
+    
+    def _looks_like_english(self, query: str) -> bool:
+        """
+        Heuristic check if text looks like English based on character distribution and patterns.
+        
+        Args:
+            query: Text to check
+            
+        Returns:
+            True if text appears to be English
+        """
+        # Remove punctuation and spaces for analysis
+        clean_text = re.sub(r'[^a-zA-Z]', '', query).lower()
+        
+        if not clean_text:
+            return False
+        
+        # Check if text is primarily Latin alphabet
+        latin_chars = len(clean_text)
+        total_chars = len(re.sub(r'\s', '', query))
+        
+        if total_chars > 0 and (latin_chars / total_chars) < 0.8:
+            return False
+        
+        # Check for English patterns
+        try:
+            from nlp_config_loader import config_loader
+            patterns = config_loader.get_semantic_patterns()
+            english_indicators = patterns.get('english_indicators', [])
+        except Exception:
+            english_indicators = [r'\b\w+(ing|tion|ness|ment|able|ible)\b']
+        
+        for pattern in english_indicators:
+            if re.search(pattern, query.lower()):
+                return True
+        
+        # Statistical whitelist analysis (enterprise approach)
+        return self._calculate_whitelist_confidence(query) > 0.5
+    
+    def _calculate_whitelist_confidence(self, query: str) -> float:
+        """
+        Calculate confidence based on statistical analysis of whitelist overlap.
+        Enterprise approach - data-driven rather than hard-coded.
+        
+        Args:
+            query: Text to analyze
+            
+        Returns:
+            Confidence score (0.0 to 1.0)
+        """
+        if not query.strip():
+            return 0.0
+            
+        # Clean and tokenize
+        query_words = {word.lower().strip('.,!?;:"()[]') for word in query.split()}
+        query_words = {word for word in query_words if word}  # Remove empty strings
+        
+        if not query_words:
+            return 0.0
+        
+        # Calculate statistical overlap
+        whitelist_matches = query_words.intersection(self.english_word_whitelist)
+        overlap_ratio = len(whitelist_matches) / len(query_words)
+        
+        # Weight by match quality (longer matches = higher confidence)
+        quality_weight = 1.0
+        if whitelist_matches:
+            avg_match_length = sum(len(word) for word in whitelist_matches) / len(whitelist_matches)
+            if avg_match_length > 4:  # Longer words are more distinctive
+                quality_weight = 1.2
+        
+        return min(1.0, overlap_ratio * quality_weight)
     
     def detect_language(self, query: str) -> str:
         """Legacy interface for backward compatibility."""
@@ -82,7 +329,12 @@ class LanguageHandler:
             return False, ""
         
         if detected_lang in self.supported_languages:
+            self.stats['english_queries'] += 1
             return False, ""
+            
+        # Block non-supported language
+        self.stats['blocked_queries'] += 1
+        logger.info(f"Blocked {detected_lang} query (confidence: {confidence:.2f}): {query[:50]}...")
             
         if detected_lang in ['zh', 'zh-cn', 'zh-tw']:
             return True, self._get_chinese_redirect_message()
@@ -132,3 +384,27 @@ class LanguageHandler:
             f"• Call: {config.SUPPORT_PHONE}\n"
             f"• Email: {config.SUPPORT_EMAIL}"
         )
+    
+    def get_statistics(self) -> Dict[str, any]:
+        """Get language detection statistics for monitoring."""
+        total = max(self.stats['total_queries'], 1)  # Avoid division by zero
+        
+        return {
+            'total_queries': self.stats['total_queries'],
+            'english_queries': self.stats['english_queries'],
+            'blocked_queries': self.stats['blocked_queries'],
+            'whitelist_rescues': self.stats['whitelist_rescues'],
+            'short_text_handled': self.stats['short_text_handled'],
+            'english_rate': f"{(self.stats['english_queries'] / total * 100):.1f}%",
+            'block_rate': f"{(self.stats['blocked_queries'] / total * 100):.1f}%",
+            'whitelist_rescue_rate': f"{(self.stats['whitelist_rescues'] / total * 100):.1f}%"
+        }
+    
+    def is_healthy(self) -> bool:
+        """Check if language handler is functioning properly."""
+        # Consider healthy if we're not blocking too many queries
+        total = self.stats['total_queries']
+        if total > 10:  # Only check after some queries
+            block_rate = self.stats['blocked_queries'] / total
+            return block_rate < 0.5  # Less than 50% blocked
+        return True

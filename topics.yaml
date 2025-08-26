@@ -1,0 +1,60 @@
+# Topic configuration for semantic processing
+# Externalized configuration following 2025 NLP best practices
+
+topics:
+  academic:
+    keywords: [registration, enrollment, course, grade, transcript, graduation, scholarship, application, student, academic]
+    entities: [ORG, PERSON]
+    confidence_threshold: 0.65
+    
+  visa_immigration:
+    keywords: [visa, immigration, permit, pass, renewal, overstay, penalty, passport, entry, exit]
+    entities: [NORP, ORG, GPE] 
+    confidence_threshold: 0.6
+    
+  financial:
+    keywords: [fee, payment, bank, transfer, money, cost, invoice, receipt, flywire, swift]
+    entities: [MONEY, ORG]
+    confidence_threshold: 0.6
+    
+  it_support: 
+    keywords: [apkey, password, login, apspace, moodle, timetable, system, account, software]
+    entities: [ORG, PRODUCT]
+    confidence_threshold: 0.7
+    
+  library_resources:
+    keywords: [library, book, borrow, database, resource, opac, journal, research]
+    entities: [ORG, FAC]
+    confidence_threshold: 0.65
+    
+  facilities_parking:
+    keywords: [parking, vehicle, zone, building, office, location, campus, facility]
+    entities: [FAC, LOC]
+    confidence_threshold: 0.7
+
+# English language whitelist for common university terms
+english_whitelist:
+  common_terms: [help, support, please, thanks, hello, hi, good, morning, afternoon]
+  question_words: [what, where, when, why, how, who, which, can, do, will, should]
+  university_terms: [visa, library, student, course, exam, fee, payment, parking, office]
+  tech_terms: [login, password, system, email, account, profile, software]
+
+# Semantic patterns for language detection (enterprise configuration-driven approach)
+semantic_patterns:
+  english_indicators:
+    - '\b\w+(ing|tion|ness|ment|able|ible)\b'  # English morphological patterns
+    - '\b(the|and|for|are|but|not|you|all|can|had|her|was|one|our|out)\b'  # Common English words
+    - '\b(is|it|in|on|at|to|of|with|from|by)\b'  # English function words
+    - '\b(have|has|been|being|will|would|could|should)\b'  # English auxiliaries
+  
+  question_patterns:
+    - '\b(what|where|when|why|how|who|which)\b'  # WH-questions
+    - '\b(can|could|do|does|did|will|would|should|may|might)\b\s+\w+'  # Modal + verb patterns
+    - '\b(is|are|was|were)\s+\w+'  # Copula questions
+    - '\bhow\s+(do|can|to|much|many|long)\b'  # "how do", "how can", etc.
+  
+  english_grammar_patterns:
+    - '\bcan\s+i\b'      # "can i" - modal + pronoun
+    - '\bi\s+(need|want|have|am|can)\b'  # "i need/want/have/am/can"
+    - '\b(please|thank|thanks)\b'  # Politeness markers
+    - '\b(help|support|assistance)\b'  # Request indicators
