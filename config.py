@@ -159,6 +159,20 @@ class Config:
     # Confidence and boundary detection settings
     CONFIDENCE_THRESHOLD = float(os.environ.get("SARA_CONFIDENCE_THRESHOLD", "0.4"))
     
+    # Language Detection Settings
+    LANGUAGE_DETECTION_ENABLED = os.environ.get("SARA_LANGUAGE_DETECTION", "True").lower() in ("true", "1", "t")
+    SUPPORTED_LANGUAGES = {'en'}  # Only English supported currently
+    LANGUAGE_DETECTION_CONFIDENCE = float(os.environ.get("SARA_LANG_CONFIDENCE", "0.8"))  # Minimum confidence threshold
+    
+    # Contact Information for Multilingual Support
+    SUPPORT_PHONE = os.environ.get("SARA_SUPPORT_PHONE", "+603-8996-1000")
+    SUPPORT_EMAIL = os.environ.get("SARA_SUPPORT_EMAIL", "info@apu.edu.my")
+    SUPPORT_LOCATION = os.environ.get("SARA_SUPPORT_LOCATION", "APU Student Services (Level 1, New Campus)")
+    
+    # Ambiguity Detection Settings  
+    AMBIGUITY_DETECTION_ENABLED = os.environ.get("SARA_AMBIGUITY_DETECTION", "True").lower() in ("true", "1", "t")
+    AMBIGUITY_CONFIDENCE_THRESHOLD = float(os.environ.get("SARA_AMBIGUITY_THRESHOLD", "0.7"))
+    
     # Session management
     MAX_SESSIONS = 5
     

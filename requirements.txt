@@ -12,6 +12,7 @@ requests==2.32.3
 # NLP libraries
 nltk==3.9.1
 spacy==3.7.2  # Modern NLP library for enhanced semantic processing
+langdetect==1.0.9  # Language detection for multilingual support
 
 # spaCy Installation Instructions:
 # ===============================

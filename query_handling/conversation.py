@@ -9,6 +9,8 @@ import logging
 from difflib import SequenceMatcher
 
 from config import config
+from .language_handler import LanguageHandler
+from .ambiguity_handler import AmbiguityHandler
 
 logger = logging.getLogger("Sara")
 
@@ -19,6 +21,10 @@ class ConversationHandler:
         """Initialize with a memory for conversation history."""
         self.memory = memory
         self.stream_delay = stream_delay if stream_delay is not None else config.STREAM_DELAY
+        
+        # Initialize handlers for best practices
+        self.language_handler = LanguageHandler()
+        self.ambiguity_handler = AmbiguityHandler()
         
         # Core conversational patterns with enhanced fuzzy matching support
         self.greeting_patterns = [
@@ -265,9 +271,15 @@ class ConversationHandler:
         return result
     
     def handle_conversation(self, query: str, stream=False):
-        """
-        Handle conversational queries with natural personality.
-        """
+        """Handle conversational queries with language detection and ambiguity handling."""
+        should_block, lang_response = self.language_handler.handle_query(query)
+        if should_block:
+            logger.info(f"Non-English query blocked: {query[:50]}...")
+            return lang_response
+        
+        if self.ambiguity_handler.is_ambiguous(query):
+            logger.info(f"Ambiguous query detected: {query[:50]}...")
+            return self.ambiguity_handler.get_clarification(query)
         # Correct spelling first
         corrected_query = self._correct_spelling(query)
         query_lower = corrected_query.lower().strip()

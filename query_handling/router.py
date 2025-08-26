@@ -19,7 +19,13 @@ class QueryRouter:
         self.conversation_handler = conversation_handler
         self.retrieval_handler = retrieval_handler
         self.command_handler = command_handler
-        self.memory = memory 
+        self.memory = memory
+        
+        # Import and initialize language and ambiguity handlers
+        from .language_handler import LanguageHandler
+        from .ambiguity_handler import AmbiguityHandler
+        self.language_handler = LanguageHandler()
+        self.ambiguity_handler = AmbiguityHandler() 
     
     def route_query(self, query_analysis: Dict[str, Any], stream=False) -> Tuple[Any, bool]:
         """
@@ -34,6 +40,28 @@ class QueryRouter:
         """
         original_query = query_analysis["original_query"]
         query_type = query_analysis.get("query_type", QueryType.UNKNOWN)
+        
+        # PRIORITY 1: Language Detection - Check before all other processing
+        try:
+            should_block, lang_response = self.language_handler.handle_query(original_query)
+            if should_block:
+                logger.info(f"Non-English query blocked: {original_query[:50]}...")
+                if stream:
+                    return self._stream_text_response(lang_response), True
+                return lang_response, True
+        except Exception as e:
+            logger.warning(f"Language detection failed: {e}")
+        
+        # PRIORITY 2: Ambiguity Detection - Check before content processing
+        try:
+            if self.ambiguity_handler.is_ambiguous(original_query):
+                logger.info(f"Ambiguous query detected: {original_query[:50]}...")
+                clarification = self.ambiguity_handler.get_clarification(original_query)
+                if stream:
+                    return self._stream_text_response(clarification), True
+                return clarification, True
+        except Exception as e:
+            logger.warning(f"Ambiguity detection failed: {e}")
         
         # Enhanced input validation and error handling
         try:
