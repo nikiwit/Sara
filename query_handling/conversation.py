@@ -272,7 +272,7 @@ class ConversationHandler:
     
     def handle_conversation(self, query: str, stream=False):
         """Handle conversational queries with language detection and ambiguity handling."""
-        should_block, lang_response = self.language_handler.handle_query(query)
+        should_block, lang_response, llm_context = self.language_handler.handle_query(query)
         if should_block:
             logger.info(f"Non-English query blocked: {query[:50]}...")
             return lang_response

@@ -30,7 +30,7 @@ def test_language_detection():
     
     for query, expected_lang, should_block in test_cases:
         detected_lang = handler.detect_language(query)
-        is_blocked, response = handler.handle_query(query)
+        is_blocked, response, llm_context = handler.handle_query(query)
         
         print(f"\nQuery: '{query}'")
         print(f"Detected: {detected_lang} | Expected: {expected_lang}")
@@ -91,7 +91,7 @@ def test_integration():
         print(f"\n--- Processing: '{query}' ---")
         
         # Step 1: Language check
-        should_block, lang_response = language_handler.handle_query(query)
+        should_block, lang_response, llm_context = language_handler.handle_query(query)
         if should_block:
             print(f"🚫 BLOCKED (Language): {lang_response[:80]}...")
             continue
