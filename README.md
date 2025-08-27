@@ -19,6 +19,7 @@ SARA is a production-ready AI assistant designed specifically for academic envir
 - [Configuration](#configuration)
 - [Architecture](#architecture)
 - [API Documentation](#api-documentation)
+- [Testing](#testing)
 - [Performance](#performance)
 - [Contributing](#contributing)
 - [Troubleshooting](#troubleshooting)
@@ -458,15 +459,16 @@ SARA uses environment variables for configuration, with support for environment-
 | `SARA_LLM_MODEL` | `qwen2.5:3b-instruct` | `qwen2.5:7b-instruct` | Language model |
 | `SARA_RERANKER_MODEL` | `BAAI/bge-reranker-large` | `BAAI/bge-reranker-large` | Reranker model |
 | `SARA_CHUNK_SIZE` | `500` | `800` | Document chunk size |
+| `SARA_CHUNK_OVERLAP` | `125` | `200` | Document chunk overlap |
+| `SARA_RETRIEVER_K` | `6` | `8` | Number of retrieved documents |
 | `SARA_MAX_CONTEXT_SIZE` | `8000` | `8000` | Maximum context tokens |
+| `SARA_EXPANSION_FACTOR` | `2` | `3` | Query expansion multiplier |
 | `SARA_MAX_THREADS` | `2` | `32` | Processing threads |
 | `SARA_MAX_MEMORY` | `2G` | `64G` | Memory allocation |
 | `SARA_LANGUAGE_DETECTION` | `True` | `True` | Enable language detection |
-| `SARA_LANG_CONFIDENCE_THRESHOLD` | `0.65` | `0.70` | Language detection confidence threshold |
-| `SARA_SUPPORTED_LANGUAGES` | `en` | `en` | Supported languages (comma-separated) |
-| `SARA_LANG_STATS_ENABLED` | `True` | `True` | Enable language detection statistics |
+| `SARA_LANG_CONFIDENCE_THRESHOLD` | `0.65` | `0.70` | Language detection confidence |
 | `SARA_AMBIGUITY_DETECTION` | `True` | `True` | Enable query disambiguation |
-| `SARA_AMBIGUITY_THRESHOLD` | `0.7` | `0.7` | Ambiguity detection confidence threshold |
+| `SARA_AMBIGUITY_THRESHOLD` | `0.7` | `0.7` | Query ambiguity threshold |
 
 ### Local Development Configuration
 
@@ -554,6 +556,28 @@ SARA provides a comprehensive CLI interface with the following command categorie
 | `model report` | Show model status | `SARA > model report` |
 | `model check` | Check for updates | `SARA > model check` |
 | `model update` | Update models | `SARA > model update` |
+
+## Testing
+
+SARA underwent comprehensive testing to validate its performance across various scenarios and edge cases.
+
+### Test Coverage
+- **50 comprehensive test questions** across 14 different categories
+- **Robustness testing** including grammar errors, typos, and edge cases
+- **Safety validation** for inappropriate content and boundary detection
+- **Performance benchmarks** for response time and accuracy metrics
+
+### Latest Test Results (27 August 2025)
+- **Overall Success Rate**: 98.4% (246/250 points)
+- **Perfect Responses**: 46/50 (92%)
+- **Average Response Time**: 5.2 seconds
+- **FAQ Match Accuracy**: 100%
+- **Safety Response Rate**: 100%
+
+**Detailed Test Documentation**: See [`test_results_2025_08_27/`](./test_results_2025_08_27/) for complete test reports, including:
+- [`test_template.md`](./test_results_2025_08_27/test_template.md) - Full test results with all questions and responses
+- [`sara_test_statistics.md`](./test_results_2025_08_27/sara_test_statistics.md) - Statistical analysis and performance metrics
+- [`sara_test_suite.md`](./test_results_2025_08_27/sara_test_suite.md) - Testing methodology and framework
 
 ## Performance
 
