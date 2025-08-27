@@ -14,6 +14,7 @@ import logging
 import platform
 from datetime import datetime
 from dotenv import load_dotenv
+from logging.handlers import RotatingFileHandler
 
 # Disable ChromaDB telemetry globally before any ChromaDB imports
 os.environ.setdefault('ANONYMIZED_TELEMETRY', 'False')
@@ -46,19 +47,63 @@ if os.path.exists(env_file):
 else:
     load_dotenv()  # Fallback to default .env
 
-# Configure logging
+# Configure logging with rotation
 log_level_name = os.environ.get("SARA_LOG_LEVEL", "INFO")
 log_level = getattr(logging, log_level_name.upper(), logging.INFO)
 
 # Ensure logs directory exists
 os.makedirs("logs", exist_ok=True)
 
+# Configure log rotation settings
+LOG_MAX_BYTES = int(os.environ.get("SARA_LOG_MAX_BYTES", "1073741824"))  # 1GB default
+LOG_BACKUP_COUNT = int(os.environ.get("SARA_LOG_BACKUP_COUNT", "5"))  # Keep 5 backup files
+LOG_USE_JSON = os.environ.get("SARA_LOG_USE_JSON", "False").lower() in ("true", "1", "t")
+
+# Create rotating file handler with compression
+rotating_handler = RotatingFileHandler(
+    "logs/sara.log",
+    maxBytes=LOG_MAX_BYTES,
+    backupCount=LOG_BACKUP_COUNT,
+    encoding='utf-8'
+)
+
+# Configure JSON formatter for production if enabled
+if LOG_USE_JSON:
+    import json
+    import datetime
+    
+    class JSONFormatter(logging.Formatter):
+        def format(self, record):
+            log_entry = {
+                'timestamp': datetime.datetime.fromtimestamp(record.created).isoformat(),
+                'level': record.levelname,
+                'logger': record.name,
+                'message': record.getMessage(),
+                'module': record.module,
+                'function': record.funcName,
+                'line': record.lineno
+            }
+            if record.exc_info:
+                log_entry['exception'] = self.formatException(record.exc_info)
+            return json.dumps(log_entry)
+    
+    rotating_handler.setFormatter(JSONFormatter())
+    console_formatter = JSONFormatter()
+else:
+    # Standard text format for development
+    standard_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    rotating_handler.setFormatter(standard_formatter)
+    console_formatter = standard_formatter
+
+# Configure console handler with appropriate formatter
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(console_formatter)
+
 logging.basicConfig(
     level=log_level,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("logs/sara.log"),
-        logging.StreamHandler()
+        rotating_handler,
+        console_handler
     ]
 )
 logger = logging.getLogger("Sara")
@@ -296,9 +341,14 @@ class Config:
             logger.debug(f"Error getting device info: {e}")
             return "cpu", "CPU"
     
+    # Logging settings
+    LOG_LEVEL = log_level_name
+    LOG_MAX_BYTES = LOG_MAX_BYTES
+    LOG_BACKUP_COUNT = LOG_BACKUP_COUNT
+    LOG_USE_JSON = LOG_USE_JSON
+    
     # Miscellaneous
     FORCE_REINDEX = os.environ.get("SARA_FORCE_REINDEX", "False").lower() in ("true", "1", "t")
-    LOG_LEVEL = log_level_name
     
     # APU filtering setting
     FILTER_APU_ONLY = os.environ.get("FILTER_APU_ONLY", "False").lower() in ("true", "1", "t")
@@ -333,6 +383,11 @@ class Config:
         logger.info(f"Running in {cls.ENV} environment")
         logger.info(f"Data directory: {cls.DATA_PATH}")
         logger.info(f"Vector store directory: {cls.PERSIST_PATH}")
+        log_size_gb = cls.LOG_MAX_BYTES // 1073741824
+        total_space_gb = log_size_gb * (cls.LOG_BACKUP_COUNT + 1)
+        logger.info(f"Log rotation: {log_size_gb}GB max size, {cls.LOG_BACKUP_COUNT} backups (~{total_space_gb}GB total)")
+        if cls.LOG_USE_JSON:
+            logger.info("JSON logging enabled for structured log analysis")
         logger.info(f"Embedding model: {cls.EMBEDDING_MODEL_NAME}")
         logger.info(f"LLM model: {cls.LLM_MODEL_NAME}")
         logger.info(f"Search type: {cls.RETRIEVER_SEARCH_TYPE}")

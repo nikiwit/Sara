@@ -722,6 +722,38 @@ Enable debug logging for detailed troubleshooting:
 SARA_LOG_LEVEL=DEBUG python main.py
 ```
 
+### Log Management
+
+SARA includes automatic log rotation to prevent disk space issues in high-usage deployments:
+
+- **Log File**: `logs/sara.log`
+- **Rotation**: Automatic when file reaches 1GB
+- **Backups**: Keeps 5 backup files (sara.log.1 through sara.log.5)
+- **Total Space**: Maximum ~6GB (1GB active + 5×1GB backups)
+- **Format**: Text for development, JSON for production
+
+**Configuration Variables:**
+```bash
+# Maximum size before rotation (default: 1GB)
+SARA_LOG_MAX_BYTES=1073741824
+
+# Number of backup files to keep (default: 5)
+SARA_LOG_BACKUP_COUNT=5
+
+# Use JSON format for production (default: false for local, true for production)
+SARA_LOG_USE_JSON=true
+```
+
+**Log Rotation Behavior:**
+- When `sara.log` reaches 1GB → renamed to `sara.log.1`
+- Previous backups shift: `sara.log.1` → `sara.log.2`, etc.
+- Oldest backup (`sara.log.5`) is deleted
+- New empty `sara.log` is created
+
+**Production Features:**
+- **JSON Structured Logging**: Machine-readable format for log aggregation tools
+- **Configurable Format**: Text for development, JSON for production environments
+
 ### System Health Check
 
 ```bash
