@@ -1139,9 +1139,14 @@ My pleasure! 🎉 I'm so glad I could help clear things up about APU. What else 
 
 ## Quick Summary
 
-**Perfect (5/5):** 49/50  **Good (4/5):** 1/50  **Satisfactory (3/5):** 0/50  **Poor (1-2/5):** 0/50
+**Perfect (5/5):** 49/50  
+**Good (4/5):** 1/50  
+**Satisfactory (3/5):** 0/50  
+**Poor (1-2/5):** 0/50
 
-**Total Score:** 249/250  **Average:** 4.98/5  **Success Rate:** 99.6%
+**Total Score:** 249/250  
+**Average:** 4.98/5  
+**Success Rate:** 99.6%
 
 **Minor Issues Found:**
 1. Memory limitations not explicitly acknowledged in conversational responses (1 instance)
