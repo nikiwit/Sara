@@ -115,19 +115,29 @@ This project represents a comprehensive implementation of a production-ready RAG
 
 ### Chat Interface
 ```
-🤖 SARA: Hello! I'm SARA, your Smart Academic Retrieval Assistant. 
-How can I help you today?
+👤 You: Hi
+
+🤖 SARA: 
+Hi there! 👋 Welcome back! I'm having a wonderful day helping students. What APU info do you need?
 
 👤 You: How do I submit EC?
 
-🤖 SARA: To submit EC (Extracurricular activities), you need to:
-1. Log into the Student Portal
-2. Navigate to Academic Affairs → EC Submission
-3. Upload your certificates and supporting documents
-4. Fill out the EC form with activity details
-5. Submit for approval
+🤖 SARA: 
+To submit EC (Extenuating Circumstances), you need to follow these steps:
 
-The deadline for EC submission is typically 2 weeks before semester end.
+1. Go to your web browser and enter or click on this URL – http://forms.sites.apiit.edu.my/
+2. Log in with your APKey credentials.
+3. From the list of e-forms, select "EC Submission."
+4. In Section A: Personal Details, fill out your personal information which is already auto-filled. You might need to change your Intake Code from a drop-down menu.
+5. For Section B: Types of Circumstances and Module(s) Affected, provide details about the activity affected for each module. Submit EC for only twelve (12) modules per e-form; if you have more than that, submit another form.
+6. In Section C: Extenuating Circumstances Details, describe your circumstance and upload supporting documents in .pdf, .jpg, .png, docx, or .doc format. If you need to remove an uploaded file, click on the ⊗ icon.
+7. Finally, in Section D: Student Declaration, confirm with EC Submission terms of service and submit.
+
+After submission, you can check the status of your application by clicking on the Status button at the top of the page. You will receive a confirmation message and an acknowledgement email to your student email that your EC Application has been received.
+
+Remember to keep all submitted materials' original copies when required.
+
+Source: https://apiit.atlassian.net/wiki/spaces/AA/pages/221152223/How+do+I+submit+EC
 ```
 
 ## System Requirements
