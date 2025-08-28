@@ -165,19 +165,45 @@ class VectorStoreManager:
                     except Exception as e:
                         logger.warning(f"Could not remove broken symlink {file_path}: {e}")
             
-            # Step 4: Validate model directories and mark problematic ones
+            # Step 4: Validate model directories and clean up corrupted ones
             problematic_models = VectorStoreManager._validate_model_cache_integrity(cache_dir)
+            
+            # Step 5: Remove corrupted model directories
+            corrupted_cleanup_count = 0
+            if problematic_models:
+                logger.warning(f"Found {len(problematic_models)} models with potential issues")
+                for model_name, issues in problematic_models.items():
+                    logger.warning(f"Model {model_name}: {', '.join(issues)}")
+                    
+                    # Remove corrupted model directories
+                    try:
+                        # Use cache_dir directly to avoid recursion
+                        possible_paths = [
+                            os.path.join(cache_dir, "hub", f"models--{model_name.replace('/', '--')}"),
+                            os.path.join(cache_dir, "sentence_transformers", f"sentence-transformers_{model_name.replace('/', '_')}"),
+                            os.path.join(cache_dir, "sentence_transformers", f"models--{model_name.replace('/', '--')}")
+                        ]
+                        
+                        for model_path in possible_paths:
+                            if os.path.exists(model_path) and os.path.isdir(model_path):
+                                logger.info(f"Removing corrupted model cache at {model_path}")
+                                shutil.rmtree(model_path)
+                                corrupted_cleanup_count += 1
+                                logger.info(f"Successfully removed corrupted model: {model_name}")
+                                break
+                    except Exception as e:
+                        logger.error(f"Failed to remove corrupted model {model_name}: {e}")
+                
+                if corrupted_cleanup_count > 0:
+                    logger.info(f"Cleaned up {corrupted_cleanup_count} corrupted models")
+                    cleanup_count += corrupted_cleanup_count
+                else:
+                    logger.info("Problematic models will be re-downloaded if needed")
             
             if cleanup_count > 0:
                 logger.info(f"Model cache cleanup completed: removed {cleanup_count} corrupted files")
             elif cleanup_count == 0 and not incomplete_files and not lock_files and not broken_symlinks:
                 logger.debug("Model cache is clean - no corrupted files found")
-            
-            if problematic_models:
-                logger.warning(f"Found {len(problematic_models)} models with potential issues")
-                for model_name, issues in problematic_models.items():
-                    logger.warning(f"Model {model_name}: {', '.join(issues)}")
-                logger.info("Problematic models will be re-downloaded if needed")
             
         except Exception as e:
             logger.error(f"Error during model cache cleanup: {e}")
@@ -196,9 +222,15 @@ class VectorStoreManager:
         Returns:
             dict: Dictionary of model names and their issues
         """
-        problematic_models = {}
+        # Prevent infinite recursion during cleanup
+        if getattr(VectorStoreManager, '_validating_cache', False):
+            return {}
+            
+        VectorStoreManager._validating_cache = True
         
         try:
+            problematic_models = {}
+            
             # Check sentence-transformers cache
             st_cache_dir = os.path.join(cache_dir, "sentence_transformers")
             if os.path.exists(st_cache_dir):
@@ -222,11 +254,14 @@ class VectorStoreManager:
                             if issues:
                                 model_name = item.replace('models--', '').replace('--', '/')
                                 problematic_models[model_name] = issues
+            
+            return problematic_models
         
         except Exception as e:
             logger.debug(f"Error validating model cache integrity: {e}")
-        
-        return problematic_models
+            return {}
+        finally:
+            VectorStoreManager._validating_cache = False
     
     @staticmethod
     def _check_model_directory_integrity(model_path):
