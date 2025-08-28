@@ -391,62 +391,90 @@ SARA provides comprehensive CLI commands for system management:
 ```
 SARA/
 ├── Core Application
-│   ├── main.py                     # Application entry point with error handling
-│   ├── app.py                      # Main Sara class and CLI interface
-│   ├── config.py                   # Base configuration with environment detection
-│   ├── config_local.py             # Local development configuration
-│   ├── config_production.py        # Production environment configuration
-│   ├── resource_manager.py         # Hardware resource management
-│   ├── sara_types.py               # Type definitions and data structures
-│   └── input_processing.py         # User input processing and validation
+│   ├── main.py                             # Application entry point with error handling
+│   ├── app.py                              # Main Sara class and CLI interface
+│   ├── api.py                              # REST API interface for web/mobile integration 
+│   ├── config.py                           # Base configuration with environment detection
+│   ├── config_local.py                     # Local development configuration
+│   ├── config_production.py                # Production environment configuration
+│   ├── resource_manager.py                 # Hardware resource management
+│   ├── sara_types.py                       # Type definitions and data structures
+│   ├── input_processing.py                 # User input processing and validation
+│   ├── nlp_config_loader.py                # NLP model configuration management
+│   └── topics.yaml                         # Topic classification configuration
 │
 ├── Document Processing
 │   ├── document_processing/
-│   │   ├── loaders.py              # Multi-format document loaders
-│   │   ├── parsers.py              # Content parsing and extraction
-│   │   └── splitters.py            # Text chunking and segmentation
+│   │   ├── loaders.py                      # Multi-format document loaders
+│   │   ├── parsers.py                      # Content parsing and extraction
+│   │   └── splitters.py                    # Text chunking and segmentation
 │
-├── Query and Retrieval
+├── Query Processing and Handling
+│   ├── query_processing/
+│   │   └── decomposer.py                   # Complex query decomposition
 │   ├── query_handling/
-│   │   ├── router.py               # Query routing and classification
-│   │   ├── conversation.py         # Conversation flow management
-│   │   └── commands.py             # CLI command processing
+│   │   ├── router.py                       # Query routing and classification
+│   │   ├── conversation.py                 # Conversation flow management
+│   │   ├── commands.py                     # CLI command processing
+│   │   ├── ambiguity_handler.py            # Ambiguous query resolution
+│   │   ├── language_handler.py             # Multi-language query processing
+│   │   └── topic_extractor.py              # Topic extraction and classification
+│
+├── Retrieval System
 │   ├── retrieval/
-│   │   ├── handler.py              # Main retrieval orchestrator
-│   │   ├── context_processor.py    # Context optimization and compression
-│   │   ├── faq_matcher.py          # FAQ-specific matching logic
-│   │   └── reranker.py             # Result reranking and optimization
+│   │   ├── handler.py                      # Main retrieval orchestrator
+│   │   ├── context_processor.py            # Context optimization and compression
+│   │   ├── faq_matcher.py                  # FAQ-specific matching logic
+│   │   ├── reranker.py                     # Result reranking and optimization
+│   │   └── system_info.py                  # System information and diagnostics
 │
 ├── AI and Response Generation
 │   ├── response/
-│   │   ├── generator.py            # LLM response generation with streaming
-│   │   └── cache.py                # Response caching system
-│   ├── spacy_semantic_processor.py # Advanced semantic processing
+│   │   ├── generator.py                    # LLM response generation with streaming
+│   │   └── cache.py                        # Response caching system
+│   └── spacy_semantic_processor.py         # Advanced semantic processing
 │
 ├── Data Management
 │   ├── vector_management/
-│   │   ├── manager.py              # Vector store operations and lifecycle
-│   │   └── chromadb_manager.py     # ChromaDB client management
+│   │   ├── manager.py                      # Vector store operations and lifecycle
+│   │   └── chromadb_manager.py             # ChromaDB client management
 │   ├── session_management/
-│   │   ├── session_manager.py      # Session lifecycle coordination
-│   │   ├── session_storage.py      # JSON-based session persistence
-│   │   └── session_types.py        # Session data structures
+│   │   ├── session_manager.py              # Session lifecycle coordination
+│   │   ├── session_storage.py              # JSON-based session persistence
+│   │   └── session_types.py                # Session data structures
 │
-├── Data and Storage
-│   ├── data/                       # Knowledge base documents
-│   │   ├── apu_AA_kb.txt           # Academic Affairs knowledge base
-│   │   ├── apu_BUR_kb.txt          # Bursar/Finance knowledge base
-│   │   ├── apu_ITSM_kb.txt         # IT Service Management knowledge base
-│   │   ├── apu_LIB_kb.txt          # Library services knowledge base
-│   │   ├── apu_LNO_kb.txt          # Learning Network Office knowledge base
-│   │   └── apu_VISA_kb.txt         # Visa and immigration knowledge base
+├── Knowledge Base
+│   └── data/                               # APU Knowledge base documents
+│       ├── apu_AA_kb.txt                   # Academic Administration knowledge base
+│       ├── apu_BUR_kb.txt                  # Bursary/Finance knowledge base
+│       ├── apu_ITSM_kb.txt                 # IT Service Management knowledge base
+│       ├── apu_LIB_kb.txt                  # Library services knowledge base
+│       ├── apu_LNO_kb.txt                  # Logistics and Operations knowledge base
+│       └── apu_VISA_kb.txt                 # Visa and Immigration knowledge base
 │
-└── Configuration and Documentation
-    ├── requirements.txt            # Project dependencies
-    ├── .gitignore                  # Version control exclusions
-    ├── LICENSE                     # MIT License
-    ├── CLAUDE.md                   # Development instructions for Claude Code
-    └── README.md                   # This file
+├── Testing and Quality Assurance
+│   └── test_results_2025_08_27/            # Latest test results and documentation
+│       ├── sara_test_statistics.md         # Test performance statistics
+│       ├── sara_test_suite.md              # Comprehensive test suite results
+│       └── test_template.md                # Test template and methodology
+│
+├── Research and Analysis
+│   ├── embedding-models-comparison-2025.md # Embedding models performance analysis
+│   └── reranker-models-comparison-2025.md  # Reranker models evaluation
+│
+├── Configuration and Environment
+│   ├── .env.local                          # Local development environment variables
+│   ├── .env.production                     # Production environment variables
+│   ├── requirements.txt                    # Dependencies
+│   └── .gitignore                          # Version control exclusions
+│
+├── Development Tools
+│   ├── scrap.py                            # Knowledge base scraper script
+│   └── scrap.txt                           # Paths to scrap
+│
+└── Documentation
+    ├── README.md                           # Project documentation (this file)
+    └── LICENSE                             # MIT License
 ```
 
 ## Configuration
