@@ -67,6 +67,7 @@ class VectorStoreManager:
         
         Configures environment variables for optimal model caching and sets up
         the directory structure required for persistent model storage.
+        Includes automatic cleanup of corrupted model files on startup.
         
         Returns:
             str: Path to the configured cache directory
@@ -77,6 +78,9 @@ class VectorStoreManager:
         
         # Ensure cache directory exists
         os.makedirs(cache_dir, exist_ok=True)
+        
+        # Clean up corrupted files on startup
+        VectorStoreManager._cleanup_corrupted_cache_files(cache_dir)
         
         # Set HuggingFace environment variables for caching
         os.environ['HF_HOME'] = cache_dir
@@ -92,6 +96,200 @@ class VectorStoreManager:
         
         logger.info(f"Model cache directory: {cache_dir}")
         return cache_dir
+    
+    @staticmethod
+    def _cleanup_corrupted_cache_files(cache_dir):
+        """
+        Clean up corrupted model cache files on startup.
+        
+        Performs automatic cleanup of incomplete downloads, broken symlinks,
+        and corrupted model files to prevent startup issues.
+        
+        Args:
+            cache_dir: Path to the HuggingFace cache directory
+        """
+        cleanup_count = 0
+        
+        try:
+            # Step 1: Remove incomplete download files
+            incomplete_files = []
+            for root, dirs, files in os.walk(cache_dir):
+                for file in files:
+                    if file.endswith('.incomplete'):
+                        file_path = os.path.join(root, file)
+                        incomplete_files.append(file_path)
+            
+            if incomplete_files:
+                logger.info(f"Cleaning up {len(incomplete_files)} incomplete download files")
+                for file_path in incomplete_files:
+                    try:
+                        os.remove(file_path)
+                        cleanup_count += 1
+                        logger.debug(f"Removed incomplete file: {file_path}")
+                    except Exception as e:
+                        logger.warning(f"Could not remove incomplete file {file_path}: {e}")
+            
+            # Step 2: Remove lock files that may prevent downloads
+            lock_files = []
+            for root, dirs, files in os.walk(cache_dir):
+                for file in files:
+                    if file.endswith('.lock') or file.endswith('.tmp'):
+                        file_path = os.path.join(root, file)
+                        lock_files.append(file_path)
+            
+            if lock_files:
+                logger.info(f"Cleaning up {len(lock_files)} lock/temporary files")
+                for file_path in lock_files:
+                    try:
+                        os.remove(file_path)
+                        cleanup_count += 1
+                        logger.debug(f"Removed lock file: {file_path}")
+                    except Exception as e:
+                        logger.warning(f"Could not remove lock file {file_path}: {e}")
+            
+            # Step 3: Check for broken symlinks in HF cache structure
+            broken_symlinks = []
+            for root, dirs, files in os.walk(cache_dir):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    if os.path.islink(file_path) and not os.path.exists(file_path):
+                        broken_symlinks.append(file_path)
+            
+            if broken_symlinks:
+                logger.info(f"Cleaning up {len(broken_symlinks)} broken symlinks")
+                for file_path in broken_symlinks:
+                    try:
+                        os.remove(file_path)
+                        cleanup_count += 1
+                        logger.debug(f"Removed broken symlink: {file_path}")
+                    except Exception as e:
+                        logger.warning(f"Could not remove broken symlink {file_path}: {e}")
+            
+            # Step 4: Validate model directories and mark problematic ones
+            problematic_models = VectorStoreManager._validate_model_cache_integrity(cache_dir)
+            
+            if cleanup_count > 0:
+                logger.info(f"Model cache cleanup completed: removed {cleanup_count} corrupted files")
+            elif cleanup_count == 0 and not incomplete_files and not lock_files and not broken_symlinks:
+                logger.debug("Model cache is clean - no corrupted files found")
+            
+            if problematic_models:
+                logger.warning(f"Found {len(problematic_models)} models with potential issues")
+                for model_name, issues in problematic_models.items():
+                    logger.warning(f"Model {model_name}: {', '.join(issues)}")
+                logger.info("Problematic models will be re-downloaded if needed")
+            
+        except Exception as e:
+            logger.error(f"Error during model cache cleanup: {e}")
+    
+    @staticmethod
+    def _validate_model_cache_integrity(cache_dir):
+        """
+        Validate integrity of cached models.
+        
+        Checks for missing essential files in model cache directories
+        and identifies models that may need re-downloading.
+        
+        Args:
+            cache_dir: Path to the HuggingFace cache directory
+            
+        Returns:
+            dict: Dictionary of model names and their issues
+        """
+        problematic_models = {}
+        
+        try:
+            # Check sentence-transformers cache
+            st_cache_dir = os.path.join(cache_dir, "sentence_transformers")
+            if os.path.exists(st_cache_dir):
+                for item in os.listdir(st_cache_dir):
+                    if item.startswith('models--'):
+                        model_path = os.path.join(st_cache_dir, item)
+                        if os.path.isdir(model_path):
+                            issues = VectorStoreManager._check_model_directory_integrity(model_path)
+                            if issues:
+                                model_name = item.replace('models--', '').replace('--', '/')
+                                problematic_models[model_name] = issues
+            
+            # Check hub cache
+            hub_cache_dir = os.path.join(cache_dir, "hub")
+            if os.path.exists(hub_cache_dir):
+                for item in os.listdir(hub_cache_dir):
+                    if item.startswith('models--'):
+                        model_path = os.path.join(hub_cache_dir, item)
+                        if os.path.isdir(model_path):
+                            issues = VectorStoreManager._check_model_directory_integrity(model_path)
+                            if issues:
+                                model_name = item.replace('models--', '').replace('--', '/')
+                                problematic_models[model_name] = issues
+        
+        except Exception as e:
+            logger.debug(f"Error validating model cache integrity: {e}")
+        
+        return problematic_models
+    
+    @staticmethod
+    def _check_model_directory_integrity(model_path):
+        """
+        Check integrity of a specific model directory.
+        
+        Args:
+            model_path: Path to the model directory
+            
+        Returns:
+            list: List of issues found (empty if model is fine)
+        """
+        issues = []
+        
+        try:
+            # Check for essential files
+            essential_files = ['config.json']
+            model_files = ['pytorch_model.bin', 'model.safetensors', 'model.onnx']
+            
+            # Check snapshots directory (HF cache structure)
+            snapshots_dir = os.path.join(model_path, 'snapshots')
+            blobs_dir = os.path.join(model_path, 'blobs')
+            
+            has_snapshots = os.path.exists(snapshots_dir) and os.listdir(snapshots_dir)
+            has_blobs = os.path.exists(blobs_dir)
+            
+            if has_snapshots and has_blobs:
+                # Check for incomplete files in blobs
+                if os.path.exists(blobs_dir):
+                    incomplete_blobs = [f for f in os.listdir(blobs_dir) if f.endswith('.incomplete')]
+                    if incomplete_blobs:
+                        issues.append("incomplete blob files")
+                
+                # Check if snapshots have essential files
+                has_config = False
+                has_model = False
+                for snapshot in os.listdir(snapshots_dir):
+                    snapshot_path = os.path.join(snapshots_dir, snapshot)
+                    if os.path.isdir(snapshot_path):
+                        if any(os.path.exists(os.path.join(snapshot_path, f)) for f in essential_files):
+                            has_config = True
+                        if any(os.path.exists(os.path.join(snapshot_path, f)) for f in model_files):
+                            has_model = True
+                
+                if not has_config:
+                    issues.append("missing config files")
+                if not has_model:
+                    issues.append("missing model files")
+            
+            else:
+                # Check root directory for direct files
+                has_config = any(os.path.exists(os.path.join(model_path, f)) for f in essential_files)
+                has_model = any(os.path.exists(os.path.join(model_path, f)) for f in model_files)
+                
+                if not has_config:
+                    issues.append("missing config files")
+                if not has_model:
+                    issues.append("missing model files")
+        
+        except Exception as e:
+            issues.append(f"error checking directory: {str(e)}")
+        
+        return issues
     
     @staticmethod
     def _get_model_registry_path():
@@ -789,6 +987,13 @@ class VectorStoreManager:
                             incomplete_files = [f for f in os.listdir(blobs_dir) if f.endswith('.incomplete')]
                             if incomplete_files:
                                 logger.warning(f"Model {model_name} has incomplete downloads: {incomplete_files}")
+                                logger.info(f"Cleaning up corrupted model cache for {model_name}")
+                                # Remove the corrupted model directory
+                                try:
+                                    shutil.rmtree(model_path)
+                                    logger.info(f"Removed corrupted model cache at {model_path}")
+                                except Exception as e:
+                                    logger.error(f"Failed to remove corrupted model cache: {e}")
                                 has_model = False  # Mark as not properly cached
                     
                     if has_config and (has_model or has_tokenizer):
