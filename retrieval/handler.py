@@ -441,6 +441,11 @@ class RetrievalHandler:
         if not response:
             return response
         
+        # Handle both string and generator responses
+        if hasattr(response, '__iter__') and not isinstance(response, str):
+            # If it's a generator, convert to string first
+            response = ''.join(response) if response else ''
+        
         logger.debug(f"Post-processing response of length {len(response)}")
         original_response = response
         
