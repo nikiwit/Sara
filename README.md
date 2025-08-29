@@ -436,8 +436,11 @@ SARA/
 │
 ├── Data Management
 │   ├── vector_management/
-│   │   ├── manager.py                      # Vector store operations and lifecycle
-│   │   └── chromadb_manager.py             # ChromaDB client management
+│   │   ├── manager.py                      # Legacy vector store operations
+│   │   ├── chromadb_manager.py             # ChromaDB client management
+│   │   ├── models.py                       # Data models and type definitions
+│   │   ├── services.py                     # Service-oriented architecture code
+│   │   └── utils.py                        # Utility functions and context managers
 │   ├── session_management/
 │   │   ├── session_manager.py              # Session lifecycle coordination
 │   │   ├── session_storage.py              # JSON-based session persistence
@@ -453,6 +456,9 @@ SARA/
 │       └── apu_VISA_kb.txt                 # Visa and Immigration knowledge base
 │
 ├── Testing and Quality Assurance
+│   ├── tests/                              # Test suite
+│   │   ├── __init__.py                     # Test package initialization
+│   │   └── test_vector_management.py       # Vector management tests
 │   └── test_results_2025_08_27/            # Latest test results and documentation
 │       ├── sara_test_statistics.md         # Test performance statistics
 │       ├── sara_test_suite.md              # Comprehensive test suite results
@@ -563,6 +569,11 @@ Optimized for high-performance deployment:
 - **psutil**: System resource monitoring
 - **typing-extensions**: Enhanced type annotations
 
+### Development and Testing
+- **pytest**: Modern testing framework for unit and integration tests
+- **pytest-cov**: Test coverage reporting and analysis
+- **pytest-asyncio**: Testing support for async functionality
+
 For the complete dependency list with versions, see `requirements.txt`.
 
 ## API Documentation
@@ -598,7 +609,7 @@ SARA provides a comprehensive CLI interface with the following command categorie
 
 ## Testing
 
-SARA underwent comprehensive testing to validate its performance across various scenarios and edge cases.
+SARA underwent comprehensive prototype testing to validate its performance across various scenarios and edge cases.
 
 ### Test Coverage
 - **50 comprehensive test questions** across 13 different categories

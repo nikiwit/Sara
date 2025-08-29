@@ -59,6 +59,10 @@ python-dotenv==1.1.0
 chardet==5.2.0
 numpy==1.26.4
 psutil==7.0.0
+aiofiles==24.1.0  # For async file operations
+aiohttp==3.11.7  # For async HTTP requests
+pydantic==2.10.2  # For data validation and type safety
+typing-extensions==4.12.2  # Enhanced typing support
 
 # Hugging Face ecosystem - production-tested versions
 huggingface-hub==0.31.4
@@ -77,6 +81,7 @@ unstructured[epub]==0.17.2
 # Development dependencies (remove in production)
 pytest>=7.4.0  # Only for testing environments
 pytest-cov>=4.1.0  # Only for testing environments
+pytest-asyncio>=0.21.0  # For testing async functionality
 
 # Installation Instructions:
 # =========================
