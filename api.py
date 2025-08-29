@@ -1,12 +1,15 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import logging
 import traceback
 import threading
 import os
+import json
+import time
+import random
 from functools import wraps
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Iterator
 from timetable import timetable
 
 # Import Sara system components
@@ -28,6 +31,31 @@ logger = logging.getLogger("SaraAPI")
 _sara_instance = None
 _sara_lock = threading.Lock()
 
+# Fun processing status messages (inspired by Anthropic Claude)
+PROCESSING_MESSAGES = [
+    "Reading through knowledge base...",
+    "Thinking...",
+    "Brewing the answer...",
+    "Sifting through information...",
+    "Assembling...",
+    "Cooking...",
+    "Putting pieces together...",
+    "Weaving information...",
+    "Crafting...",
+    "Gathering...",
+    "Processing your request...",
+    "Organizing thoughts...",
+    "Searching for answers...",
+    "Building...",
+    "Formulating...",
+    "Preparing...",
+    "Constructing answer..."
+]
+
+# Processing status tracking for sessions
+_processing_status = {}
+_status_lock = threading.Lock()
+
 def get_sara_instance():
     """Get or create Sara instance (thread-safe singleton)."""
     global _sara_instance
@@ -43,6 +71,29 @@ def get_sara_instance():
                 logger.info("Sara system initialized successfully")
     
     return _sara_instance
+
+def set_processing_status(session_id: str, status: str):
+    """Set processing status for a session."""
+    with _status_lock:
+        _processing_status[session_id] = {
+            "status": status,
+            "timestamp": datetime.now().isoformat(),
+            "message": random.choice(PROCESSING_MESSAGES) if status == "processing" else status
+        }
+
+def get_processing_status(session_id: str) -> Dict[str, Any]:
+    """Get processing status for a session."""
+    with _status_lock:
+        return _processing_status.get(session_id, {
+            "status": "idle",
+            "timestamp": datetime.now().isoformat(),
+            "message": "Ready to help!"
+        })
+
+def clear_processing_status(session_id: str):
+    """Clear processing status for a session."""
+    with _status_lock:
+        _processing_status.pop(session_id, None)
 
 
 # Existing timetable endpoint
@@ -95,8 +146,10 @@ def chat_query():
         session_id = data.get('session_id')
         device_id = data.get('device_id')
         
-        # Get Sara instance
+        # Get Sara instance and set API mode for security
         sara = get_sara_instance()
+        if hasattr(sara, 'command_handler') and sara.command_handler:
+            sara.command_handler.set_api_mode(True)
         
         is_new_session = False
         
@@ -144,18 +197,75 @@ def chat_query():
         # Process the query
         query_analysis = sara.input_processor.analyze_query(query)
         
-        # Route the query (without streaming for API)
-        response, _ = sara.query_router.route_query(query_analysis, stream=False)
+        # Set processing status with fun messages
+        set_processing_status(session_id, "processing")
+        
+        # Check if client supports streaming via Accept header
+        accept_header = request.headers.get('Accept', '')
+        wants_stream = 'text/event-stream' in accept_header
+        
+        if wants_stream:
+            # Return streaming response for compatible clients
+            def generate_response_stream():
+                # Send processing status
+                yield f"data: {json.dumps({'type': 'status', 'message': get_processing_status(session_id)['message'], 'session_id': session_id})}\n\n"
+                
+                # Route query with streaming
+                response_stream, _ = sara.query_router.route_query(query_analysis, stream=True)
+                
+                full_response = ""
+                if hasattr(response_stream, '__iter__'):
+                    for chunk in response_stream:
+                        if chunk:
+                            full_response += chunk
+                            yield f"data: {json.dumps({'type': 'chunk', 'content': chunk, 'session_id': session_id})}\n\n"
+                else:
+                    full_response = str(response_stream)
+                    yield f"data: {json.dumps({'type': 'chunk', 'content': full_response, 'session_id': session_id})}\n\n"
+                
+                # Save conversation and complete
+                if full_response and full_response.strip():
+                    sara.session_manager.add_conversation(query, full_response.strip())
+                
+                clear_processing_status(session_id)
+                yield f"data: {json.dumps({'type': 'complete', 'session_id': session_id, 'timestamp': datetime.now().isoformat()})}\n\n"
+            
+            return Response(
+                generate_response_stream(),
+                mimetype='text/event-stream',
+                headers={
+                    'Cache-Control': 'no-cache',
+                    'Connection': 'keep-alive',
+                    'Access-Control-Allow-Origin': '*'
+                }
+            )
+        else:
+            # Route the query - let system handle all inputs transparently
+            response, _ = sara.query_router.route_query(query_analysis, stream=False)
+            
+            # Clear processing status
+            clear_processing_status(session_id)
         
         # Save conversation to session
         if response and response.strip():
             sara.session_manager.add_conversation(query, response.strip())
+        
+        # Analyze response for mobile formatting hints
+        has_markdown = bool(response and any(marker in response for marker in ['**', '*', '#', '```', '[', '](']))
+        has_links = bool(response and '](http' in response)
         
         return jsonify({
             "response": response,
             "session_id": session_id,
             "is_new_session": is_new_session,
             "timestamp": datetime.now().isoformat(),
+            "metadata": {
+                "has_markdown": has_markdown,
+                "has_links": has_links,
+                "processing_time": 0,  # TODO: Add actual timing
+                "word_count": len(response.split()) if response else 0,
+                "processing_status": "completed"
+            },
             "success": True
         })
         
@@ -202,8 +312,10 @@ def chat_conversation():
         session_id = data.get('session_id')
         device_id = data.get('device_id')
         
-        # Get Sara instance
+        # Get Sara instance and set API mode for security
         sara = get_sara_instance()
+        if hasattr(sara, 'command_handler') and sara.command_handler:
+            sara.command_handler.set_api_mode(True)
         
         is_new_session = False
         
@@ -234,12 +346,65 @@ def chat_conversation():
             if sara.conversation_handler:
                 sara.conversation_handler.memory = sara.memory
         
-        # Handle conversational query
-        response = sara.conversation_handler.handle_conversation(query, stream=False)
+        # Process the query for security check
+        query_analysis = sara.input_processor.analyze_query(query)
+        
+        # Set processing status with fun messages  
+        set_processing_status(session_id, "processing")
+        
+        # Check if client supports streaming via Accept header
+        accept_header = request.headers.get('Accept', '')
+        wants_stream = 'text/event-stream' in accept_header
+        
+        if wants_stream:
+            # Return streaming response for compatible clients
+            def generate_conversation_stream():
+                # Send processing status
+                yield f"data: {json.dumps({'type': 'status', 'message': get_processing_status(session_id)['message'], 'session_id': session_id})}\n\n"
+                
+                # Handle conversational query with streaming
+                response_stream = sara.conversation_handler.handle_conversation(query, stream=True)
+                
+                full_response = ""
+                if hasattr(response_stream, '__iter__'):
+                    for chunk in response_stream:
+                        if chunk:
+                            full_response += chunk
+                            yield f"data: {json.dumps({'type': 'chunk', 'content': chunk, 'session_id': session_id})}\n\n"
+                else:
+                    full_response = str(response_stream)
+                    yield f"data: {json.dumps({'type': 'chunk', 'content': full_response, 'session_id': session_id})}\n\n"
+                
+                # Save conversation and complete
+                if full_response and full_response.strip():
+                    sara.session_manager.add_conversation(query, full_response.strip())
+                
+                clear_processing_status(session_id)
+                yield f"data: {json.dumps({'type': 'complete', 'session_id': session_id, 'timestamp': datetime.now().isoformat()})}\n\n"
+            
+            return Response(
+                generate_conversation_stream(),
+                mimetype='text/event-stream',
+                headers={
+                    'Cache-Control': 'no-cache',
+                    'Connection': 'keep-alive',
+                    'Access-Control-Allow-Origin': '*'
+                }
+            )
+        else:
+            # Handle conversational query - process all inputs transparently
+            response = sara.conversation_handler.handle_conversation(query, stream=False)
+            
+            # Clear processing status
+            clear_processing_status(session_id)
         
         # Save conversation to session
         if response and response.strip():
             sara.session_manager.add_conversation(query, response.strip())
+        
+        # Analyze response for mobile formatting hints
+        has_markdown = bool(response and any(marker in response for marker in ['**', '*', '#', '```', '[', '](']))
+        has_links = bool(response and '](http' in response)
         
         return jsonify({
             "response": response,
@@ -247,11 +412,228 @@ def chat_conversation():
             "is_conversational": True,
             "is_new_session": is_new_session,
             "timestamp": datetime.now().isoformat(),
+            "metadata": {
+                "has_markdown": has_markdown,
+                "has_links": has_links,
+                "processing_time": 0,  # TODO: Add actual timing
+                "word_count": len(response.split()) if response else 0,
+                "processing_status": "completed"
+            },
             "success": True
         })
         
     except Exception as e:
         logger.error(f"Error processing conversational query: {e}")
+        return jsonify({
+            "error": f"Internal server error: {str(e)}",
+            "success": False
+        }), 500
+
+
+@app.route("/chat/stream", methods=["POST"])
+def chat_stream():
+    """
+    Stream chat responses with Server-Sent Events for real-time experience.
+    
+    Expected JSON payload:
+    {
+        "query": "What are the admission requirements?",
+        "session_id": "optional_session_id",
+        "device_id": "optional_device_identifier"
+    }
+    
+    Returns: Server-Sent Events stream with real-time response chunks
+    """
+    def generate_stream(query, session_id, device_id):
+        """Generate Server-Sent Events stream."""
+        try:
+            sara = get_sara_instance()
+            if hasattr(sara, 'command_handler') and sara.command_handler:
+                sara.command_handler.set_api_mode(True)
+            is_new_session = False
+            
+            # Set initial processing status
+            set_processing_status(session_id, "processing")
+            yield f"data: {json.dumps({'type': 'status', 'message': get_processing_status(session_id)['message'], 'session_id': session_id})}\n\n"
+            
+            # Session management (same logic as regular chat)
+            if session_id:
+                existing_session = sara.session_manager.load_session(session_id)
+                if not existing_session:
+                    session_title = f"Chat Session"
+                    if device_id:
+                        session_title += f" ({device_id[:8]})"
+                    session = sara.session_manager.create_session(session_title)
+                    is_new_session = True
+                    session_id = session.metadata.session_id
+                else:
+                    sara.memory = existing_session.memory
+                    if sara.conversation_handler:
+                        sara.conversation_handler.memory = sara.memory
+                    if sara.retrieval_handler:
+                        sara.retrieval_handler.memory = sara.memory
+                    if sara.query_router:
+                        sara.query_router.memory = sara.memory
+            else:
+                session_title = f"Chat Session"
+                if device_id:
+                    session_title += f" ({device_id[:8]})"
+                session = sara.session_manager.create_session(session_title)
+                is_new_session = True
+                session_id = session.metadata.session_id
+                sara.memory = session.memory
+                if sara.conversation_handler:
+                    sara.conversation_handler.memory = sara.memory
+                if sara.retrieval_handler:
+                    sara.retrieval_handler.memory = sara.memory
+                if sara.query_router:
+                    sara.query_router.memory = sara.memory
+            
+            # Send session info
+            yield f"data: {json.dumps({'type': 'session', 'session_id': session_id, 'is_new_session': is_new_session})}\n\n"
+            
+            # Process query with streaming
+            query_analysis = sara.input_processor.analyze_query(query)
+            
+            # Process all inputs transparently through the normal routing system
+            
+            # Update status to generating
+            set_processing_status(session_id, "generating")
+            yield f"data: {json.dumps({'type': 'status', 'message': 'Generating response...', 'session_id': session_id})}\n\n"
+            
+            # Route query with streaming enabled
+            response_stream, _ = sara.query_router.route_query(query_analysis, stream=True)
+            
+            full_response = ""
+            
+            # Stream the response
+            if hasattr(response_stream, '__iter__'):
+                for chunk in response_stream:
+                    if chunk:
+                        full_response += chunk
+                        yield f"data: {json.dumps({'type': 'chunk', 'content': chunk, 'session_id': session_id})}\n\n"
+            else:
+                # Fallback for non-streaming response
+                full_response = str(response_stream)
+                yield f"data: {json.dumps({'type': 'chunk', 'content': full_response, 'session_id': session_id})}\n\n"
+            
+            # Save conversation to session
+            if full_response and full_response.strip():
+                sara.session_manager.add_conversation(query, full_response.strip())
+            
+            # Send completion status
+            clear_processing_status(session_id)
+            yield f"data: {json.dumps({'type': 'complete', 'session_id': session_id, 'timestamp': datetime.now().isoformat()})}\n\n"
+            
+        except Exception as e:
+            logger.error(f"Error in streaming chat: {e}")
+            logger.error(traceback.format_exc())
+            clear_processing_status(session_id)
+            yield f"data: {json.dumps({'type': 'error', 'message': f'Error: {str(e)}', 'session_id': session_id})}\n\n"
+    
+    try:
+        data = request.get_json()
+        if not data or 'query' not in data:
+            return jsonify({"error": "Missing 'query' in request body"}), 400
+        
+        query = data['query'].strip()
+        if not query:
+            return jsonify({"error": "Query cannot be empty"}), 400
+        
+        session_id = data.get('session_id')
+        device_id = data.get('device_id')
+        
+        # Generate a session ID if not provided
+        if not session_id:
+            session_id = f"stream_{int(time.time() * 1000)}"
+        
+        return Response(
+            generate_stream(query, session_id, device_id),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'Access-Control-Allow-Origin': '*'
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error setting up streaming chat: {e}")
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
+
+@app.route("/chat/status/<session_id>", methods=["GET"])
+def chat_status(session_id):
+    """
+    Get processing status for a session.
+    
+    Returns:
+    {
+        "status": "processing|generating|idle",
+        "message": "Brewing the perfect answer...",
+        "timestamp": "2025-01-20T10:30:00",
+        "success": true
+    }
+    """
+    try:
+        status_info = get_processing_status(session_id)
+        return jsonify({
+            **status_info,
+            "success": True
+        })
+    except Exception as e:
+        logger.error(f"Error getting status for session {session_id}: {e}")
+        return jsonify({
+            "error": f"Internal server error: {str(e)}",
+            "success": False
+        }), 500
+
+
+@app.route("/chat/history/<session_id>", methods=["GET"])
+def chat_history(session_id):
+    """
+    Get conversation history for a session.
+    
+    Returns:
+    {
+        "messages": [
+            {"role": "user", "content": "Hello", "timestamp": "..."},
+            {"role": "assistant", "content": "Hi there!", "timestamp": "..."}
+        ],
+        "session_id": "abc123...",
+        "message_count": 2,
+        "success": true
+    }
+    """
+    try:
+        sara = get_sara_instance()
+        session = sara.session_manager.load_session(session_id)
+        
+        if not session:
+            return jsonify({
+                "error": f"Session {session_id} not found",
+                "success": False
+            }), 404
+        
+        # Extract messages from memory
+        messages = []
+        if hasattr(session.memory, 'chat_memory') and hasattr(session.memory.chat_memory, 'messages'):
+            for msg in session.memory.chat_memory.messages:
+                messages.append({
+                    "role": "user" if msg.type == "human" else "assistant",
+                    "content": msg.content,
+                    "timestamp": datetime.now().isoformat()  # TODO: Add actual timestamps to memory
+                })
+        
+        return jsonify({
+            "messages": messages,
+            "session_id": session_id,
+            "message_count": len(messages),
+            "success": True
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting history for session {session_id}: {e}")
         return jsonify({
             "error": f"Internal server error: {str(e)}",
             "success": False
