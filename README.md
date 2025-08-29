@@ -465,6 +465,7 @@ SARA/
 ├── Configuration and Environment
 │   ├── .env.local                          # Local development environment variables
 │   ├── .env.production                     # Production environment variables
+│   ├── configuration.md                    # System administration and model management commands
 │   ├── requirements.txt                    # Dependencies
 │   └── .gitignore                          # Version control exclusions
 │
@@ -815,6 +816,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Quick Links
 
 - 🔧 [Configuration Guide](#configuration)
+- 📋 [System Administration Commands](configuration.md) - Complete reference for system/models management
 - 🏗️ [Architecture Overview](#architecture)
 - 🤝 [Contributing Guidelines](#contributing)
 
