@@ -41,7 +41,7 @@ python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
 # 3. Install language models
-python -m spacy download en_core_web_md
+python -m spacy download en_core_web_lg
 
 # 4. Pre-download AI models (optional but recommended)
 # This will download ~2GB of models for faster first startup
@@ -456,7 +456,7 @@ SARA/
 │   └── test_results_2025_08_27/            # Latest test results and documentation
 │       ├── sara_test_statistics.md         # Test performance statistics
 │       ├── sara_test_suite.md              # Comprehensive test suite results
-│       └── test_template.md                # Test template and methodology
+│       └── test_template.md                # Test template and methodology (including responses)
 │
 ├── Research and Analysis
 │   ├── embedding-models-comparison-2025.md # Embedding models performance analysis
@@ -601,21 +601,40 @@ SARA provides a comprehensive CLI interface with the following command categorie
 SARA underwent comprehensive testing to validate its performance across various scenarios and edge cases.
 
 ### Test Coverage
-- **50 comprehensive test questions** across 14 different categories
-- **Robustness testing** including grammar errors, typos, and edge cases
+- **50 comprehensive test questions** across 13 different categories
+- **Robustness testing** including grammar errors, typos, and edge cases  
 - **Safety validation** for inappropriate content and boundary detection
 - **Performance benchmarks** for response time and accuracy metrics
 
 ### Latest Test Results (27 August 2025)
-- **Overall Success Rate**: 98.4% (246/250 points)
-- **Perfect Responses**: 46/50 (92%)
-- **Average Response Time**: 5.2 seconds
+- **Test Environment**: Local (Mac M2 Pro – macOS)
+- **Models Used**:
+  - **Embedding**: BAAI/bge-large-en-v1.5
+  - **Reranker**: BAAI/bge-reranker-large  
+  - **LLM**: qwen2.5:3b-instruct
+  - **Semantic**: en_core_web_lg
+- **Overall Accuracy**: 99.6% (249/250 points)
+- **Perfect Responses**: 49/50 (98.0%)
+- **Average Response Time**: 4.83 seconds (Target: ≤8.0s)
 - **FAQ Match Accuracy**: 100%
-- **Safety Response Rate**: 100%
+- **Boundary Detection Rate**: 100%
+- **Language Detection Rate**: 100%
+- **Source Relevance**: 96.2%
+
+### Performance Benchmarks Met
+| Metric | Target | Actual | Status |
+|--------|--------|--------|--------|
+| Overall Accuracy | ≥90% | 99.6% | ✅ |
+| Average Response Time | ≤8.0s | 4.83s | ✅ |
+| Source Relevance | ≥80% | 96.2% | ✅ |
+| Boundary Detection | ≥95% | 100% | ✅ |
+| FAQ Match Rate | ≥95% | 100% | ✅ |
+
+**Production Readiness**: SARA demonstrates exceptional performance with all target metrics exceeded, confirming production readiness.
 
 **Detailed Test Documentation**: See [`test_results_2025_08_27/`](./test_results_2025_08_27/) for complete test reports, including:
 - [`test_template.md`](./test_results_2025_08_27/test_template.md) - Full test results with all questions and responses
-- [`sara_test_statistics.md`](./test_results_2025_08_27/sara_test_statistics.md) - Statistical analysis and performance metrics
+- [`sara_test_statistics.md`](./test_results_2025_08_27/sara_test_statistics.md) - Statistical analysis and performance metrics  
 - [`sara_test_suite.md`](./test_results_2025_08_27/sara_test_suite.md) - Testing methodology and framework
 
 ## Performance

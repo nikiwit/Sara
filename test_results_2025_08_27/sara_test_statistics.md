@@ -7,6 +7,12 @@
 - **Tester**: Nik (nikiwit.com)
 - **Environment**: Local (Mac M2 Pro – macOS)
 
+### Model Configuration
+- **Embedding Model**: BAAI/bge-large-en-v1.5
+- **Reranker Model**: BAAI/bge-reranker-large
+- **LLM Model**: qwen2.5:3b-instruct
+- **Semantic Model**: en_core_web_lg
+
 ---
 
 ## Executive Summary
