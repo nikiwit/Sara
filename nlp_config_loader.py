@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Dict, List, Set
 from functools import lru_cache
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Sara")
 
 
 class ConfigLoader:

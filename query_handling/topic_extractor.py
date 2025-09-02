@@ -11,7 +11,7 @@ import spacy
 from spacy.tokens import Doc
 from config import config
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Sara")
 
 
 class SemanticTopicExtractor:
@@ -28,8 +28,10 @@ class SemanticTopicExtractor:
     def __init__(self):
         """Initialize the semantic topic extractor."""
         try:
-            # Load spaCy model - prefer larger model if available for better accuracy
-            model_names = ['en_core_web_md', 'en_core_web_sm']
+            # Load spaCy model - use configured model with fallbacks
+            primary_model = config.SEMANTIC_MODEL
+            fallback_models = ['en_core_web_md', 'en_core_web_sm']
+            model_names = [primary_model] + [m for m in fallback_models if m != primary_model]
             self.nlp = None
             
             for model_name in model_names:
@@ -64,11 +66,11 @@ class SemanticTopicExtractor:
             config_topics = config_loader.get_topic_definitions()
             definitions = {}
             
-            for topic, config in config_topics.items():
+            for topic, topic_config in config_topics.items():
                 definitions[topic] = {
-                    'keywords': config.get('keywords', []),
-                    'entities': config.get('entities', ['ORG']),
-                    'semantic_threshold': config.get('confidence_threshold', 0.6),
+                    'keywords': topic_config.get('keywords', []),
+                    'entities': topic_config.get('entities', ['ORG']),
+                    'semantic_threshold': topic_config.get('confidence_threshold', config.TOPIC_EXTRACTOR_SEMANTIC_THRESHOLD),
                     'pos_tags': ['NOUN', 'VERB']
                 }
             
@@ -110,7 +112,7 @@ class SemanticTopicExtractor:
                 import numpy as np
                 self.topic_vectors[topic] = np.mean(vectors, axis=0)
     
-    def extract_topics(self, query: str, confidence_threshold: float = 0.5) -> List[Tuple[str, float]]:
+    def extract_topics(self, query: str, confidence_threshold: float = None) -> List[Tuple[str, float]]:
         """
         Extract topics from query using advanced NLP techniques.
         
@@ -123,6 +125,9 @@ class SemanticTopicExtractor:
         """
         if not self.initialized:
             return self._fallback_extraction(query)
+        
+        if confidence_threshold is None:
+            confidence_threshold = config.CONFIDENCE_THRESHOLD
         
         try:
             # Process query with spaCy
@@ -144,7 +149,7 @@ class SemanticTopicExtractor:
             # Method 3: Named Entity Recognition boost
             entity_scores = self._calculate_entity_scores(doc)
             for topic, score in entity_scores.items():
-                topic_scores[topic] = max(topic_scores.get(topic, 0), score * 0.8)  # Entity boost
+                topic_scores[topic] = max(topic_scores.get(topic, 0), score * config.TOPIC_EXTRACTOR_ENTITY_BOOST)
             
             # Filter by confidence threshold and sort
             filtered_topics = [
@@ -168,14 +173,14 @@ class SemanticTopicExtractor:
             keyword_lemma = keyword_doc[0].lemma_.lower()
             
             if keyword_lemma in query_tokens:
-                total_score += 1.0
+                total_score += config.TOPIC_EXTRACTOR_EXACT_MATCH_SCORE
                 continue
                 
             for token in doc:
                 if (not token.is_stop and not token.is_punct and 
                     keyword_lemma in token.lemma_.lower() and 
-                    len(keyword_lemma) > 3):
-                    total_score += 0.7
+                    len(keyword_lemma) > config.TOPIC_EXTRACTOR_MIN_KEYWORD_LENGTH):
+                    total_score += config.TOPIC_EXTRACTOR_PARTIAL_MATCH_SCORE
                     break
         
         return total_score / len(definition['keywords']) if definition['keywords'] else 0.0

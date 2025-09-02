@@ -359,6 +359,13 @@ class Config:
     # APU KB specific settings
     APU_KB_ANSWER_CONTEXT_SIZE = int(os.environ.get("SARA_APU_KB_ANSWER_SIZE", "3"))
     APU_KB_EXACT_MATCH_BOOST = float(os.environ.get("SARA_APU_KB_EXACT_MATCH_BOOST", "2.0"))
+    
+    # Topic Extractor settings
+    TOPIC_EXTRACTOR_SEMANTIC_THRESHOLD = float(os.environ.get("SARA_TOPIC_SEMANTIC_THRESHOLD", "0.6"))
+    TOPIC_EXTRACTOR_EXACT_MATCH_SCORE = float(os.environ.get("SARA_TOPIC_EXACT_MATCH_SCORE", "1.0"))
+    TOPIC_EXTRACTOR_PARTIAL_MATCH_SCORE = float(os.environ.get("SARA_TOPIC_PARTIAL_MATCH_SCORE", "0.7"))
+    TOPIC_EXTRACTOR_ENTITY_BOOST = float(os.environ.get("SARA_TOPIC_ENTITY_BOOST", "0.8"))
+    TOPIC_EXTRACTOR_MIN_KEYWORD_LENGTH = int(os.environ.get("SARA_TOPIC_MIN_KEYWORD_LENGTH", "3"))
 
     @classmethod
     def setup(cls):

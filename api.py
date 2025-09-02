@@ -21,7 +21,7 @@ CORS(app)  # Enable CORS for Flutter app
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("SaraAPI")
+logger = logging.getLogger("Sara")
 
 # Constants
 PROCESSING_MESSAGES = [

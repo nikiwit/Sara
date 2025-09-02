@@ -11,7 +11,7 @@ from config import config
 # Set seed for consistent results
 DetectorFactory.seed = 0
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Sara")
 
 
 class LanguageHandler:
