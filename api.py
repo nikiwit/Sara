@@ -518,4 +518,4 @@ def clear_session(session_id):
     return standardize_response({"message": f"Session {session_id} memory cleared"})
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", debug=False, port=5000)
+    app.run(host="0.0.0.0", debug=False, port=8000)

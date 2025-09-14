@@ -68,6 +68,16 @@ class RAGSystem:
             If stream_output is True, yields tokens as they are generated
             If stream_output is False, returns the full response as a string
         """
+        if stream_output:
+            # Use the generator version for streaming
+            return RAGSystem._stream_ollama_response_generator(prompt, model_name, base_url, stream_delay)
+        else:
+            # Use the non-generator version for non-streaming
+            return RAGSystem._stream_ollama_response_full(prompt, model_name, base_url)
+    
+    @staticmethod
+    def _stream_ollama_response_generator(prompt, model_name=None, base_url=None, stream_delay=None):
+        """Generator version for streaming responses."""
         if model_name is None:
             model_name = config.LLM_MODEL_NAME
             
@@ -84,10 +94,75 @@ class RAGSystem:
             "prompt": prompt,
             "stream": True,
             "options": {
-                "num_predict": 2048,  # Allow longer responses
-                "temperature": 0.1,   # Lower temperature for more consistent responses
-                "top_p": 0.9,         # Focused but still creative responses
-                "stop": []            # Don't stop early
+                "num_predict": 2048,
+                "temperature": 0.1,
+                "top_p": 0.9,
+                "stop": []
+            }
+        }
+
+        try:
+            # Test connection to Ollama API
+            test_url = f"{base_url}/api/tags"
+            try:
+                test_response = requests.get(test_url, timeout=5)
+                if test_response.status_code != 200:
+                    error_msg = f"Error: Could not connect to Ollama API. Make sure Ollama is running."
+                    logger.error(f"Ollama API unavailable: HTTP {test_response.status_code}")
+                    yield error_msg
+                    return
+            except requests.RequestException as e:
+                error_msg = f"Error: Could not connect to Ollama API. Make sure Ollama is running and accessible."
+                logger.error(f"Failed to connect to Ollama: {e}")
+                yield error_msg
+                return
+
+            # Process the streaming response
+            with requests.post(url, headers=headers, json=data, stream=True, timeout=3600) as response:
+                if response.status_code != 200:
+                    error_msg = f"Error: Failed to generate response (HTTP {response.status_code})"
+                    logger.error(f"Ollama API error: {response.status_code}")
+                    yield error_msg
+                    return
+
+                for line in response.iter_lines():
+                    if line:
+                        try:
+                            json_line = json.loads(line.decode('utf-8'))
+                            if 'response' in json_line:
+                                token = json_line['response']
+                                yield token
+                                time.sleep(stream_delay)
+
+                            if json_line.get('done', False):
+                                break
+                        except json.JSONDecodeError:
+                            logger.error(f"Invalid JSON from Ollama API: {line}")
+        except Exception as e:
+            error_msg = f"Error: {str(e)}"
+            logger.error(f"Error during Ollama request: {e}")
+            yield error_msg
+    
+    @staticmethod
+    def _stream_ollama_response_full(prompt, model_name=None, base_url=None):
+        """Non-generator version for full responses."""
+        if model_name is None:
+            model_name = config.LLM_MODEL_NAME
+            
+        if base_url is None:
+            base_url = config.OLLAMA_BASE_URL
+            
+        url = f"{base_url}/api/generate"
+        headers = {"Content-Type": "application/json"}
+        data = {
+            "model": model_name,
+            "prompt": prompt,
+            "stream": True,
+            "options": {
+                "num_predict": 2048,
+                "temperature": 0.1,
+                "top_p": 0.9,
+                "stop": []
             }
         }
 
@@ -101,18 +176,18 @@ class RAGSystem:
                 if test_response.status_code != 200:
                     error_msg = f"Error: Could not connect to Ollama API. Make sure Ollama is running."
                     logger.error(f"Ollama API unavailable: HTTP {test_response.status_code}")
-                    return error_msg if not stream_output else iter([error_msg])
+                    return error_msg
             except requests.RequestException as e:
                 error_msg = f"Error: Could not connect to Ollama API. Make sure Ollama is running and accessible."
                 logger.error(f"Failed to connect to Ollama: {e}")
-                return error_msg if not stream_output else iter([error_msg])
+                return error_msg
 
             # Process the streaming response
             with requests.post(url, headers=headers, json=data, stream=True, timeout=3600) as response:
                 if response.status_code != 200:
                     error_msg = f"Error: Failed to generate response (HTTP {response.status_code})"
                     logger.error(f"Ollama API error: {response.status_code}")
-                    return error_msg if not stream_output else iter([error_msg])
+                    return error_msg
 
                 for line in response.iter_lines():
                     if line:
@@ -121,11 +196,6 @@ class RAGSystem:
                             if 'response' in json_line:
                                 token = json_line['response']
                                 full_response += token
-                                
-                                # If streaming, yield each token with delay
-                                if stream_output:
-                                    yield token
-                                    time.sleep(stream_delay) 
 
                             if json_line.get('done', False):
                                 break
@@ -134,8 +204,6 @@ class RAGSystem:
         except Exception as e:
             error_msg = f"Error: {str(e)}"
             logger.error(f"Error during Ollama request: {e}")
-            return error_msg if not stream_output else iter([error_msg])
+            return error_msg
         
-        # Return the full response if not streaming
-        if not stream_output:
-            return full_response
+        return full_response
