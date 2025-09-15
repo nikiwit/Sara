@@ -140,6 +140,10 @@ Remember to keep all submitted materials' original copies when required.
 Source: https://apiit.atlassian.net/wiki/spaces/AA/pages/221152223/How+do+I+submit+EC
 ```
 
+## Important Notice
+
+**LLM-Generated Responses**: SARA uses Large Language Models that may occasionally produce inaccurate information, imperfect responses or hallucinations. Always verify critical details with official APU sources, such as [knowledge base](https://apiit.atlassian.net/wiki/spaces/KB/overview?mode=global). Information current as of 13.08.2025.
+
 ## System Requirements
 
 ### Minimum Requirements
