@@ -57,7 +57,7 @@ class LanguageHandler:
             return 'en', 1.0  # High confidence for short queries
         
         # Check English whitelist for single words or very short phrases
-        if len(query.strip().split()) <= 2:
+        if len(query.strip().split()) <= 6:  # Extended to catch common problematic phrases
             query_words = {word.lower().strip('.,!?;:"()[]') for word in query.split()}
             if query_words.intersection(self.english_word_whitelist):
                 self.stats['whitelist_rescues'] += 1

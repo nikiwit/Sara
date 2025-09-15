@@ -1,5 +1,5 @@
 # Topic configuration for semantic processing
-# Externalized configuration following 2025 NLP best practices
+# Externalized configuration following NLP best practices
 
 topics:
   academic:
@@ -32,12 +32,26 @@ topics:
     entities: [FAC, LOC]
     confidence_threshold: 0.7
 
-# English language whitelist for common university terms
+# English language whitelist following industry best practices
+# based on linguistic research and production NLP systems
 english_whitelist:
-  common_terms: [help, support, please, thanks, hello, hi, good, morning, afternoon]
-  question_words: [what, where, when, why, how, who, which, can, do, will, should]
-  university_terms: [visa, library, student, course, exam, fee, payment, parking, office]
-  tech_terms: [login, password, system, email, account, profile, software]
+  # High-frequency function words (most reliable English indicators)
+  function_words: [the, and, for, are, but, not, you, all, can, had, her, was, one, our, out, is, it, in, on, at, to, of, with, from, by, have, has, been, being, will, would, could, should]
+  
+  # Question formation words (strong English syntax indicators)
+  question_words: [what, where, when, why, how, who, which, whose, whom, do, does, did, will, would, could, should, can, may, might]
+  
+  # Personal pronouns and common verbs (universal in English queries)
+  pronouns_verbs: [i, me, my, mine, myself, you, your, yours, yourself, we, us, our, ours, ourselves, they, them, their, theirs, themselves, get, make, take, give, come, go, know, think, see, want, need, find, craft, build, create, kill, harm, hurt, bomb, weapon, gun]
+  
+  # Common discourse markers and politeness terms
+  discourse_markers: [please, thanks, thank, hello, hi, help, support, sorry, excuse, yes, no, okay, ok]
+  
+  # Domain-specific terms (university context)
+  university_terms: [student, course, class, exam, grade, transcript, graduation, registration, enrollment, library, campus, office, fee, payment, visa, parking]
+  
+  # Technical terms (IT support context)
+  tech_terms: [login, password, account, email, system, software, website, online, access, profile, reset, update]
 
 # Semantic patterns for language detection (enterprise configuration-driven approach)
 semantic_patterns:

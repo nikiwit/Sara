@@ -83,6 +83,15 @@ class APIState:
 
 api_state = APIState()
 
+# Initialize Sara system at startup
+try:
+    logger.info("Pre-initializing Sara system at startup...")
+    api_state.get_sara_instance()
+    logger.info("Sara system pre-initialization completed")
+except Exception as e:
+    logger.error(f"Failed to pre-initialize Sara system: {e}")
+    # Continue anyway - will initialize on first request
+
 # Utility functions
 def validate_request_data(data, required_fields):
     """Validate request data has required fields."""
@@ -339,7 +348,7 @@ def chat_stream():
     if not query:
         return standardize_response(error="Query cannot be empty", status_code=400)
     
-    session_id = data.get('session_id', f"stream_{int(time.time() * 1000)}")
+    session_id = data.get('session_id')  # Don't auto-generate session_id
     device_id = data.get('device_id')
     
     def generate_stream():

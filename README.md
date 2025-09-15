@@ -560,6 +560,8 @@ Optimized for high-performance deployment:
 - **numpy**: Numerical computing support
 
 ### Web and API
+- **flask**: Web framework for REST API endpoints
+- **flask-cors**: Cross-Origin Resource Sharing support  
 - **requests**: HTTP requests for model updates
 - **ollama**: Local LLM inference integration
 

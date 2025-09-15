@@ -124,3 +124,8 @@ pytest-asyncio>=0.21.0  # For testing async functionality
 
 # Configuration management
 pyyaml==6.0.2
+
+# Flask web framework (required for API endpoints)
+flask==3.1.0
+flask-cors==6.0.1
+ollama==0.4.1  # Ollama Python client
