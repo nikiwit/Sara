@@ -64,7 +64,7 @@ class APIState:
             self._processing_status[session_id] = {
                 "status": status,
                 "timestamp": datetime.now().isoformat(),
-                "message": random.choice(PROCESSING_MESSAGES) if status == "processing" else status
+                "message": random.choice(PROCESSING_MESSAGES) if status in ["processing", "generating"] else status
             }
     
     def get_processing_status(self, session_id: str) -> Dict[str, Any]:
@@ -362,7 +362,7 @@ def chat_stream():
             
             query_analysis = sara.input_processor.analyze_query(query)
             api_state.set_processing_status(session_id_final, "generating")
-            yield f"data: {json.dumps({'type': 'status', 'message': 'Generating response...', 'session_id': session_id_final})}\n\n"
+            yield f"data: {json.dumps({'type': 'status', 'message': api_state.get_processing_status(session_id_final)['message'], 'session_id': session_id_final})}\n\n"
             
             response_stream, _ = sara.query_router.route_query(query_analysis, stream=True)
             full_response = ""
