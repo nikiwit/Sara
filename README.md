@@ -142,7 +142,7 @@ Source: https://apiit.atlassian.net/wiki/spaces/AA/pages/221152223/How+do+I+subm
 
 ## Important Notice
 
-**LLM-Generated Responses**: SARA uses Large Language Models that may occasionally produce inaccurate information, imperfect responses or hallucinations. Always verify critical details with official APU sources, such as [knowledge base](https://apiit.atlassian.net/wiki/spaces/KB/overview?mode=global). Information current as of 13.08.2025.
+**LLM-Generated Responses**: SARA uses Large Language Models that may occasionally produce inaccurate information, imperfect responses or hallucinations. Always verify critical details with official APU sources, such as [knowledge base](https://apiit.atlassian.net/wiki/spaces/KB/overview?mode=global). Information current as of 01.10.2025.
 
 ## System Requirements
 
@@ -388,7 +388,7 @@ SARA provides comprehensive CLI commands for system management:
 "What is the process for the visa renewal?"
 ```
 
-**Note**: SARA only answers questions based on the [APU Knowledge Base](https://apiit.atlassian.net/wiki/spaces/KB/overview?mode=global) content (last updated 13.08.2025). It cannot provide general knowledge or information outside of the university's knowledge base.
+**Note**: SARA only answers questions based on the [APU Knowledge Base](https://apiit.atlassian.net/wiki/spaces/KB/overview?mode=global) content (last updated 01.10.2025). It cannot provide general knowledge or information outside of the university's knowledge base.
 
 ## Architecture
 

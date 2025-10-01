@@ -5,7 +5,9 @@ from bs4 import BeautifulSoup
 # --- Information ---
 atlassian_domain = "apiit.atlassian.net"
 api_username = "TPexample@mail.apu.edu.my"
-api_token = "example"
+api_token = "example_api_key"
+
+# Note: get api token here: https://id.atlassian.com/manage-profile/security/api-tokens
 
 # List of space keys to scrape
 space_keys = ["ITSM", "LIB", "LNO", "VISA", "BUR", "AA", ]
@@ -15,22 +17,60 @@ confluence_url = f"https://{atlassian_domain}/wiki/rest/api"
 base_wiki_url = f"https://{atlassian_domain}/wiki"
 
 def get_all_pages_in_space(space_key):
-    """Retrieves all pages from a given Confluence space using the API."""
+    """Retrieves ALL pages from a Confluence space including child pages using CQL."""
     pages = []
+    seen_ids = set()
     start = 0
     limit = 100
+
+    print(f"🔍 Searching for pages in {space_key}...", end='', flush=True)
+
     while True:
-        url = f"{confluence_url}/space/{space_key}/content?expand=page,version&start={start}&limit={limit}"
-        response = requests.get(url, auth=(api_username, api_token))
-        response.raise_for_status()
-        data = response.json()
-        pages.extend(data.get('page', {}).get('results', []))
-        
-        # Check for more pages
-        if len(pages) >= data.get('page', {}).get('size', 0):
+        # CQL query to get ALL pages in space (including nested child pages)
+        cql = f"type=page AND space={space_key}"
+        url = f"{confluence_url}/content/search?cql={cql}&expand=version&start={start}&limit={limit}"
+
+        try:
+            response = requests.get(url, auth=(api_username, api_token), timeout=30)
+            response.raise_for_status()
+            data = response.json()
+
+            results = data.get('results', [])
+
+            # If no results, we're done
+            if not results:
+                break
+
+            # Track unique pages to avoid duplicates
+            new_pages_count = 0
+            for page in results:
+                page_id = page['id']
+                if page_id not in seen_ids:
+                    seen_ids.add(page_id)
+                    pages.append(page)
+                    new_pages_count += 1
+
+            # Progress indicator
+            print(f"\r🔍 Searching for pages in {space_key}... Found {len(pages)} pages", end='', flush=True)
+
+            # If no new pages were added, we've seen everything
+            if new_pages_count == 0:
+                break
+
+            # If we got fewer results than the limit, we're at the end
+            if len(results) < limit:
+                break
+
+            start += limit
+
+        except requests.exceptions.Timeout:
+            print(f"\n⚠️  Warning: Request timeout at {start} pages. Retrying...")
+            continue
+        except Exception as e:
+            print(f"\n❌ Error during search: {e}")
             break
-        start += limit
-    
+
+    print()  # New line after progress
     return pages
 
 def get_page_content(page_id):
@@ -91,8 +131,8 @@ def main():
 
             print(f"📄 Found {len(all_pages)} pages in {space_key}")
             
-            # Create knowledge base file for this space
-            kb_filename = os.path.join(data_dir, f"{space_key}_kb.txt")
+            # Create knowledge base file for this space with apu_ prefix
+            kb_filename = os.path.join(data_dir, f"apu_{space_key}_kb.txt")
             
             with open(kb_filename, 'w', encoding='utf-8') as f:
                 for page_idx, page in enumerate(all_pages, 1):
@@ -141,7 +181,7 @@ def main():
     
     # List created files with sizes
     for space_key in space_keys:
-        kb_file = os.path.join(data_dir, f"{space_key}_kb.txt")
+        kb_file = os.path.join(data_dir, f"apu_{space_key}_kb.txt")
         if os.path.exists(kb_file):
             size = os.path.getsize(kb_file)
             print(f"   ✓ {kb_file} ({size:,} bytes)")

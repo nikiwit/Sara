@@ -1,140 +1,534 @@
---- PAGE: Visa and Immigration ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/overview
+--- PAGE: How to Apply Student Pass/Visa Renewal ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/585990145/How+to+Apply+Student+Pass+Visa+Renewal
 
-Visa and Immigration contents are constantly being updated. Please visit the Visa and Immigration Knowledge Base to access the latest contents.
-Search this space
-Browse by topic
-true
-simple
-
---- PAGE: International Students ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221055053/International+Students
-
-true
-
---- PAGE: Overstay Penalty ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221055143/Overstay+Penalty
-
-Students are responsible to monitor the expiry of their student pass and visa. Overstaying is a
-SERIOUS
-offense in Malaysian Law.
-Immigration will impose a penalty ranging from RM 1,100.00 – RM 5,000.00 depending on the duration of the overstay.
-You may be
-BLACKLISTED
-between one (1) to five (5) years and deported back to your home country. You can be
-PROHIBITED
-to enter Malaysia for a period of time. You may even be
-IMPRISONED
-.
-University will impose administrative charges of RM 1,800.00 for the overstayed student who wishes to get the University assistance to deal with the Immigration to clear overstay.
-
---- PAGE: Passport Renewal ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221055163/Passport+Renewal
-
-Passport must have validity
-minimum eighteen (18) months.
-It is
-advisable
-for a student to renew their passport in Malaysia; otherwise, the student might face issues of re-entering Malaysia if the passport is applied outside of Malaysia especially for the student who come from countries where a visa is required to enter Malaysia.
-The
-process of getting a new passport may take a long period of time
-. In such cases, visit
+You may come to
 APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-at least 14 working days before the expiry date to apply for a student visa. Bring a copy of your old passport and a letter from your embassy / high commissioner stating that they are processing your application for a new passport.
-The previous passport would be canceled with the issuance of a new passport. The cancellation would result in the entire included visa to be canceled as well.
-In the event when a student is allowed to re-enter Malaysia, he/she will be given a
-Social Visit Pass (SVP)
-. The student will have to report back to the Immigration Department to convert the SVP to Student Pass. Journey Performed Visa Fee of RM 500.00 might be charged by Immigration.
-Submit your new passport
-to the
-APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-as soon as possible
-for the transfer endorsement process.
-
---- PAGE: FAQ’S For Student Pass (Current / Returning Students) ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221055214/FAQ+S+For+Student+Pass+Current+Returning+Students
-
-Q1 When must I renew my student pass?
-You must apply to renew your student pass
-three (3) months
-prior to the expiry of your current student pass
-Q2 For renewal of my student pass, what are the documents to be submitted to the APU International Services Office?
-The following documents are required:
-i.
-Three (3) clear sets
-of Full Passport Photocopy (all pages including blank pages and cover page) Passport must have a minimum eighteen (18) months validity.
-ii.
-Two (2)
-passport size photo (with white background) and measurement of 3.5cm x 4.5cm
-iii.
-Special Pass
-payment (RM153) if submission of renewal documents is
-done less than eight (4) weeks from the expiry date.
-Click here (https://educationmalaysia.gov.my/how-to-apply/passport-photo-guidelines.html/)
-for passport photo guidelines. In addition, the
-APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-will also include your latest attendance and academic reports.
-Q3 Do I need to submit my original passport when I apply for the renewal of the student pass?
-NOT WHEN YOU APPLY FOR THE NEW STUDENT PASS.
-You are required to submit your original passport
-ONLY
-when you are notified by the Immigration Services Office or
-4 weeks
-before your current student pass expires,
-whichever comes first
-.
-Q4 Can I travel overseas or visit Sabah/Sarawak after submitting my application for renewal?
-YES, YOU CAN
-, as long as you have your original passport with you and you complete your travel at least 4 weeks before your current student pass expires. This will allow you to submit your passport to the
-APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-within the timeline.
-Q5 What should I do if I am stopped by a police officer?
-Please stay calm and listen carefully to the police officer. Seek clarification when needed. Show your original passport, if you are asked to do so.
-If you already submitted your original passport to the
-APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-student pass application, you should produce the original copy of the EMGS Acknowledgement of Receipt – Passport.
-If the police officer request for the further proof of identity should inform him/her that you are a student APU/APIIT and contact
-Mr. Ian James, Manager Student’s Welfare at 017-2381 300.
-Q6 I need to travel overseas and/or return to my home country during the final 4 weeks of my current student pass. What should I do?
-You should immediately seek advice from the
-APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-(+603 8992 5237/38/39 or
+Level 4 and submit documentation for visa renewal. Otherwise if you are oversea, you can submit your renewal document by scanning the required documents and email it to
 visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
-).
-You will be required to provide documentary evidence to explain your circumstances.
-Q7 My current student pass is expiring in less than 8 weeks. What should I do?
-You should immediately seek advice from the
-APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-(+603 8992 5237/38/39 or
-visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
-).
-Your renewal application of student pass will be considered as a late application.
-You may be required to submit a letter of appeal along with the required documents for the renewal of the student pass.
-You may be asked to provide documentary evidence to explain your circumstances.
-If your application for the renewal of student pass is rejected by EMGS/ the immigration department of Malaysia. You may be required to take a break in your studies (intermission) and return to your home country. You will be required to apply for a new student pass if this happens.
-However, your new student pass application is subject to approval by the Malaysian Immigration.
-Q8 My current student pass has expired. What should I do?
-You should immediately seek advice from the
-APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-(+603 8992 5237/38/39 or
-visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
-).
-If you are currently in Malaysia, you have overstayed and will be subject to penalties imposed by the Immigration Department of Malaysia, which include detention and a fine.
-If you are currently outside Malaysia, do not re-enter Malaysia as a tourist via the social pass. You may be required to apply for a new student pass prior to entering Malaysia.
-Q9 Do I need to attend medical screening and X-ray when applying for a renewal of student pass?
-Effective 1 October 2014, all renewal applications will be exempted from medical screening.
-Q10 What will be the duration/validity of my renewed student pass?
-Generally, the renewed student pass will be valid for 12 months from the approval by the Immigration Department of Malaysia. However, the approved duration may vary depending on your attendance and academic record.
-Q11 How much does it cost to renew my student pass?
-Renewal Fee (Effective 2
-nd
-June 2015) as follows:
+. Please follow the guidelines to avoid errors in the application.
+HARDCOPY SUBMISSION
+Passport copy all pages
+including empty pages
+(with latest date of entry stamp)
+(3 sets).
+a. If you have 2 passport please copy new passport 3 sets copies of new passport and 2 set copies of old passport.
+b. Please ensure passport validity is more than 18 months.
+c. Maximum of 2 passport page per each A4 page.
+Passport size photograph
+with WHITE background
+(35mm x 45mm)
+(2 photos)
+Click here (https://apiit.atlassian.net/wiki/download/attachments/221087912/Passport%20Photo%20Guidelines.pdf?api=v2)
+for passport photo guidelines.
+Renewal Fee as follows:
 DURATION
 RENEWAL (A)
 RENEWAL (B)
 RENEWAL (C)
 RENEWAL (D)
-Twelve weeks or more prior to expiry.
+Twelve (12) weeks or more prior to expiry.
+(Standard Fees)
+Between eight (8) to twelve (12) weeks prior to expiry
+Between seven (7) to eight (8) weeks prior to expiry
+Less than seven (7) weeks prior to expiry but no later than six (6) weeks prior to expiry
+Seven (7) – 12 Months Renewal
+RM 1120.00
+RM 1200.00
+RM 1290.00
+RM 1460.00
+Three (3) – Six (6) Months Renewal
+RM 940.00
+RM 1020.00
+RM 1110.00
+RM 1280.00
+OR
+ONLINE SUBMISSION
+Passport (
+all pages including empty page and date of entry stamp in colour
+). Please ensure passport validity is more than 18 months.
+- Maximum of 2 passport pages per each A4 page
+Scanned each pages clearly and properly and compile in ONE PDF format
+Passport size photograph
+with WHITE background (35mm x 45mm).
+Click here (https://apiit.atlassian.net/wiki/download/attachments/221087912/Passport%20Photo%20Guidelines.pdf?api=v2)
+for passport photo guidelines.
+Please scan the photo properly and save as using JPEG format
+Once payment done please email to
+visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
+the transaction together with the document required.
+APU Bank Account Details:
+A/C Name
+ASIA PACIFIC UNIVERSITY SDN BHD
+Bank
+MALAYAN BANKING BERHAD
+Address
+Lot No. G-1 & G-2, Ground Floor,
+Support Service Building, Technology Park
+Malaysia Bukit Jalil, Kuala Lumpur, 57000, Malaysia
+Account No in USD
+714413000532 (If paying in USD)
+Account No in RM
+514413-500658 (If paying in RM)
+Swift Code
+MBBEMYKL
+A/C Name
+ASIA PACIFIC UNIVERSITY SDN BHD
+Bank
+CIMB BANK BERHAD
+Address
+28, Jalan Radin Tengah,
+Bandar Baru Seri Petaling,
+57000 Kuala Lumpur
+Account No in RM
+8602647663
+International Payment using Flywire
+apu-my.flywire.com (http://click.dingdong.apu.edu.my/CL0/http:%2F%2Fapu-my.flywire.com%2F/1/010001725bda3236-2d39afd5-44ad-4323-8e37-c56ccdff846e-000000/kiYYJYT-kkdkAFrVpivU7sMUPrWRbtht13EoHDAP9mg=143)
+The application will be processed for EMGS submission once all required documents is completely received.
+
+--- PAGE: Product requirements ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/2370929100/Product+requirements
+
+com.atlassian.confluence.plugins.confluence-software-blueprints:requirements-blueprint
+VISA
+com.atlassian.confluence.plugins.confluence-software-blueprints:requirements-blueprint
+Add Product requirements
+requirements
+requirements
+
+--- PAGE: Contact & Location ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221217877/Contact+Location
+
+APU IMMIGRATION SERVICES OFFICE
+Please provide your student TP number and full name when you contact us.
+University policy on confidentiality precludes information on an individual student being given to a third party. Staff can speak to the student only about his/her own details.
+You can reach us at:
+1
+.
+APU IMMIGRATION SERVICES OFFICE
+Location
+: APU Immigration Services Counter, Level 4 New Campus
+i. Counter Operating Hours
+Our counter operating hours as per below:-
+DAY
+OPERATING HOURS
+Monday - Friday
+10.00 a.m. - 3.00 p.m.
+Saturday/Sunday/Public Holiday
+CLOSED
+ii. Passport Collection Hours
+Our passport collection hours as per below:-
+DAY
+OPERATING HOURS
+Monday - Friday
+10.00 a.m. - 3.00 p.m.
+Saturday/Sunday/Public Holiday
+CLOSED
+iii.
+Passport Submission Hours
+Our passport submission hours as per below:-
+DAY
+OPERATING HOURS
+Monday - Thursday
+10.00 a.m. - 3.00 p.m.
+Friday
+No passport submission except special cases
+Saturday/Sunday/Public Holiday
+CLOSED
+Or
+2. EMAIL
+If you have any inquiries, kindly email us at
+visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
+Or
+3. ANY OF THE OFFICER BELOW:
+NAME
+TITLE
+CONTACT
+1
+Suhaiba Suboh
+Manager, International Student Services
+Tel: 03-8992 5235
+Email:
+suhaiba@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:suhaiba@staffemail.apu.edu.my)
+2
+Nor Suriyanti Binti Yahya
+Senior Corporate Services Executive
+Tel: 03-8992 5238
+Email:
+nor_suriyanti@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:nor_suriyanti@staffemail.apu.edu.my)
+3
+Abdul Rahman Bin Ibrahim
+Senior Administrative Executive
+Email:
+abdul.rahman@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:abdul.rahman@staffemail.apu.edu.my)
+4
+Siti Rozaifah Binti Rofiee
+Corporate Services Executive
+Tel: 03-8992 5238
+Email:
+rozaifah@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:rozaifah@staffemail.apu.edu.my)
+5
+Norzaliza Binti Malek
+Corporate Services Executive
+Tel: 03-8992 5239
+Email:
+norzaliza@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:norzaliza@staffemail.apu.edu.my)
+6
+Nurul Syazana Binti Ghazali
+Administrative Executive
+Tel: 03-899 (https://apiit.atlassian.net/wiki/wiki/#)
+2 5239
+Email:
+nurul.syazana@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:norzaliza@staffemail.apu.edu.my)
+7
+Aida Hayani Abd Halim
+Administrative Executive
+Tel: 03-8992 5237
+Email:
+aida.halim@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:aida.halim@apu.edu.my)
+
+--- PAGE: Loss of Passport ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221152738/Loss+of+Passport
+
+Students are advised to keep their passports safe with them
+all the time
+. It is even more important for them to bring the document along when traveling outside of Kuala Lumpur.
+It is understood that there is a risk of getting it lost or damaged. Should such a situation take place, please do as below:
+lodge a police report immediately. If you are unsure of what needs to be done, contact Student Services directly for assistance.
+go to your respective embassy / high commissioner office to apply for a new passport.
+once your new passport is ready, submit the original document along with the current and previous passport full photocopies and police report (if any) for transfer endorsement process to
+APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+.
+Once you obtain your new passport, please submit your new passport
+IMMEDIATELY
+to
+APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+for Transfer of Endorsement process.
+Kindly
+click here (http://kb.sites.apiit.edu.my/knowledge-base/transfer-of-endorsement/)
+for the Transfer of Endorsement requirement.
+
+--- PAGE: Transfer of Endorsement ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221152721/Transfer+of+Endorsement
+
+You need to transfer your student pass to a new passport
+immediately
+should be any one of the below takes place:
+Passport Validity Date is Expiring
+Damaged Passport
+Lost Passport
+Students can make an arrangement to transfers Student Pass to a new passport through
+APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+.
+Please submit:
+Your old passport and new passport
+One (1)
+set photocopy of new passport
+One (1)
+photocopy of old passport
+Copy of the police report from The Royal Malaysia of Police Department (PDRM) is required if
+the old passport is lost in Malaysia.
+If the applicant’s passport is
+lost at a foreign country
+, a copy of the police report that is lodged at the foreign local police station and a police report from The Royal Malaysia of Police Department (PDRM) are required
+If the applicant’s embassy has taken the old passport during the issuance of new passport, a copy of the explanation letter from the Embassy is required.
+Note:
+If you send us a document that is not in English or Bahasa Malaysia in support of your application, this document must be accompanied by a full translation into English that can be independently verified by EMGS.
+Malaysian Immigration usually takes up to 14 working days to endorse a pass transfer. A processing fee between RM 93.00 to RM 150.00 could apply, depending on your country of origin.
+It is a
+MANDATORY
+requirement from the Immigration of Malaysia for a student to cancel their old passport once they obtain a new passport.
+
+--- PAGE: For FAQ’s For Student Pass (EMGS) please visit: ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221088135/For+FAQ+s+For+Student+Pass+EMGS+please+visit
+
+https://educationmalaysia.gov.my/faq (https://educationmalaysia.gov.my/faq/)
+
+--- PAGE: Safety ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221088094/Safety
+
+It is important that the University holds-up to date and accurate records for you.
+If you change your home address, phone number, and email address or any other personal details, please ensure to inform the University immediately. This helps the University to contact you in case of any emergencies and also to convey important updates, reminders or messages on Malaysian authorities’ requirements.
+It is also
+advisable
+to update your respective Embassy / High Commission Office in allowing them to trace you in case of emergencies and to provide necessary assistance when you are in trouble.
+Be extra careful in high-risk areas, and avoid going out late at night. It is advisable to travel together in groups.
+DO NOT
+carry a large amount of money and do not flaunt your expensive belongings such as pieces of jewelry, cameras, watches, phones, and computers.
+In a real emergency encounter, the first point of contact would be the
+APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+. For security, Police or Safety Related Issues, please contact 017-238 1300 (7.00 p.m to 7.00 a.m) or 017-379 1700 (7.00 a.m to 7.00 p.m on Weekends & Public Holidays) Please save these numbers or have these numbers with you at all times.
+999
+– Malaysian
+EMERGENCY
+number for police, ambulance, fire stations, and civil defense rescue units.
+WARNING
+: Under section 233 of the
+Communications and Multimedia Act 1998 (https://www.unodc.org/res/cld/document/mys/communications_and_multimedia_act_html/Malaysia_Communications_and_Multimedia_Act_1998.pdf)
+, the penalty for misuse of the communication network is a fine of RM 50,000.00 or one year jail or both
+
+--- PAGE: General Do's And Don'ts ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221088066/General+Do+s+And+Don+ts
+
+1. GENERAL RULES AND REGULATIONS:
+i. A student must abide by Malaysian law at all times.
+ii. A student has committed a case of misconduct when
+He is found guilty of criminal charges by the court.
+He is involved in any jobs, trades, or the like, on a part-time basis, which is deemed illegal in the Immigration Ordinance 1959 and the Immigration Rules and Regulation 1963 or other laws or that which could affect his studies.
+iii. A student is to abide by all the rules and regulations that are enforced by the institution.
+iv. A student must at all times respect the culture, norms, and beliefs or the local.
+2. WORK PART TIME
+APU/APIIT student is allowed to do part-time only under several conditions:
+i.
+In 4 Sector ONLY
+– Restaurant, Petrol Kiosk, Mini Markets and Hotels (excluding singer, masseur, musician, GRO and other activities deemed immoral).
+ii. Permitted to do part-time work for a maximum of 20 hours per week during semester breaks or any holiday above seven (7) days.
+iii.
+NOT PERMITTED
+to work as a cashier.
+iv. Permission to work-part time is extendable by the Immigration Malaysia depending on the student’s attendance and academic reports.
+v. Application form students studying in Private Higher Education Institutions must be submitted by the representative institutions to the Immigration headquarters in Putrajaya.
+3. DRUGS AND POISON
+It is a
+SERIOUS OFFENCE
+if a student:
+is found to be in possession of any kind of drug and poisons;
+is found to provide, to supply, to distribute, to offer or to prepare any of the above drugs or poisons to any other parties;
+is involved in drug abuse of any kind.
+The term ‘drug’ is as defined in the
+Dangerous Drug Act 1952 (http://www.agc.gov.my/agcportal/uploads/files/Publications/LOM/EN/Act%20234.pdf)
+.
+4. WEAPONS AND DANGEROUS MATERIALS
+It is a
+SERIOUS OFFENCE
+if a student is found to be in:
+possession or in any supervision of any dangerous weapon or explosive material.
+Any weapon or dangerous material is as defined in the
+Explosive Act 1957 (http://www.moha.gov.my/images/borang/KK/MY_Explosives_Act_1957.pdf)
+,
+Arm Act 1960 (http://www.agc.gov.my/agcportal/uploads/files/Publications/LOM/EN/Act%20206%20as%20at%201_2_2017.pdf)
+, and
+Corrosive and Explosive Substances and Offensive Weapon Act 1958. (http://www.agc.gov.my/agcportal/uploads/files/Publications/LOM/MY/Act%20357.pdf)
+Please refer to any personnel at
+APU Immigration  Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+if you have any doubts about Malaysian Law.
+
+--- PAGE: Attestation of Academic Documents ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221088048/Attestation+of+Academic+Documents
+
+ANNOUNCEMENT
+The endorsement must be made at the
+Ministry of Higher Education (MOHE) (http://www.mohe.gov.my/)
+&
+Ministry of Foreign Affairs (MOFA). (http://www.kln.gov.my/)
+1. Academic Documents refers as follow:
+An academic certificate signed by Vice-Chancellor or Registrar or Both,
+Transcript
+Confirmation letter from the university
+2. There are
+two (2) ways
+to get the attestation as shown below:
+i. Student can do it by themselves;
+Student needs to request a cover letter at
+APU Immigration Student Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+as a supporting document for the Ministry of Higher Education (MOHE)
+ii. Submit all the documents at the Immigration Office with passport and visa copies and the office personnel will validate the documents for the student.
+RM 200.00 will be charged if the student requested the
+APU Immigration Student Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+to get the attestation from the Ministry of Foreign Affairs (MOFA).
+3. The documents that are required in the course of study are as follows:
+LEVEL OF EDUCATION
+LIST OF DOCUMENT NEEDED
+Foundation/Diploma/Bachelor/Master/ PhD
+I.         Original Student Confirmation Letter certified by university Registrar/Corporate Services.
+II.         A student visa is required from the date of enrolment until the date of graduation at the institution (if a representative, a student visa copy is required)
+III.         Original Academic Certificate and Transcript
+IV.         Copies of Academic Certificate and Transcript (three (3) copies)
+V.         Copy of Exit Stamp (if necessary)
+4. The process would take
+three (5 - 7 ) working days.
+
+--- PAGE: Cancellation of Student Pass ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221087990/Cancellation+of+Student+Pass
+
+All international student are required to cancel their student pass and visa when the below occurs:
+Graduate/completion of studies.
+Deferment of studies (more than 3 months)
+Withdrawal or termination from the University
+Change University / Change Program
+Change to Employment pass
+Conversion to Social Long Term Pass (This is only applicable for Yemen nationality)
+You need to provide your passport and a list of other documents to have your student pass canceled.
+Before submitting documents to the
+APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+, the student needs to do an exit application through
+http://forms.sites.apiit.edu.my/ (http://forms.sites.apiit.edu.my/)
+You need to submit:
+Original Passport
+A copy of a confirm travel ticket showing student's intended date of exit. Please note the travel ticket valid must be within 1 month.
+(leaving the country)
+A copy of the new E-VAL and Offer letter from the Institution (
+if transferring
+)
+A copy of an "Approval Letter" from the Malaysia Digital Economy Corporation (MDEC) is required if the purpose of shortening the student pass in order to apply for an employment pass.
+(if working)
+Please note the Immigration Department will not process the shortening of student pass if the letter did not indicate that the employment pass has been approved by (MDEC).
+An official letter from the Embassy is required if the purpose of shortening the student pass in order to apply "Social Long Term Pass"
+(Yemen nationality)
+payment RM 54.00 (EMGS processing fee)* The cancellation process at Malaysia Immigration can take up to 14 working days. Please seek advice from
+APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+before purchasing your flight ticket.
+Leaving Malaysia without proper canceling your student pass will result in the forfeit of your Personal Bond deposit by Immigration Malaysia and can cause consequences if the student decides to apply to another institution within Malaysia or to apply for another visa in Malaysia.
+The university
+has the right
+to hold your certificate if proper cancellation is not done properly.
+
+--- PAGE: Applying for a Dependent Pass ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221087965/Applying+for+a+Dependent+Pass
+
+Dependent pass is only applicable for Postgraduate students.
+Postgraduate students are allowed to bring in Wife/Husband (spouse) with children (below 17 years old)
+OR
+Mother
+OR
+Father
+OR
+Husband and Mother under a dependent pass.
+Married students MUST enter Malaysia as a single traveler.
+Students can apply for Dependent Pass only after student pass is issued to the student. Students can submit the application to
+APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+after the arrival of your dependent in Malaysia.
+Once you receive a Dependent Pass, you can renew it on a yearly basis after the renewal of your Student Pass.
+Undergraduate Student (Degree) will only be permitted to apply for dependent passes on behalf of their families if they are a citizen of the following countries:
+Bahrain
+United Arab Emirates (UAE)
+Turkey
+Qatar
+Azerbaijan
+Palestinian Territories
+Kuwait
+Iran
+Syria
+Yemen
+Oman
+Jordan
+Lebanon
+Iraq
+Libya
+Saudi Arabia
+Maldives
+NEW APPLICATION AND RENEWAL APPLICATION
+1. Kindly
+Click here (https://stars.educationmalaysia.gov.my/media/cms_upload/,DanaInfo=ipts.emgs.sc+Checklist_Dependant_New_v1.5.pdf)
+for the requirement to apply for
+New Application for Dependent Pass
+.
+2. New Dependent Pass Fees as follows:
+TYPE OF FEES
+PAYMENT
+Administrative Charge
+RM 300.00
+Personal Bond (refundable) a one-off payment.
+RM 1,500.00
+Stamping
+RM 10.00
+Immigration Fees
+RM 1,000.00
+TOTAL FOR NEW APPLICATION
+RM 2,810.00
+3. Kindly
+click here (https://stars.educationmalaysia.gov.my/media/cms_upload/,DanaInfo=ipts.emgs.sc+Checklist_Dependant_New_v1.5.pdf)
+for the requirement to apply for
+Renewal Application for Dependent Pass
+.
+4. Renewal Dependent Pass Fees as follows:
+TYPE OF FEES
+PAYMENT
+Administrative Charge
+RM 300.00
+Personal Bond (refundable) a one-off payment.
+RM 1,500.00
+Stamping
+RM 10.00
+Immigration Fees
+RM 300.00
+TOTAL FOR NEW APPLICATION (including Personal Bond)
+RM 2,810.00
+TOTAL FOR NEW APPLICATION (excluding Personal Bond)
+RM 610.00
+Personal Bond
+is a one-off payment. If you have made a payment during your New Dependent Pass application, you are
+not required
+to make any payment during the renewal process.
+
+--- PAGE: Student Visa / Pass ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221087912/Student+Visa+Pass
+
+OVERVIEW
+All foreign students who wish to pursue their education in Malaysia are required to apply for a Student Pass from the Department of Immigration Malaysia.
+RENEWAL OF STUDENT PASS
+It is the
+responsibility of the student
+to monitor the expiry date of their Student Pass at all times. Kindly get assistance from
+APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+to
+renew
+your student pass
+three (3) months before it expires
+.
+Overstaying is a
+SERIOUS OFFENCE
+in Malaysian Law. Immigration will impose a penalty ranging from RM1, 000 – RM5, 000 depending on the duration of your overstay.
+A
+notification
+will be sent out via email by the University
+three (3) months before
+Student Pass expires, therefore, students should be responsible to check their email regularly in this period of time.
+You must ensure that you
+have cleared all your overdue fees
+(tuition fee, re-sit fee, accommodation fee &, etc).  Any application for renewal of student pass
+may not be accepted if you have overdue fees
+. Failure to renew your student pass on time will result in deregistration of your studentship and you must leave Malaysia before the expiry of your student pass to avoid overstay.
+You should apply to extend your student pass through the
+APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+at least three (3) months before your student pass expires. You will need to submit:
+Three (3) clear sets
+of Full Passport Photocopy (all pages including blank pages and cover page)
+Passport
+must have a
+minimum eighteen (18) months validity
+.
+Two (2) passport size photo
+(with white background) and measurement of 3.5cm x 4.5cm
+Special Pass
+payment (RM154) if submission of renewal documents is
+done less than four (4) weeks from the expiry date
+.
+Click here (https://apiit.atlassian.net/wiki/download/attachments/221087912/StudentPass%20Renewal_V22020.pdf?api=v2)
+to download Student Pass Renewal Form
+Click here (https://apiit.atlassian.net/wiki/download/attachments/221087912/Passport%20Photo%20Guidelines.pdf?api=v2)
+for passport photo guidelines
+The student is strictly advised to renew their passport in Malaysia and for students who come from countries with no embassies in Malaysia, they are required to renew in advance and transfer their Student Pass onto their new passport before submitting for renewal to
+APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+.
+For your renewal of Student Pass to be approved, your attendance in class should
+not fall below 80% each semester
+and you need to achieve a
+minimum
+of
+CGPA 2.00
+as required by the Ministry of Education, Malaysia. Supporting documents such as Medical Certificate from registered clinics or written permission from the lecturer or administrator must be submitted to the administrative office for absentees. If you fail to meet any of the above requirements, your application for the renewal of student pass can be rejected and you are required to defer your studies and return to your home country.
+In order to renew your Student Pass, please also adhere to the duration of study as shown below:
+Based on your course of study; Diploma, 24 to 30 months, Foundation; 12 months, Certificate; 16 months, Bachelor; 3 to 4 years and Postgraduate; 2 to 2.5 years.
+If a student exceeds the expected duration, authorities may deny the application for extension, and students will have to leave the country.
+Failure to meet any of the requirements may result in application rejection and the student will have to leave Malaysia.
+You will pay a fee to renew your Student Pass, which includes the cost of your medical insurance premium, i-Kad and multiple entry visa (if needed).
+Renewal Fee as follows:
+DURATION
+RENEWAL (A)
+RENEWAL (B)
+RENEWAL (C)
+RENEWAL (D)
+Twelve (12) weeks or more prior to expiry.
 (Standard Fees)
 Between eight (8) to twelve weeks prior to expiry
 Between seven (7) to eight (8) weeks prior to expiry
@@ -149,47 +543,80 @@ RM 750.00
 RM 830.00
 RM 910.00
 RM 1,080.00
-Q12 My current passport is expiring soon and I need to get a new one. Do I need to apply for a new student pass?
-NO
-, you can apply for a transfer of endorsement (i.e., transferring the student pass sticker from your old passport to the new one).
-Q13 How do I monitor the status of my student pass application?
-You can log on to
-www.educationmalaysia.gov.my (http://www.educationmalaysia.gov.my)
-and select the ‘Track Application Status’ from the top right corner of the webpage.
-You should contact the
-APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-at +603 8992 5237/38/39 or
-visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
-if you need further assistance.
-Q14 What should I do if I intend to withdraw from my studies?
-Please refer to the
-Cancellation of Student Pass (http://kb.sites.apiit.edu.my/knowledge-base/cancellation-of-student-pass/)
-page.
-You should submit a request for the cancellation of your current student pass before you leave Malaysia.
-Do contact the
-APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-at +603 8992 5237/38/39 or
-visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
-if you need further assistance.
-Q15 I am completing my course this semester, do I need to do anything before I leave?
-You should refer to the
-Cancellation of the Student Pass (http://kb.sites.apiit.edu.my/knowledge-base/cancellation-of-student-pass/)
-page.
-You should submit a request for the cancellation of your current student pass before you leave Malaysia.
-Do contact the
-APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-at +603 8992 5237/38/39 or
-visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
-if you need further assistance.
-Q16 What should I do in the event I lose my passport whilst in Malaysia?
-You must lodge a report at the nearest police station within 24 hours.
-You need to apply for a new passport at the relevant Embassy or Consulate in Malaysia. You will be required to produce the police report.
-After obtaining your new passport, you can apply for a transfer of endorsement (i.e., getting a copy of your current student pass sticker onto your new passport).
-Do contact the
-APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-at +603 8992 5237/38/39 or
-visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
-if you need further assistance.
+APU Bank Account Details:
+A/C Name
+ASIA PACIFIC UNIVERSITY SDN BHD
+Bank
+MALAYAN BANKING BERHAD
+Address
+Lot No. G-1 & G-2, Ground Floor,
+Support Service Building, Technology Park
+Malaysia Bukit Jalil, Kuala Lumpur, 57000, Malaysia
+Account No in USD
+714413000532 (If paying in USD)
+Account No in RM
+514413-500658 (If paying in RM)
+Swift Code
+MBBEMYKL
+A/C Name
+ASIA PACIFIC UNIVERSITY SDN BHD
+Bank
+CIMB BANK BERHAD
+Address
+28, Jalan Radin Tengah,
+Bandar Baru Seri Petaling,
+57000 Kuala Lumpur
+Account No in RM
+8602647663
+International Payment using Flywire
+apu-my.flywire.com (http://click.dingdong.apu.edu.my/CL0/http:%2F%2Fapu-my.flywire.com%2F/1/010001725bda3236-2d39afd5-44ad-4323-8e37-c56ccdff846e-000000/kiYYJYT-kkdkAFrVpivU7sMUPrWRbtht13EoHDAP9mg=143)
+11.
+Renewal endorsement
+process normally takes around
+three (3) months
+(from the date of your passport submission to EMGS). Please
+DO NOT
+make any travel arrangement during this period until your passport is returned to you with a valid Student Pass.
+STUDENT PASS EXPIRING WHILE OUTSIDE OF MALAYSIA
+Students are strictly advised to renew or submit a renewal application before leaving the country.
+The student must return and submit a passport for visa endorsement a minimum of 14 working days prior to the expiry date.
+If a student is unable to travel back within the visa validity period, please refer to the nearest Malaysian Embassy for a single entry visa to re-enter Malaysia for visa endorsement.
+If your Student Pass has expired more than 90 days from the date of expiry, you are
+NOT ALLOWED
+to enter Malaysia.
+You must submit a new application of students to pass.
+Please
+click here (https://educationmalaysia.gov.my/how-to-apply/required-documents.html/)
+for a new application of Student Pass.
+UNDERTAKING AN INTERNSHIP
+Students are strictly advised to get their visa endorsement before leaving Malaysia.
+Students are required to
+submit a renewal application
+at least
+five (5) months
+prior to the expiry date.
+Passport can be submitted for sticker endorsement
+three (3) months
+prior to the expiry date upon request by the EMGS.
+Students are advised to find an internship placement in Malaysia should they fail to get an endorsement.
+Students will need to provide an Internship letter from APU/APIIT or Offer Letter from the internship company for the renewal process.
+Internship only for
+16 weeks
+, after finish your internship, the student
+MUST
+return back to Malaysia as soon as possible.
+DO NOT EXCEED THREE (3) MONTHS PERIOD AFTER VISA EXPIRY
+.
+IMPORTANT NOTE
+The student is required to collect their passport
+IMMEDIATELY
+upon receiving our notification via phone call or email.
+A
+PENALTY OF RM 20.00 WILL BE IMPOSED
+each day from the notification date should you fail to collect your passport from the university.
+The passport can be collected within the
+APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+operating hours.
 
 --- PAGE: Notification from Education Malaysia Global Services (EMGS) ---
 URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221055234/Notification+from+Education+Malaysia+Global+Services+EMGS
@@ -376,75 +803,90 @@ NOTIFICATION BY THE IMMIGRATION DEPARTMENT OF MALAYSIA – OVERSTAYING ON A SPEC
 For more information, please click
 HERE (https://apiit.atlassian.net/wiki/download/attachments/221087912/Notification%20by%20the%20Immigration%20Department%20of%20Malaysia%20%E2%80%93%20Overstaying%20on%20a%20Special%20Pass.pdf?api=v2)
 
---- PAGE: Student Visa / Pass ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221087912/Student+Visa+Pass
+--- PAGE: FAQ’S For Student Pass (Current / Returning Students) ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221055214/FAQ+S+For+Student+Pass+Current+Returning+Students
 
-OVERVIEW
-All foreign students who wish to pursue their education in Malaysia are required to apply for a Student Pass from the Department of Immigration Malaysia.
-RENEWAL OF STUDENT PASS
-It is the
-responsibility of the student
-to monitor the expiry date of their Student Pass at all times. Kindly get assistance from
-APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-to
-renew
-your student pass
-three (3) months before it expires
-.
-Overstaying is a
-SERIOUS OFFENCE
-in Malaysian Law. Immigration will impose a penalty ranging from RM1, 000 – RM5, 000 depending on the duration of your overstay.
-A
-notification
-will be sent out via email by the University
-three (3) months before
-Student Pass expires, therefore, students should be responsible to check their email regularly in this period of time.
-You must ensure that you
-have cleared all your overdue fees
-(tuition fee, re-sit fee, accommodation fee &, etc).  Any application for renewal of student pass
-may not be accepted if you have overdue fees
-. Failure to renew your student pass on time will result in deregistration of your studentship and you must leave Malaysia before the expiry of your student pass to avoid overstay.
-You should apply to extend your student pass through the
-APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-at least three (3) months before your student pass expires. You will need to submit:
+Q1 When must I renew my student pass?
+You must apply to renew your student pass
+three (3) months
+prior to the expiry of your current student pass
+Q2 For renewal of my student pass, what are the documents to be submitted to the APU International Services Office?
+The following documents are required:
+i.
 Three (3) clear sets
-of Full Passport Photocopy (all pages including blank pages and cover page)
-Passport
-must have a
-minimum eighteen (18) months validity
-.
-Two (2) passport size photo
-(with white background) and measurement of 3.5cm x 4.5cm
+of Full Passport Photocopy (all pages including blank pages and cover page) Passport must have a minimum eighteen (18) months validity.
+ii.
+Two (2)
+passport size photo (with white background) and measurement of 3.5cm x 4.5cm
+iii.
 Special Pass
-payment (RM154) if submission of renewal documents is
-done less than four (4) weeks from the expiry date
+payment (RM153) if submission of renewal documents is
+done less than eight (4) weeks from the expiry date.
+Click here (https://educationmalaysia.gov.my/how-to-apply/passport-photo-guidelines.html/)
+for passport photo guidelines. In addition, the
+APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+will also include your latest attendance and academic reports.
+Q3 Do I need to submit my original passport when I apply for the renewal of the student pass?
+NOT WHEN YOU APPLY FOR THE NEW STUDENT PASS.
+You are required to submit your original passport
+ONLY
+when you are notified by the Immigration Services Office or
+4 weeks
+before your current student pass expires,
+whichever comes first
 .
-Click here (https://apiit.atlassian.net/wiki/download/attachments/221087912/StudentPass%20Renewal_V22020.pdf?api=v2)
-to download Student Pass Renewal Form
-Click here (https://apiit.atlassian.net/wiki/download/attachments/221087912/Passport%20Photo%20Guidelines.pdf?api=v2)
-for passport photo guidelines
-The student is strictly advised to renew their passport in Malaysia and for students who come from countries with no embassies in Malaysia, they are required to renew in advance and transfer their Student Pass onto their new passport before submitting for renewal to
-APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-.
-For your renewal of Student Pass to be approved, your attendance in class should
-not fall below 80% each semester
-and you need to achieve a
-minimum
-of
-CGPA 2.00
-as required by the Ministry of Education, Malaysia. Supporting documents such as Medical Certificate from registered clinics or written permission from the lecturer or administrator must be submitted to the administrative office for absentees. If you fail to meet any of the above requirements, your application for the renewal of student pass can be rejected and you are required to defer your studies and return to your home country.
-In order to renew your Student Pass, please also adhere to the duration of study as shown below:
-Based on your course of study; Diploma, 24 to 30 months, Foundation; 12 months, Certificate; 16 months, Bachelor; 3 to 4 years and Postgraduate; 2 to 2.5 years.
-If a student exceeds the expected duration, authorities may deny the application for extension, and students will have to leave the country.
-Failure to meet any of the requirements may result in application rejection and the student will have to leave Malaysia.
-You will pay a fee to renew your Student Pass, which includes the cost of your medical insurance premium, i-Kad and multiple entry visa (if needed).
-Renewal Fee as follows:
+Q4 Can I travel overseas or visit Sabah/Sarawak after submitting my application for renewal?
+YES, YOU CAN
+, as long as you have your original passport with you and you complete your travel at least 4 weeks before your current student pass expires. This will allow you to submit your passport to the
+APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+within the timeline.
+Q5 What should I do if I am stopped by a police officer?
+Please stay calm and listen carefully to the police officer. Seek clarification when needed. Show your original passport, if you are asked to do so.
+If you already submitted your original passport to the
+APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+student pass application, you should produce the original copy of the EMGS Acknowledgement of Receipt – Passport.
+If the police officer request for the further proof of identity should inform him/her that you are a student APU/APIIT and contact
+Mr. Ian James, Manager Student’s Welfare at 017-2381 300.
+Q6 I need to travel overseas and/or return to my home country during the final 4 weeks of my current student pass. What should I do?
+You should immediately seek advice from the
+APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+(+603 8992 5237/38/39 or
+visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
+).
+You will be required to provide documentary evidence to explain your circumstances.
+Q7 My current student pass is expiring in less than 8 weeks. What should I do?
+You should immediately seek advice from the
+APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+(+603 8992 5237/38/39 or
+visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
+).
+Your renewal application of student pass will be considered as a late application.
+You may be required to submit a letter of appeal along with the required documents for the renewal of the student pass.
+You may be asked to provide documentary evidence to explain your circumstances.
+If your application for the renewal of student pass is rejected by EMGS/ the immigration department of Malaysia. You may be required to take a break in your studies (intermission) and return to your home country. You will be required to apply for a new student pass if this happens.
+However, your new student pass application is subject to approval by the Malaysian Immigration.
+Q8 My current student pass has expired. What should I do?
+You should immediately seek advice from the
+APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+(+603 8992 5237/38/39 or
+visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
+).
+If you are currently in Malaysia, you have overstayed and will be subject to penalties imposed by the Immigration Department of Malaysia, which include detention and a fine.
+If you are currently outside Malaysia, do not re-enter Malaysia as a tourist via the social pass. You may be required to apply for a new student pass prior to entering Malaysia.
+Q9 Do I need to attend medical screening and X-ray when applying for a renewal of student pass?
+Effective 1 October 2014, all renewal applications will be exempted from medical screening.
+Q10 What will be the duration/validity of my renewed student pass?
+Generally, the renewed student pass will be valid for 12 months from the approval by the Immigration Department of Malaysia. However, the approved duration may vary depending on your attendance and academic record.
+Q11 How much does it cost to renew my student pass?
+Renewal Fee (Effective 2
+nd
+June 2015) as follows:
 DURATION
 RENEWAL (A)
 RENEWAL (B)
 RENEWAL (C)
 RENEWAL (D)
-Twelve (12) weeks or more prior to expiry.
+Twelve weeks or more prior to expiry.
 (Standard Fees)
 Between eight (8) to twelve weeks prior to expiry
 Between seven (7) to eight (8) weeks prior to expiry
@@ -459,542 +901,98 @@ RM 750.00
 RM 830.00
 RM 910.00
 RM 1,080.00
-APU Bank Account Details:
-A/C Name
-ASIA PACIFIC UNIVERSITY SDN BHD
-Bank
-MALAYAN BANKING BERHAD
-Address
-Lot No. G-1 & G-2, Ground Floor,
-Support Service Building, Technology Park
-Malaysia Bukit Jalil, Kuala Lumpur, 57000, Malaysia
-Account No in USD
-714413000532 (If paying in USD)
-Account No in RM
-514413-500658 (If paying in RM)
-Swift Code
-MBBEMYKL
-A/C Name
-ASIA PACIFIC UNIVERSITY SDN BHD
-Bank
-CIMB BANK BERHAD
-Address
-28, Jalan Radin Tengah,
-Bandar Baru Seri Petaling,
-57000 Kuala Lumpur
-Account No in RM
-8602647663
-International Payment using Flywire
-apu-my.flywire.com (http://click.dingdong.apu.edu.my/CL0/http:%2F%2Fapu-my.flywire.com%2F/1/010001725bda3236-2d39afd5-44ad-4323-8e37-c56ccdff846e-000000/kiYYJYT-kkdkAFrVpivU7sMUPrWRbtht13EoHDAP9mg=143)
-11.
-Renewal endorsement
-process normally takes around
-three (3) months
-(from the date of your passport submission to EMGS). Please
-DO NOT
-make any travel arrangement during this period until your passport is returned to you with a valid Student Pass.
-STUDENT PASS EXPIRING WHILE OUTSIDE OF MALAYSIA
-Students are strictly advised to renew or submit a renewal application before leaving the country.
-The student must return and submit a passport for visa endorsement a minimum of 14 working days prior to the expiry date.
-If a student is unable to travel back within the visa validity period, please refer to the nearest Malaysian Embassy for a single entry visa to re-enter Malaysia for visa endorsement.
-If your Student Pass has expired more than 90 days from the date of expiry, you are
-NOT ALLOWED
-to enter Malaysia.
-You must submit a new application of students to pass.
-Please
-click here (https://educationmalaysia.gov.my/how-to-apply/required-documents.html/)
-for a new application of Student Pass.
-UNDERTAKING AN INTERNSHIP
-Students are strictly advised to get their visa endorsement before leaving Malaysia.
-Students are required to
-submit a renewal application
-at least
-five (5) months
-prior to the expiry date.
-Passport can be submitted for sticker endorsement
-three (3) months
-prior to the expiry date upon request by the EMGS.
-Students are advised to find an internship placement in Malaysia should they fail to get an endorsement.
-Students will need to provide an Internship letter from APU/APIIT or Offer Letter from the internship company for the renewal process.
-Internship only for
-16 weeks
-, after finish your internship, the student
-MUST
-return back to Malaysia as soon as possible.
-DO NOT EXCEED THREE (3) MONTHS PERIOD AFTER VISA EXPIRY
-.
-IMPORTANT NOTE
-The student is required to collect their passport
-IMMEDIATELY
-upon receiving our notification via phone call or email.
-A
-PENALTY OF RM 20.00 WILL BE IMPOSED
-each day from the notification date should you fail to collect your passport from the university.
-The passport can be collected within the
-APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-operating hours.
+Q12 My current passport is expiring soon and I need to get a new one. Do I need to apply for a new student pass?
+NO
+, you can apply for a transfer of endorsement (i.e., transferring the student pass sticker from your old passport to the new one).
+Q13 How do I monitor the status of my student pass application?
+You can log on to
+www.educationmalaysia.gov.my (http://www.educationmalaysia.gov.my)
+and select the ‘Track Application Status’ from the top right corner of the webpage.
+You should contact the
+APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+at +603 8992 5237/38/39 or
+visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
+if you need further assistance.
+Q14 What should I do if I intend to withdraw from my studies?
+Please refer to the
+Cancellation of Student Pass (http://kb.sites.apiit.edu.my/knowledge-base/cancellation-of-student-pass/)
+page.
+You should submit a request for the cancellation of your current student pass before you leave Malaysia.
+Do contact the
+APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+at +603 8992 5237/38/39 or
+visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
+if you need further assistance.
+Q15 I am completing my course this semester, do I need to do anything before I leave?
+You should refer to the
+Cancellation of the Student Pass (http://kb.sites.apiit.edu.my/knowledge-base/cancellation-of-student-pass/)
+page.
+You should submit a request for the cancellation of your current student pass before you leave Malaysia.
+Do contact the
+APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+at +603 8992 5237/38/39 or
+visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
+if you need further assistance.
+Q16 What should I do in the event I lose my passport whilst in Malaysia?
+You must lodge a report at the nearest police station within 24 hours.
+You need to apply for a new passport at the relevant Embassy or Consulate in Malaysia. You will be required to produce the police report.
+After obtaining your new passport, you can apply for a transfer of endorsement (i.e., getting a copy of your current student pass sticker onto your new passport).
+Do contact the
+APU International Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+at +603 8992 5237/38/39 or
+visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
+if you need further assistance.
 
---- PAGE: Applying for a Dependent Pass ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221087965/Applying+for+a+Dependent+Pass
+--- PAGE: Passport Renewal ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221055163/Passport+Renewal
 
-Dependent pass is only applicable for Postgraduate students.
-Postgraduate students are allowed to bring in Wife/Husband (spouse) with children (below 17 years old)
-OR
-Mother
-OR
-Father
-OR
-Husband and Mother under a dependent pass.
-Married students MUST enter Malaysia as a single traveler.
-Students can apply for Dependent Pass only after student pass is issued to the student. Students can submit the application to
-APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-after the arrival of your dependent in Malaysia.
-Once you receive a Dependent Pass, you can renew it on a yearly basis after the renewal of your Student Pass.
-Undergraduate Student (Degree) will only be permitted to apply for dependent passes on behalf of their families if they are a citizen of the following countries:
-Bahrain
-United Arab Emirates (UAE)
-Turkey
-Qatar
-Azerbaijan
-Palestinian Territories
-Kuwait
-Iran
-Syria
-Yemen
-Oman
-Jordan
-Lebanon
-Iraq
-Libya
-Saudi Arabia
-Maldives
-NEW APPLICATION AND RENEWAL APPLICATION
-1. Kindly
-Click here (https://stars.educationmalaysia.gov.my/media/cms_upload/,DanaInfo=ipts.emgs.sc+Checklist_Dependant_New_v1.5.pdf)
-for the requirement to apply for
-New Application for Dependent Pass
-.
-2. New Dependent Pass Fees as follows:
-TYPE OF FEES
-PAYMENT
-Administrative Charge
-RM 300.00
-Personal Bond (refundable) a one-off payment.
-RM 1,500.00
-Stamping
-RM 10.00
-Immigration Fees
-RM 1,000.00
-TOTAL FOR NEW APPLICATION
-RM 2,810.00
-3. Kindly
-click here (https://stars.educationmalaysia.gov.my/media/cms_upload/,DanaInfo=ipts.emgs.sc+Checklist_Dependant_New_v1.5.pdf)
-for the requirement to apply for
-Renewal Application for Dependent Pass
-.
-4. Renewal Dependent Pass Fees as follows:
-TYPE OF FEES
-PAYMENT
-Administrative Charge
-RM 300.00
-Personal Bond (refundable) a one-off payment.
-RM 1,500.00
-Stamping
-RM 10.00
-Immigration Fees
-RM 300.00
-TOTAL FOR NEW APPLICATION (including Personal Bond)
-RM 2,810.00
-TOTAL FOR NEW APPLICATION (excluding Personal Bond)
-RM 610.00
-Personal Bond
-is a one-off payment. If you have made a payment during your New Dependent Pass application, you are
-not required
-to make any payment during the renewal process.
-
---- PAGE: Cancellation of Student Pass ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221087990/Cancellation+of+Student+Pass
-
-All international student are required to cancel their student pass and visa when the below occurs:
-Graduate/completion of studies.
-Deferment of studies (more than 3 months)
-Withdrawal or termination from the University
-Change University / Change Program
-Change to Employment pass
-Conversion to Social Long Term Pass (This is only applicable for Yemen nationality)
-You need to provide your passport and a list of other documents to have your student pass canceled.
-Before submitting documents to the
-APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-, the student needs to do an exit application through
-http://forms.sites.apiit.edu.my/ (http://forms.sites.apiit.edu.my/)
-You need to submit:
-Original Passport
-A copy of a confirm travel ticket showing student's intended date of exit. Please note the travel ticket valid must be within 1 month.
-(leaving the country)
-A copy of the new E-VAL and Offer letter from the Institution (
-if transferring
-)
-A copy of an "Approval Letter" from the Malaysia Digital Economy Corporation (MDEC) is required if the purpose of shortening the student pass in order to apply for an employment pass.
-(if working)
-Please note the Immigration Department will not process the shortening of student pass if the letter did not indicate that the employment pass has been approved by (MDEC).
-An official letter from the Embassy is required if the purpose of shortening the student pass in order to apply "Social Long Term Pass"
-(Yemen nationality)
-payment RM 54.00 (EMGS processing fee)* The cancellation process at Malaysia Immigration can take up to 14 working days. Please seek advice from
-APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-before purchasing your flight ticket.
-Leaving Malaysia without proper canceling your student pass will result in the forfeit of your Personal Bond deposit by Immigration Malaysia and can cause consequences if the student decides to apply to another institution within Malaysia or to apply for another visa in Malaysia.
-The university
-has the right
-to hold your certificate if proper cancellation is not done properly.
-
---- PAGE: Attestation of Academic Documents ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221088048/Attestation+of+Academic+Documents
-
-The endorsement must be made at the
-Ministry of Higher Education (MOHE) (http://www.mohe.gov.my/)
-&
-Ministry of Foreign Affairs (MOFA). (http://www.kln.gov.my/)
-1. Academic Documents refers as follow:
-An academic certificate signed by Vice-Chancellor or Registrar or Both,
-Transcript
-Confirmation letter from the university
-Offer Letter
-2. There are
-two (2) ways
-to get the attestation as shown below:
-i. Student can do it by themselves;
-Student needs to request a cover letter at
-APU Immigration Student Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-as a supporting document for the Ministry of Higher Education (MOHE)
-Click here (https://dif7uuh3zqcps.cloudfront.net/wp-content/uploads/sites/24/2019/03/04093405/7-0-Application-Form-of-Academic-Document-Attestation.pdf)
-to download the Application Form of Academic Document Attestation and complete the form before validating it at the Ministry office.
-ii. Submit all the documents at the Immigration Office with passport and visa (both copy and original) and the office personnel will validate the documents for the student.
-RM 200.00 will be charged if the student requested the
-APU Immigration Student Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-to get the attestation from the Ministry of Foreign Affairs (MOFA).
-3. The documents that are required in the course of study are as follows:
-LEVEL OF EDUCATION
-LIST OF DOCUMENT NEEDED
-Foundation/Diploma/Bachelor/Master/ PhD
-I.         Original Student Confirmation Letter certified by university Registrar/Corporate Services.
-II.         A student visa is required from the date of enrolment until the date of graduation at the institution (if a representative, a student visa copy is required)
-III.         Original Academic Certificate and Transcript
-IV.         Copies of Academic Certificate and Transcript (three (3) copies)
-V.         or Military form (depend on certain countries)
-4. The process would take
-three (3) working days.
-
---- PAGE: General Do's And Don'ts ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221088066/General+Do+s+And+Don+ts
-
-1. GENERAL RULES AND REGULATIONS:
-i. A student must abide by Malaysian law at all times.
-ii. A student has committed a case of misconduct when
-He is found guilty of criminal charges by the court.
-He is involved in any jobs, trades, or the like, on a part-time basis, which is deemed illegal in the Immigration Ordinance 1959 and the Immigration Rules and Regulation 1963 or other laws or that which could affect his studies.
-iii. A student is to abide by all the rules and regulations that are enforced by the institution.
-iv. A student must at all times respect the culture, norms, and beliefs or the local.
-2. WORK PART TIME
-APU/APIIT student is allowed to do part-time only under several conditions:
-i.
-In 4 Sector ONLY
-– Restaurant, Petrol Kiosk, Mini Markets and Hotels (excluding singer, masseur, musician, GRO and other activities deemed immoral).
-ii. Permitted to do part-time work for a maximum of 20 hours per week during semester breaks or any holiday above seven (7) days.
-iii.
-NOT PERMITTED
-to work as a cashier.
-iv. Permission to work-part time is extendable by the Immigration Malaysia depending on the student’s attendance and academic reports.
-v. Application form students studying in Private Higher Education Institutions must be submitted by the representative institutions to the Immigration headquarters in Putrajaya.
-3. DRUGS AND POISON
-It is a
-SERIOUS OFFENCE
-if a student:
-is found to be in possession of any kind of drug and poisons;
-is found to provide, to supply, to distribute, to offer or to prepare any of the above drugs or poisons to any other parties;
-is involved in drug abuse of any kind.
-The term ‘drug’ is as defined in the
-Dangerous Drug Act 1952 (http://www.agc.gov.my/agcportal/uploads/files/Publications/LOM/EN/Act%20234.pdf)
-.
-4. WEAPONS AND DANGEROUS MATERIALS
-It is a
-SERIOUS OFFENCE
-if a student is found to be in:
-possession or in any supervision of any dangerous weapon or explosive material.
-Any weapon or dangerous material is as defined in the
-Explosive Act 1957 (http://www.moha.gov.my/images/borang/KK/MY_Explosives_Act_1957.pdf)
-,
-Arm Act 1960 (http://www.agc.gov.my/agcportal/uploads/files/Publications/LOM/EN/Act%20206%20as%20at%201_2_2017.pdf)
-, and
-Corrosive and Explosive Substances and Offensive Weapon Act 1958. (http://www.agc.gov.my/agcportal/uploads/files/Publications/LOM/MY/Act%20357.pdf)
-Please refer to any personnel at
-APU Immigration  Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-if you have any doubts about Malaysian Law.
-
---- PAGE: Safety ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221088094/Safety
-
-It is important that the University holds-up to date and accurate records for you.
-If you change your home address, phone number, and email address or any other personal details, please ensure to inform the University immediately. This helps the University to contact you in case of any emergencies and also to convey important updates, reminders or messages on Malaysian authorities’ requirements.
-It is also
+Passport must have validity
+minimum eighteen (18) months.
+It is
 advisable
-to update your respective Embassy / High Commission Office in allowing them to trace you in case of emergencies and to provide necessary assistance when you are in trouble.
-Be extra careful in high-risk areas, and avoid going out late at night. It is advisable to travel together in groups.
-DO NOT
-carry a large amount of money and do not flaunt your expensive belongings such as pieces of jewelry, cameras, watches, phones, and computers.
-In a real emergency encounter, the first point of contact would be the
+for a student to renew their passport in Malaysia; otherwise, the student might face issues of re-entering Malaysia if the passport is applied outside of Malaysia especially for the student who come from countries where a visa is required to enter Malaysia.
+The
+process of getting a new passport may take a long period of time
+. In such cases, visit
 APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-. For security, Police or Safety Related Issues, please contact 017-238 1300 (7.00 p.m to 7.00 a.m) or 017-379 1700 (7.00 a.m to 7.00 p.m on Weekends & Public Holidays) Please save these numbers or have these numbers with you at all times.
-999
-– Malaysian
-EMERGENCY
-number for police, ambulance, fire stations, and civil defense rescue units.
-WARNING
-: Under section 233 of the
-Communications and Multimedia Act 1998 (https://www.unodc.org/res/cld/document/mys/communications_and_multimedia_act_html/Malaysia_Communications_and_Multimedia_Act_1998.pdf)
-, the penalty for misuse of the communication network is a fine of RM 50,000.00 or one year jail or both
-
---- PAGE: For FAQ’s For Student Pass (EMGS) please visit: ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221088135/For+FAQ+s+For+Student+Pass+EMGS+please+visit
-
-https://educationmalaysia.gov.my/faq (https://educationmalaysia.gov.my/faq/)
-
---- PAGE: Transfer of Endorsement ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221152721/Transfer+of+Endorsement
-
-You need to transfer your student pass to a new passport
-immediately
-should be any one of the below takes place:
-Passport Validity Date is Expiring
-Damaged Passport
-Lost Passport
-Students can make an arrangement to transfers Student Pass to a new passport through
+at least 14 working days before the expiry date to apply for a student visa. Bring a copy of your old passport and a letter from your embassy / high commissioner stating that they are processing your application for a new passport.
+The previous passport would be canceled with the issuance of a new passport. The cancellation would result in the entire included visa to be canceled as well.
+In the event when a student is allowed to re-enter Malaysia, he/she will be given a
+Social Visit Pass (SVP)
+. The student will have to report back to the Immigration Department to convert the SVP to Student Pass. Journey Performed Visa Fee of RM 500.00 might be charged by Immigration.
+Submit your new passport
+to the
 APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
+as soon as possible
+for the transfer endorsement process.
+
+--- PAGE: Overstay Penalty ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221055143/Overstay+Penalty
+
+Students are responsible to monitor the expiry of their student pass and visa. Overstaying is a
+SERIOUS
+offense in Malaysian Law.
+Immigration will impose a penalty ranging from RM 1,100.00 – RM 5,000.00 depending on the duration of the overstay.
+You may be
+BLACKLISTED
+between one (1) to five (5) years and deported back to your home country. You can be
+PROHIBITED
+to enter Malaysia for a period of time. You may even be
+IMPRISONED
 .
-Please submit:
-Your old passport and new passport
-One (1)
-set photocopy of new passport
-One (1)
-photocopy of old passport
-Copy of the police report from The Royal Malaysia of Police Department (PDRM) is required if
-the old passport is lost in Malaysia.
-If the applicant’s passport is
-lost at a foreign country
-, a copy of the police report that is lodged at the foreign local police station and a police report from The Royal Malaysia of Police Department (PDRM) are required
-If the applicant’s embassy has taken the old passport during the issuance of new passport, a copy of the explanation letter from the Embassy is required.
-Note:
-If you send us a document that is not in English or Bahasa Malaysia in support of your application, this document must be accompanied by a full translation into English that can be independently verified by EMGS.
-Malaysian Immigration usually takes up to 14 working days to endorse a pass transfer. A processing fee between RM 93.00 to RM 150.00 could apply, depending on your country of origin.
-It is a
-MANDATORY
-requirement from the Immigration of Malaysia for a student to cancel their old passport once they obtain a new passport.
+University will impose administrative charges of RM 1,800.00 for the overstayed student who wishes to get the University assistance to deal with the Immigration to clear overstay.
 
---- PAGE: Loss of Passport ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221152738/Loss+of+Passport
+--- PAGE: International Students ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221055053/International+Students
 
-Students are advised to keep their passports safe with them
-all the time
-. It is even more important for them to bring the document along when traveling outside of Kuala Lumpur.
-It is understood that there is a risk of getting it lost or damaged. Should such a situation take place, please do as below:
-lodge a police report immediately. If you are unsure of what needs to be done, contact Student Services directly for assistance.
-go to your respective embassy / high commissioner office to apply for a new passport.
-once your new passport is ready, submit the original document along with the current and previous passport full photocopies and police report (if any) for transfer endorsement process to
-APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-.
-Once you obtain your new passport, please submit your new passport
-IMMEDIATELY
-to
-APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-for Transfer of Endorsement process.
-Kindly
-click here (http://kb.sites.apiit.edu.my/knowledge-base/transfer-of-endorsement/)
-for the Transfer of Endorsement requirement.
+true
 
---- PAGE: Contact & Location ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/221217877/Contact+Location
+--- PAGE: Visa and Immigration ---
+URL: https://apiit.atlassian.net/wiki/spaces/VISA/overview
 
-APU IMMIGRATION SERVICES OFFICE
-Please provide your student TP number and full name when you contact us.
-University policy on confidentiality precludes information on an individual student being given to a third party. Staff can speak to the student only about his/her own details.
-You can reach us at:
-1
-.
-APU IMMIGRATION SERVICES OFFICE
-Location
-: APU Immigration Services Counter, Level 4 New Campus
-i. Counter Operating Hours
-Our counter operating hours as per below:-
-DAY
-OPERATING HOURS
-Monday - Friday
-10.00 a.m. - 3.00 p.m.
-Saturday/Sunday/Public Holiday
-CLOSED
-ii. Passport Collection Hours
-Our passport collection hours as per below:-
-DAY
-OPERATING HOURS
-Monday - Friday
-10.00 a.m. - 3.00 p.m.
-Saturday/Sunday/Public Holiday
-CLOSED
-iii.
-Passport Submission Hours
-Our passport submission hours as per below:-
-DAY
-OPERATING HOURS
-Monday - Thursday
-10.00 a.m. - 3.00 p.m.
-Friday
-No passport submission except special cases
-Saturday/Sunday/Public Holiday
-CLOSED
-Or
-2. EMAIL
-If you have any inquiries, kindly email us at
-visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
-Or
-3. ANY OF THE OFFICER BELOW:
-NAME
-TITLE
-CONTACT
-1
-Suhaiba Suboh
-Manager, International Student Services
-Tel: 03-8992 5235
-Email:
-suhaiba@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:suhaiba@staffemail.apu.edu.my)
-2
-Nor Suriyanti Binti Yahya
-Senior Corporate Services Executive
-Tel: 03-8992 5238
-Email:
-nor_suriyanti@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:nor_suriyanti@staffemail.apu.edu.my)
-3
-Abdul Rahman Bin Ibrahim
-Senior Administrative Executive
-Email:
-abdul.rahman@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:abdul.rahman@staffemail.apu.edu.my)
-4
-Siti Rozaifah Binti Rofiee
-Corporate Services Executive
-Tel: 03-8992 5238
-Email:
-rozaifah@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:rozaifah@staffemail.apu.edu.my)
-5
-Norzaliza Binti Malek
-Corporate Services Executive
-Tel: 03-8992 5239
-Email:
-norzaliza@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:norzaliza@staffemail.apu.edu.my)
-6
-Nurul Syazana Binti Ghazali
-Administrative Executive
-Tel: 03-899 (https://apiit.atlassian.net/wiki/wiki/#)
-2 5239
-Email:
-nurul.syazana@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:norzaliza@staffemail.apu.edu.my)
-7
-Aida Hayani Abd Halim
-Administrative Executive
-Tel: 03-8992 5237
-Email:
-aida.halim@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:aida.halim@apu.edu.my)
-
---- PAGE: How to Apply Student Pass/Visa Renewal ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/585990145/How+to+Apply+Student+Pass+Visa+Renewal
-
-You may come to
-APU Immigration Services Office (http://kb.sites.apiit.edu.my/knowledge-base/immigration-student-services-office/)
-Level 4 and submit documentation for visa renewal. Otherwise if you are oversea, you can submit your renewal document by scanning the required documents and email it to
-visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
-. Please follow the guidelines to avoid errors in the application.
-HARDCOPY SUBMISSION
-Passport copy all pages
-including empty pages
-(with latest date of entry stamp)
-(3 sets).
-a. If you have 2 passport please copy new passport 3 sets copies of new passport and 2 set copies of old passport.
-b. Please ensure passport validity is more than 18 months.
-c. Maximum of 2 passport page per each A4 page.
-Passport size photograph
-with WHITE background
-(35mm x 45mm)
-(2 photos)
-Click here (https://apiit.atlassian.net/wiki/download/attachments/221087912/Passport%20Photo%20Guidelines.pdf?api=v2)
-for passport photo guidelines.
-Renewal Fee as follows:
-DURATION
-RENEWAL (A)
-RENEWAL (B)
-RENEWAL (C)
-RENEWAL (D)
-Twelve (12) weeks or more prior to expiry.
-(Standard Fees)
-Between eight (8) to twelve (12) weeks prior to expiry
-Between seven (7) to eight (8) weeks prior to expiry
-Less than seven (7) weeks prior to expiry but no later than six (6) weeks prior to expiry
-Seven (7) – 12 Months Renewal
-RM 1120.00
-RM 1200.00
-RM 1290.00
-RM 1460.00
-Three (3) – Six (6) Months Renewal
-RM 940.00
-RM 1020.00
-RM 1110.00
-RM 1280.00
-OR
-ONLINE SUBMISSION
-Passport (
-all pages including empty page and date of entry stamp in colour
-). Please ensure passport validity is more than 18 months.
-- Maximum of 2 passport pages per each A4 page
-Scanned each pages clearly and properly and compile in ONE PDF format
-Passport size photograph
-with WHITE background (35mm x 45mm).
-Click here (https://apiit.atlassian.net/wiki/download/attachments/221087912/Passport%20Photo%20Guidelines.pdf?api=v2)
-for passport photo guidelines.
-Please scan the photo properly and save as using JPEG format
-Once payment done please email to
-visa@apu.edu.my (https://apiit.atlassian.net/wiki/wiki/mailto:visa@apu.edu.my)
-the transaction together with the document required.
-APU Bank Account Details:
-A/C Name
-ASIA PACIFIC UNIVERSITY SDN BHD
-Bank
-MALAYAN BANKING BERHAD
-Address
-Lot No. G-1 & G-2, Ground Floor,
-Support Service Building, Technology Park
-Malaysia Bukit Jalil, Kuala Lumpur, 57000, Malaysia
-Account No in USD
-714413000532 (If paying in USD)
-Account No in RM
-514413-500658 (If paying in RM)
-Swift Code
-MBBEMYKL
-A/C Name
-ASIA PACIFIC UNIVERSITY SDN BHD
-Bank
-CIMB BANK BERHAD
-Address
-28, Jalan Radin Tengah,
-Bandar Baru Seri Petaling,
-57000 Kuala Lumpur
-Account No in RM
-8602647663
-International Payment using Flywire
-apu-my.flywire.com (http://click.dingdong.apu.edu.my/CL0/http:%2F%2Fapu-my.flywire.com%2F/1/010001725bda3236-2d39afd5-44ad-4323-8e37-c56ccdff846e-000000/kiYYJYT-kkdkAFrVpivU7sMUPrWRbtht13EoHDAP9mg=143)
-The application will be processed for EMGS submission once all required documents is completely received.
-
---- PAGE: Product requirements ---
-URL: https://apiit.atlassian.net/wiki/spaces/VISA/pages/2370929100/Product+requirements
-
-com.atlassian.confluence.plugins.confluence-software-blueprints:requirements-blueprint
-VISA
-com.atlassian.confluence.plugins.confluence-software-blueprints:requirements-blueprint
-Add Product requirements
-requirements
-requirements
+Visa and Immigration contents are constantly being updated. Please visit the Visa and Immigration Knowledge Base to access the latest contents.
+Search this space
+Browse by topic
+true
+simple
 
