@@ -24,6 +24,8 @@ SARA is a production-ready AI assistant designed specifically for academic envir
 - [Contributing](#contributing)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
+- [Authors](#authors)
+- [Acknowledgments](#acknowledgments)
 
 ## Quick Start
 
