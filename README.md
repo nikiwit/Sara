@@ -849,6 +849,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Original Author:**
 - **Nik** - [nikiwit.com](https://nikiwit.com/) - *Project Creator and Lead Developer*
 
+## Acknowledgments
+
+This project received formal recognition from **Prof. Ir. Eur. Ing. Ts. Dr. Vinesh Thiruchelvam**, Chief Innovation & Enterprise Officer at Asia Pacific University of Technology and Innovation (APU). The [commendation letter](https://github.com/nikiwit/Certifications/blob/main/certificates_and_badges/AP%20SARA%20Commendation%20Letter.pdf) acknowledges the successful completion and handover of AP SARA to the CTI Department, recognizing its value and innovation in developing this student-focused intelligent assistance system.
+
 ### Quick Links
 
 - 🔧 [Configuration Guide](#configuration)
